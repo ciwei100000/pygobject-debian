@@ -1,3 +1,10 @@
+pygobject (2.14.2-2) stable; urgency=low
+
+  * 10_pygtk_tabs.patch: new patch. Backport tabulation fixes from 2.16. 
+    Closes: #527241.
+
+ -- Josselin Mouette <joss@debian.org>  Wed, 06 May 2009 13:17:36 +0200
+
 pygobject (2.14.2-1) unstable; urgency=low
 
   * Switch to quilt; build-depend on quilt.

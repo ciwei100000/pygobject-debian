@@ -1,0 +1,24 @@
+Index: pygobject-2.14.2/pygtk.py
+===================================================================
+--- pygobject-2.14.2.orig/pygtk.py	2009-05-06 13:18:56.029841795 +0200
++++ pygobject-2.14.2/pygtk.py	2009-05-06 13:19:02.433339561 +0200
+@@ -38,7 +38,7 @@ def _get_available_versions():
+     versions = {}
+     for dir in sys.path:
+         if not dir: 
+-  	    dir = os.getcwd()
++            dir = os.getcwd()
+             
+         if not os.path.isdir(dir):
+             continue
+@@ -58,8 +58,8 @@ def _get_available_versions():
+             if not os.listdir(pathname):
+                 continue
+             
+-	    if not versions.has_key(filename[-3:]):
+-            	versions[filename[-3:]] = pathname
++            if not versions.has_key(filename[-3:]):
++                versions[filename[-3:]] = pathname
+     return versions
+ 
+ def require20():
