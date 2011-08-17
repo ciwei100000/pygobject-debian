@@ -7,7 +7,7 @@ Source: pygobject
 Section: python
 Priority: optional
 Maintainer: Josselin Mouette <joss@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Laurent Bigonville <bigon@debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Laurent Bigonville <bigon@debian.org>
 Build-Depends: debhelper (>= 7),
                gnome-pkg-tools (>= 0.10),
                dh-autoreconf,
@@ -36,8 +36,8 @@ Build-Depends: debhelper (>= 7),
                gir1.2-freedesktop
 X-Python-Version: >= 2.5
 Standards-Version: 3.9.2
-Vcs-Svn: svn://svn.debian.org/svn/pkg-gnome/desktop/unstable/pygobject
-Vcs-Browser: http://svn.debian.org/viewsvn/pkg-gnome/desktop/unstable/pygobject
+Vcs-Svn: svn://svn.debian.org/svn/pkg-gnome/desktop/experimental/pygobject
+Vcs-Browser: http://svn.debian.org/viewsvn/pkg-gnome/desktop/experimental/pygobject
 
 Package: python-gobject
 Architecture: any
