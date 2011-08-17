@@ -29,6 +29,7 @@ pygobject (2.90.1-1) UNRELEASED; urgency=low
    * debian/control.in, debian/rules: Drop python-gobject-dev package. It's
      not relevant any more for this version, and now built from the
      pygobject-2 source package.
+  * debian/rules: Bump shlibs.
 
  -- Martin Pitt <mpitt@debian.org>  Wed, 17 Aug 2011 09:53:22 +0200
 
