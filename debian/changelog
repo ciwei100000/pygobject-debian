@@ -1,8 +1,36 @@
-pygobject (2.28.6-5) UNRELEASED; urgency=low
+pygobject (2.90.1-1) UNRELEASED; urgency=low
 
   * debian/control.in: Update Vcs-* for experimental branch.
+  * New upstream release:
+    - New rewritten invoker is twice as fast and easier to extend and debug
+    - Complete break from static bindings so we may improve the core without
+      breaking legacy APIs
+    - Better type handling
+    - Parallel installable with PyGObject 2.28 for legacy binding support
+      (2.28 must be compiled with –disable-introspection)
+    - Fixed object array handling
+    - Added more overrides for PyGTK API emulation
+    - Support for function calling using keyword arguments
+    - GObject and GLib symbols can now have overrides
+    - All static bit removed or made private
+    - GVariants now work from callback returns
+    - Note that this now enforces a consistent move to the GI bindings. I. e.
+      you need to change all "import gobject" statements into "from
+      gi.repository import GObject", same for glib.
+   * Drop debian/patches/00git_*.patch, all upstream.
+   * Drop 20_deprecated_spam.patch, obsolete.
+   * debian/control.in: The static bindings (glib, gobject, pygtk, gtk, etc.)
+     are deprecated and are now shipped in the separate packages
+     python-gobject-2{,-dbg}. Add a dependency to these for the time being to
+     not break backwards compatibility. Once all packages have been ported to
+     use the GI bindings, this dependency and pygobject-2 will be dropped.
+   * debian/control.in: Update package descriptions to point out that this is
+     now GI only.
+   * debian/control.in, debian/rules: Drop python-gobject-dev package. It's
+     not relevant any more for this version, and now built from the
+     pygobject-2 source package.
 
- -- Martin Pitt <mpitt@debian.org>  Wed, 17 Aug 2011 10:04:21 +0200
+ -- Martin Pitt <mpitt@debian.org>  Wed, 17 Aug 2011 09:53:22 +0200
 
 pygobject (2.28.6-4) unstable; urgency=low
 
