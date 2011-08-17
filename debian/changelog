@@ -30,6 +30,9 @@ pygobject (2.90.1-1) UNRELEASED; urgency=low
      not relevant any more for this version, and now built from the
      pygobject-2 source package.
   * debian/rules: Bump shlibs.
+  * Drop debian/python-gobject.examples: These are for the old static
+    bindings. http://git.gnome.org/browse/pygobject/tree/demos is an actually
+    useful and comprehensive example, but not shipped in the release tarballs.
 
  -- Martin Pitt <mpitt@debian.org>  Wed, 17 Aug 2011 09:53:22 +0200
 
