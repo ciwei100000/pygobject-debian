@@ -191,8 +191,6 @@ binary-indep: install $(maybe_check)
 	dh_link -i
 	dh_compress -i -X.py
 	dh_fixperms -i
-	# More permission fixing
-	chmod 755 `grep -rl "^#\!.*python" debian/python-gobject/usr`
 	dh_python2 -i /usr/share/pygobject
 	dh_installdeb -i
 	dh_gencontrol -i
