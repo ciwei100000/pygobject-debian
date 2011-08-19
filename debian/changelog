@@ -1,5 +1,6 @@
-pygobject (2.90.1-2) UNRELEASED; urgency=low
+pygobject (2.90.2-1) UNRELEASED; urgency=low
 
+  * New upstream bug fix release.
   * debian/copyright: Update to current licenses/copyrights, and convert to
     DEP-5.
 
