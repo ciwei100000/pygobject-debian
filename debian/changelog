@@ -1,3 +1,15 @@
+pygobject (2.90.2-2) UNRELEASED; urgency=low
+
+  * Add revert-refcount-fix.patch: Revert
+    http://git.gnome.org/browse/pygobject/commit/?id=7bc4122897 as a
+    workaround for segfaults when creating custom widgets through the GObject
+    constructor (such as through GtkBuilder). This works around
+    https://bugzilla.gnome.org/show_bug.cgi?id=657403. This patch was reverted
+    in the 2-28 branch as well, so reverting it here is no regression from
+    2.28. (LP: #834168)
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 30 Aug 2011 08:23:22 +0200
+
 pygobject (2.90.2-1) experimental; urgency=low
 
   * New upstream bug fix release.
