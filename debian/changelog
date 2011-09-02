@@ -1,3 +1,9 @@
+pygobject (2.90.3-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 02 Sep 2011 06:40:18 +0200
+
 pygobject (2.90.2-2) experimental; urgency=low
 
   * Add revert-refcount-fix.patch: Revert
