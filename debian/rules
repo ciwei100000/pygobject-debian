@@ -99,6 +99,11 @@ build-2.%/install-stamp: build-2.%/build-stamp
 	dh_testdir
 	dh_testroot
 	PYTHON=/usr/bin/python2.$* $(MAKE) -C build-2.$* install DESTDIR=$(CURDIR)/debian/python-gobject pyexecdir=$(call py_libdir_sh, 2.$*)
+	# install development parts
+	mkdir -p debian/python-gobject-dev/usr/lib
+	cp -r debian/python-gobject/usr/include debian/python-gobject-dev/usr/
+	cp -r debian/python-gobject/usr/lib/pkgconfig debian/python-gobject-dev/usr/lib
+	# remove stuff that we do not need in python-gobject
 	-find debian/python-gobject/ ! -path '*/usr/lib/*' -delete
 	find debian/python-gobject/ \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -delete
 	# dh_python2 trips over this empty dir in the sanity check for >= 2.6, so remove it

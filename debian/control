@@ -124,3 +124,19 @@ Description: Python 3 bindings for gobject-introspection libraries (debug extens
  package. With these packages, the libraries can be used from Python 3.
  .
  This package contains the extensions built for the Python 3 debug interpreter.
+
+Package: python-gobject-dev
+Architecture: all
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         python-gobject (= ${binary:Version}),
+         libglib2.0-dev (>= 2.24.0),
+         libffi-dev (>= 3.0.5),
+         python-gobject-2-dev
+Description: development headers for GObject Python bindings
+ GObject is an abstraction layer that allows programming with an object
+ paradigm that is compatible with many languages. It is a part of Glib,
+ the core library used to build GTK+ and GNOME.
+ .
+ This package contains the development headers needed to build C extensions
+ which use pygobject.
