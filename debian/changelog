@@ -1,3 +1,11 @@
+pygobject (2.28.6-5) unstable; urgency=low
+
+  * debian/patches/30_unversioned_python.patch:
+    - Let pygobject-codegen-2.0 to call unversioned python interpreter
+      to ease switching to different default versions (Closes: #632367).
+
+ -- Luca Falavigna <dktrkranz@debian.org>  Sat, 17 Sep 2011 16:24:20 +0200
+
 pygobject (2.28.6-4) unstable; urgency=low
 
   * debian/rules: Create shlibs for python3 packages, too.
