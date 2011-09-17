@@ -1,29 +1,17 @@
-pygobject-2 (2.28.6-5) experimental; urgency=low
+pygobject (2.28.6-5) unstable; urgency=low
 
-  * Split package: The 2.28 version is now deprecated and called pygobject-2;
-    it will only contain the old static bindings without introspection.  The
-    pygobject 3.0 version only contains the introspection bindings now, and
-    will depend on python-gobject-2 for backwards compatibility until all
-    packages get ported to use introspection.
-    - debian/control.in, debian/rules: Rename packages to *-2 and update
-      description to point out that these are deprecated and only provided for
-      backwards compatibility.
-    - debian/control.in, debian/rules: Drop python 3 packages; python3-gobject
-      does not yet have any reverse dependencies, and we don't want to
-      encourage porting to Python 3 without porting to GI as well.
-    - debian/control.in: Update Vcs-* for pygobject-2 branch.
-    - debian/rules: Disable introspection support. Drop gobject-introspection
-      and libgirepository1.0-dev build dependencies.
-    - debian/control.in: Conflicts/Breaks python-gobject{,-dbg} << 2.90.
+  * debian/patches/30_unversioned_python.patch:
+    - Let pygobject-codegen-2.0 to call unversioned python interpreter
+      to ease switching to different default versions (Closes: #632367).
 
- -- Martin Pitt <mpitt@debian.org>  Wed, 17 Aug 2011 11:24:46 +0200
+ -- Luca Falavigna <dktrkranz@debian.org>  Sat, 17 Sep 2011 16:24:20 +0200
 
 pygobject (2.28.6-4) unstable; urgency=low
 
   * debian/rules: Create shlibs for python3 packages, too.
   * debian/rules: Call dh_strip on python3-gobject, too.
 
- -- Martin Pitt <mpitt@debian.org>  Thu, 14 Jul 2011 11:43:08 +0200
+ -- Martin Pitt <mpitt@debian.org>  Thu, 14 Jul 2011 12:04:44 +0200
 
 pygobject (2.28.6-3) unstable; urgency=low
 
