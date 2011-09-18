@@ -1,6 +1,7 @@
 pygobject (2.90.4-1) UNRELEASED; urgency=low
 
   * New upstream release.
+  * Drop revert-refcount-fix.patch. Fixed properly with new upstream version.
 
  -- Martin Pitt <mpitt@debian.org>  Sun, 18 Sep 2011 14:15:48 +0200
 
