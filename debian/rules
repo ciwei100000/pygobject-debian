@@ -109,8 +109,6 @@ build-2.%/install-stamp: build-2.%/build-stamp
 	# dh_python2 trips over this empty dir in the sanity check for >= 2.6, so remove it
 	rmdir debian/python-gobject/usr/lib/python2.$*/site-packages
 	rm -r debian/python-gobject/usr/lib/pkgconfig
-	# leftover from old static bindings
-	rm -r debian/python-gobject/usr/lib/python2.$*/dist-packages/gtk-2.0
 
 build-3.%/install-stamp: build-3.%/build-stamp
 	dh_testdir
