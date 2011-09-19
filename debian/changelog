@@ -4,6 +4,8 @@ pygobject (3.0.0-1) UNRELEASED; urgency=low
   * Drop revert-refcount-fix.patch. Fixed properly with new upstream version.
   * debian/rules: Drop cleanup of old static bindings leftovers, fixed
     upstream.
+  * debian/control.in: Bump gobject-introspection build dependency as per
+    upstream configure.ac.
 
  -- Martin Pitt <mpitt@debian.org>  Sun, 18 Sep 2011 14:15:48 +0200
 
