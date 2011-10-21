@@ -7,6 +7,8 @@ pygobject (3.0.1-1) UNRELEASED; urgency=low
   * debian/control.in: Bump gobject-introspection build dependency as per
     upstream configure.ac.
   * debian/control.in: Drop unused cdbs build dependency.
+  * debian/control.in: Fix p-g-dev → p-g dependency to be binNMUable, thanks
+    lintian.
 
  -- Martin Pitt <mpitt@debian.org>  Sun, 18 Sep 2011 14:15:48 +0200
 

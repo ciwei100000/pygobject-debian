@@ -123,7 +123,8 @@ Package: python-gobject-dev
 Architecture: all
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         python-gobject (= ${binary:Version}),
+         python-gobject (>= ${source:Version}),
+         python-gobject (<= ${source:Version}.1~),
          libglib2.0-dev (>= 2.24.0),
          libffi-dev (>= 3.0.5),
          python-gobject-2-dev
