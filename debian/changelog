@@ -6,6 +6,7 @@ pygobject (3.0.1-1) UNRELEASED; urgency=low
     upstream.
   * debian/control.in: Bump gobject-introspection build dependency as per
     upstream configure.ac.
+  * debian/control.in: Drop unused cdbs build dependency.
 
  -- Martin Pitt <mpitt@debian.org>  Sun, 18 Sep 2011 14:15:48 +0200
 

@@ -6,7 +6,6 @@ Uploaders: @GNOME_TEAM@
 Build-Depends: debhelper (>= 7),
                gnome-pkg-tools (>= 0.10),
                dh-autoreconf,
-               cdbs (>= 0.4.90~),
                quilt,
                python-all-dev (>= 2.6.6-3~),
                python3-all-dev,
