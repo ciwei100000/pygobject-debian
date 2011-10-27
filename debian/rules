@@ -83,14 +83,14 @@ build-%/check-stamp: build-%/build-stamp
 	find gi -name '*.py' -exec cp '$(CURDIR)/{}' build-$*/'{}' \;
 	# don't run the tests under fakeroot, otherwise they will try to
 	# connect to root's session D-BUS
-	PYTHON=/usr/bin/python$* LD_PRELOAD= xvfb-run $(MAKE) -C build-$* check
+	-PYTHON=/usr/bin/python$* LD_PRELOAD= xvfb-run $(MAKE) -C build-$* check
 	touch $@
 
 dbg-build-%/check-stamp: dbg-build-%/build-stamp
 	find gi -name '*.py' -exec cp '$(CURDIR)/{}' dbg-build-$*/'{}' \;
 	# don't run the tests under fakeroot, otherwise they will try to
 	# connect to root's session D-BUS
-	PYTHON=/usr/bin/python$*-dbg LD_PRELOAD= xvfb-run $(MAKE) -C dbg-build-$* check
+	-PYTHON=/usr/bin/python$*-dbg LD_PRELOAD= xvfb-run $(MAKE) -C dbg-build-$* check
 	touch $@
 
 check: $(PYVERS:%=build-%/check-stamp) $(PYVERS:%=dbg-build-%/check-stamp)
