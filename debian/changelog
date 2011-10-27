@@ -4,6 +4,8 @@ pygobject (3.0.2-2) UNRELEASED; urgency=low
     suite's localedef command can succeed.
   * debian/control.in: Bump g-i build deps to >= 1.31.0, as our test suite
     needs methods from that version.
+  * debian/rules: Have test failures fail the build. This should finally work
+    now, and will prevent unnoticed architecture specific regressions.
 
  -- Martin Pitt <mpitt@debian.org>  Thu, 27 Oct 2011 07:01:57 +0200
 
