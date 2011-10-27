@@ -6,6 +6,8 @@ pygobject (3.0.2-2) UNRELEASED; urgency=low
     needs methods from that version.
   * debian/rules: Have test failures fail the build. This should finally work
     now, and will prevent unnoticed architecture specific regressions.
+  * Add 00git_marshal_gvariant_arrays.patch: Fix marshaling of arrays of
+    GVariants. Thanks Mikkel Kamstrup Erlandsen! (LP: #855402)
 
  -- Martin Pitt <mpitt@debian.org>  Thu, 27 Oct 2011 07:01:57 +0200
 
