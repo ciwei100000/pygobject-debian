@@ -1,3 +1,9 @@
+pygobject (3.0.2-4) UNRELEASED; urgency=low
+
+  * debian/control.in: Make the Vcs-* tags refer to the unstable repos
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Sun, 20 Nov 2011 15:55:20 +0000
+
 pygobject (3.0.2-3) unstable; urgency=low
 
   * Upload to unstable
