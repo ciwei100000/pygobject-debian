@@ -1,10 +1,114 @@
-pygobject (2.28.6-5) unstable; urgency=low
+pygobject (3.0.2-2) experimental; urgency=low
 
-  * debian/patches/30_unversioned_python.patch:
-    - Let pygobject-codegen-2.0 to call unversioned python interpreter
-      to ease switching to different default versions (Closes: #632367).
+  * debian/control.in: Add locales build dependency, to ensure that the test
+    suite's localedef command can succeed.
+  * debian/control.in: Bump g-i build deps to >= 1.31.0, as our test suite
+    needs methods from that version.
+  * Add 00git_marshal_gvariant_arrays.patch: Fix marshaling of arrays of
+    GVariants. Thanks Mikkel Kamstrup Erlandsen! (LP: #855402)
 
- -- Luca Falavigna <dktrkranz@debian.org>  Sat, 17 Sep 2011 16:24:20 +0200
+ -- Martin Pitt <mpitt@debian.org>  Thu, 27 Oct 2011 07:25:09 +0200
+
+pygobject (3.0.2-1) experimental; urgency=low
+
+  * New upstream release:
+    - Allow GBoxed types as property. (LP: #877397)
+    - When converting an object with transfer none, make sure the wrapper owns
+      a ref. (LP: #874299)
+    - Gdk overrides: Unbreak for Gdk-2.0. (LP: #875399)
+    - Do union member checks for unions that are parameters.
+    - Fix "Returns: (skip)" method calls without (out) arguments.
+
+ -- Martin Pitt <mpitt@debian.org>  Sun, 23 Oct 2011 12:54:30 +0200
+
+pygobject (3.0.1-1) experimental; urgency=low
+
+  * New upstream release.
+  * Drop revert-refcount-fix.patch. Fixed properly with new upstream version.
+  * debian/rules: Drop cleanup of old static bindings leftovers, fixed
+    upstream.
+  * debian/control.in: Bump gobject-introspection build dependency as per
+    upstream configure.ac.
+  * debian/control.in: Drop unused cdbs build dependency.
+  * debian/control.in: Fix p-g-dev → p-g dependency to be binNMUable, thanks
+    lintian.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 21 Oct 2011 09:43:49 +0200
+
+pygobject (2.90.3-2) experimental; urgency=low
+
+  * debian/control.in, debian/rules: Bring back python-gobject-dev package, to
+    ship the include and pkg-config file. This is still needed by e. g.
+    libpeas. Depend on python-gobject-2-dev to retain backwards compatibility,
+    similar to the other binary packages.
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 06 Sep 2011 13:54:22 +0200
+
+pygobject (2.90.3-1) experimental; urgency=low
+
+  * New upstream release.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 02 Sep 2011 07:58:48 +0200
+
+pygobject (2.90.2-2) experimental; urgency=low
+
+  * Add revert-refcount-fix.patch: Revert
+    http://git.gnome.org/browse/pygobject/commit/?id=7bc4122897 as a
+    workaround for segfaults when creating custom widgets through the GObject
+    constructor (such as through GtkBuilder). This works around
+    https://bugzilla.gnome.org/show_bug.cgi?id=657403. This patch was reverted
+    in the 2-28 branch as well, so reverting it here is no regression from
+    2.28. (LP: #834168)
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 30 Aug 2011 08:30:31 +0200
+
+pygobject (2.90.2-1) experimental; urgency=low
+
+  * New upstream bug fix release.
+  * debian/copyright: Update to current licenses/copyrights, and convert to
+    DEP-5.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 19 Aug 2011 10:44:05 +0200
+
+pygobject (2.90.1-1) experimental; urgency=low
+
+  * debian/control.in: Update Vcs-* for experimental branch.
+  * New upstream release:
+    - New rewritten invoker is twice as fast and easier to extend and debug
+    - Complete break from static bindings so we may improve the core without
+      breaking legacy APIs
+    - Better type handling
+    - Parallel installable with PyGObject 2.28 for legacy binding support
+      (2.28 must be compiled with –disable-introspection)
+    - Fixed object array handling
+    - Added more overrides for PyGTK API emulation
+    - Support for function calling using keyword arguments
+    - GObject and GLib symbols can now have overrides
+    - All static bit removed or made private
+    - GVariants now work from callback returns
+    - Note that this now enforces a consistent move to the GI bindings. I. e.
+      you need to change all "import gobject" statements into "from
+      gi.repository import GObject", same for glib.
+   * Drop debian/patches/00git_*.patch, all upstream.
+   * Drop 20_deprecated_spam.patch, obsolete.
+   * debian/control.in: The static bindings (glib, gobject, pygtk, gtk, etc.)
+     are deprecated and are now shipped in the separate packages
+     python-gobject-2{,-dbg}. Add a dependency to these for the time being to
+     not break backwards compatibility. Once all packages have been ported to
+     use the GI bindings, this dependency and pygobject-2 will be dropped.
+   * debian/control.in: Update package descriptions to point out that this is
+     now GI only.
+   * debian/control.in, debian/rules: Drop python-gobject-dev package. It's
+     not relevant any more for this version, and now built from the
+     pygobject-2 source package.
+  * debian/rules: Bump shlibs.
+  * Drop debian/python-gobject.examples: These are for the old static
+    bindings. http://git.gnome.org/browse/pygobject/tree/demos is an actually
+    useful and comprehensive example, but not shipped in the release tarballs.
+  * debian/rules: Drop obsolete permission fixing, that only applied to the
+    examples.
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 17 Aug 2011 12:01:54 +0200
 
 pygobject (2.28.6-4) unstable; urgency=low
 

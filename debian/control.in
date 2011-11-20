@@ -6,20 +6,20 @@ Uploaders: @GNOME_TEAM@
 Build-Depends: debhelper (>= 7),
                gnome-pkg-tools (>= 0.10),
                dh-autoreconf,
-               cdbs (>= 0.4.90~),
                quilt,
                python-all-dev (>= 2.6.6-3~),
                python3-all-dev,
                libglib2.0-dev (>= 2.24.0),
                libcairo2-dev,
                libffi-dev (>= 3.0.5),
-               gobject-introspection (>= 0.10.2),
-               libgirepository1.0-dev (>= 0.10.2),
+               gobject-introspection (>= 1.31.0),
+               libgirepository1.0-dev (>= 1.31.0),
                python-cairo-dev (>= 1.2.0),
                xsltproc,
                xvfb,
                xauth,
                dbus-x11,
+               locales,
                docbook-xsl,
                autotools-dev,
                python-all-dbg,
@@ -31,27 +31,29 @@ Build-Depends: debhelper (>= 7),
                gir1.2-freedesktop
 X-Python-Version: >= 2.5
 Standards-Version: 3.9.2
-Vcs-Svn: svn://svn.debian.org/svn/pkg-gnome/desktop/unstable/pygobject
-Vcs-Browser: http://svn.debian.org/viewsvn/pkg-gnome/desktop/unstable/pygobject
+Vcs-Svn: svn://svn.debian.org/svn/pkg-gnome/desktop/experimental/pygobject
+Vcs-Browser: http://svn.debian.org/viewsvn/pkg-gnome/desktop/experimental/pygobject
 
 Package: python-gobject
 Architecture: any
 Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
-         gir1.2-glib-2.0
+         gir1.2-glib-2.0,
+         python-gobject-2
 Provides: ${python:Provides}, python-gi
 Recommends: python-gobject-cairo
 Suggests: python-gobject-dbg
 Conflicts: python-gi
 Replaces: python-gi
-Description: Python bindings for the GObject library
+Description: Python 2.x bindings for gobject-introspection libraries
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
  the core library used to build GTK+ and GNOME.
  .
- This package contains the Python bindings for GObject. It is mostly
- used by other bindings to map their GObjects to Python objects.
+ This package contains the Python 2.x binding generator for libraries that
+ support gobject-introspection, i. e. which ship a gir1.2-<name>-<version>
+ package. With these packages, the libraries can be used from Python.
 
 Package: python3-gobject
 Architecture: any
@@ -60,13 +62,14 @@ Depends: ${python3:Depends},
          ${misc:Depends},
          gir1.2-glib-2.0
 Suggests: python3-gobject-dbg
-Description: Python 3 bindings for the GObject library
+Description: Python 3 bindings for gobject-introspection libraries
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
  the core library used to build GTK+ and GNOME.
  .
- This package contains the Python 3 bindings for GObject. It is mostly
- used by other bindings to map their GObjects to Python 3 objects.
+ This package contains the Python 3 binding generator for libraries that
+ support gobject-introspection, i. e. which ship a gir1.2-<name>-<version>
+ package. With these packages, the libraries can be used from Python 3.
 
 Package: python-gobject-cairo
 Architecture: any
@@ -82,28 +85,15 @@ Description: Python Cairo bindings for the GObject library
  This package contains the Python Cairo bindings for GObject. It is mostly
  used by other bindings to map their GObjects to Python objects.
 
-Package: python-gobject-dev
-Architecture: all
-Depends: ${python:Depends},
-         ${misc:Depends},
-         python-gobject (>= ${source:Version}),
-         python-dev,
-         libglib2.0-dev (>= 2.24.0),
-         libffi-dev (>= 3.0.5)
-Recommends: docbook-xsl
-Description: Development headers for the GObject Python bindings
- GObject is an abstraction layer that allows programming with an object
- paradigm that is compatible with many languages. It is a part of Glib,
- the core library used to build GTK+ and GNOME.
- .
- This package contains the development headers needed to build
- other Python bindings relying on pygobject.
-
 Package: python-gobject-dbg
 Section: debug
 Priority: extra
 Architecture: any
-Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-gobject (= ${binary:Version})
+Depends: ${python:Depends},
+ ${shlibs:Depends},
+ ${misc:Depends},
+ python-gobject (= ${binary:Version}),
+ python-gobject-2-dbg
 Description: Python bindings for the GObject library (debug extension)
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -119,12 +109,30 @@ Section: debug
 Priority: extra
 Architecture: any
 Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}, python3-gobject (= ${binary:Version})
-Description: Python 3 bindings for the GObject library (debug extension)
+Description: Python 3 bindings for gobject-introspection libraries (debug extension)
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
  the core library used to build GTK+ and GNOME.
  .
- This package contains the Python 3 bindings for GObject. It is mostly
- used by other bindings to map their GObjects to Python 3 objects.
+ This package contains the Python 3 binding generator for libraries that
+ support gobject-introspection, i. e. which ship a gir1.2-<name>-<version>
+ package. With these packages, the libraries can be used from Python 3.
  .
  This package contains the extensions built for the Python 3 debug interpreter.
+
+Package: python-gobject-dev
+Architecture: all
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         python-gobject (>= ${source:Version}),
+         python-gobject (<= ${source:Version}.1~),
+         libglib2.0-dev (>= 2.24.0),
+         libffi-dev (>= 3.0.5),
+         python-gobject-2-dev
+Description: development headers for GObject Python bindings
+ GObject is an abstraction layer that allows programming with an object
+ paradigm that is compatible with many languages. It is a part of Glib,
+ the core library used to build GTK+ and GNOME.
+ .
+ This package contains the development headers needed to build C extensions
+ which use pygobject.
