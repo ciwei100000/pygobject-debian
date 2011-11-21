@@ -1,6 +1,12 @@
 pygobject (3.0.2-4) UNRELEASED; urgency=low
 
+  [ Sjoerd Simons ]
   * debian/control.in: Make the Vcs-* tags refer to the unstable repos
+
+  [ Martin Pitt ]
+  * debian/control.in: Drop gir1.2-gtk-3.0 build dependency on m68k, as that
+    arch does not yet have GTK-3 yet. It is only needed for the testsuite
+    anyway. As per request from Thorsten Glaser.
 
  -- Sjoerd Simons <sjoerd@debian.org>  Sun, 20 Nov 2011 15:55:20 +0000
 
