@@ -44,7 +44,7 @@ Architecture: any
 Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
-         gir1.2-glib-2.0,
+         gir1.2-glib-2.0 (>= 1.31.0),
          python-gobject-2
 Provides: ${python:Provides}, python-gi
 Recommends: python-gobject-cairo
@@ -65,7 +65,7 @@ Architecture: any
 Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
-         gir1.2-glib-2.0
+         gir1.2-glib-2.0 (>= 1.31.0)
 Suggests: python3-gobject-dbg
 Description: Python 3 bindings for gobject-introspection libraries
  GObject is an abstraction layer that allows programming with an object

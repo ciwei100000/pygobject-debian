@@ -8,6 +8,10 @@ pygobject (3.0.2-4) UNRELEASED; urgency=low
     arch does not yet have GTK-3 yet. It is only needed for the testsuite
     anyway. As per request from Thorsten Glaser.
 
+  [ Josselin Mouette ]
+  * Bump dependencies on gir1.2-glib-2.0 according to upstream 
+    requirements.
+
  -- Sjoerd Simons <sjoerd@debian.org>  Sun, 20 Nov 2011 15:55:20 +0000
 
 pygobject (3.0.2-3) unstable; urgency=low
