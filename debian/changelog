@@ -10,7 +10,7 @@ pygobject (3.0.2-4) UNRELEASED; urgency=low
 
   [ Josselin Mouette ]
   * Bump dependencies on gir1.2-glib-2.0 according to upstream 
-    requirements.
+    requirements. Closes: #649611.
 
  -- Sjoerd Simons <sjoerd@debian.org>  Sun, 20 Nov 2011 15:55:20 +0000
 
