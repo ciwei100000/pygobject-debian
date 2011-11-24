@@ -47,7 +47,8 @@ Depends: ${python:Depends},
          gir1.2-glib-2.0 (>= 1.31.0)
 Provides: ${python:Provides}
 Suggests: python-gi-cairo
-Breaks: python-gobject (<< 3.0.2-4)
+Breaks: python-gobject (<< 3.0.2-4),
+        python-nautilus (<= 1.1-1)
 Replaces: python-gobject (<< 3.0.2-4)
 Description: Python 2.x bindings for gobject-introspection libraries
  GObject is an abstraction layer that allows programming with an object
