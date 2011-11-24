@@ -18,6 +18,8 @@ pygobject (3.0.2-4) UNRELEASED; urgency=low
   * Add appropriate Breaks/Replaces/Conflicts/Provides.
   * Add a missing python-gi-cairo → python-gi dependency.
   * Drop a pair of unneeded Recommends/Suggests.
+  * Add transitional python-gobject/python-gobject-dev packages that 
+    depend on both python-gi* and python-gobject-2*.
 
  -- Sjoerd Simons <sjoerd@debian.org>  Sun, 20 Nov 2011 15:55:20 +0000
 
