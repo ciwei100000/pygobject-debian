@@ -39,18 +39,17 @@ Standards-Version: 3.9.2
 Vcs-Svn: svn://svn.debian.org/svn/pkg-gnome/desktop/unstable/pygobject
 Vcs-Browser: http://svn.debian.org/viewsvn/pkg-gnome/desktop/unstable/pygobject
 
-Package: python-gobject
+Package: python-gi
 Architecture: any
 Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
-         gir1.2-glib-2.0 (>= 1.31.0),
-         python-gobject-2
-Provides: ${python:Provides}, python-gi
-Recommends: python-gobject-cairo
-Suggests: python-gobject-dbg
-Conflicts: python-gi
-Replaces: python-gi
+         gir1.2-glib-2.0 (>= 1.31.0)
+Provides: ${python:Provides}
+Suggests: python-gi-cairo
+Breaks: python-gobject (<< 3.0.2-4),
+        python-nautilus (<= 1.1-1)
+Replaces: python-gobject (<< 3.0.2-4)
 Description: Python 2.x bindings for gobject-introspection libraries
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -60,13 +59,15 @@ Description: Python 2.x bindings for gobject-introspection libraries
  support gobject-introspection, i. e. which ship a gir1.2-<name>-<version>
  package. With these packages, the libraries can be used from Python.
 
-Package: python3-gobject
+Package: python3-gi
 Architecture: any
 Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
          gir1.2-glib-2.0 (>= 1.31.0)
-Suggests: python3-gobject-dbg
+Conflicts: python3-gobject
+Provides: python3-gobject
+Replaces: python3-gobject
 Description: Python 3 bindings for gobject-introspection libraries
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -76,12 +77,16 @@ Description: Python 3 bindings for gobject-introspection libraries
  support gobject-introspection, i. e. which ship a gir1.2-<name>-<version>
  package. With these packages, the libraries can be used from Python 3.
 
-Package: python-gobject-cairo
+Package: python-gi-cairo
 Architecture: any
 Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
+         python-gi (= ${binary:Version}),
          python-cairo
+Conflicts: python-gobject-cairo
+Replaces: python-gobject-cairo
+Provides: python-gobject-cairo
 Description: Python Cairo bindings for the GObject library
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -90,15 +95,16 @@ Description: Python Cairo bindings for the GObject library
  This package contains the Python Cairo bindings for GObject. It is mostly
  used by other bindings to map their GObjects to Python objects.
 
-Package: python-gobject-dbg
+Package: python-gi-dbg
 Section: debug
 Priority: extra
 Architecture: any
 Depends: ${python:Depends},
- ${shlibs:Depends},
- ${misc:Depends},
- python-gobject (= ${binary:Version}),
- python-gobject-2-dbg
+         ${shlibs:Depends},
+         ${misc:Depends},
+         python-gi (= ${binary:Version})
+Breaks: python-gobject-dbg (<< 3.0.2-4)
+Replaces: python-gobject-dbg (<< 3.0.2-4)
 Description: Python bindings for the GObject library (debug extension)
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -109,11 +115,17 @@ Description: Python bindings for the GObject library (debug extension)
  .
  This package contains the extensions built for the Python debug interpreter.
 
-Package: python3-gobject-dbg
+Package: python3-gi-dbg
 Section: debug
 Priority: extra
 Architecture: any
-Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}, python3-gobject (= ${binary:Version})
+Depends: ${python3:Depends},
+         ${shlibs:Depends},
+         ${misc:Depends},
+         python3-gi (= ${binary:Version})
+Conflicts: python3-gobject-dbg
+Provides: python3-gobject-dbg
+Replaces: python3-gobject-dbg
 Description: Python 3 bindings for gobject-introspection libraries (debug extension)
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -125,15 +137,16 @@ Description: Python 3 bindings for gobject-introspection libraries (debug extens
  .
  This package contains the extensions built for the Python 3 debug interpreter.
 
-Package: python-gobject-dev
+Package: python-gi-dev
 Architecture: all
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          python-gobject (>= ${source:Version}),
          python-gobject (<= ${source:Version}.1~),
          libglib2.0-dev (>= 2.24.0),
-         libffi-dev (>= 3.0.5),
-         python-gobject-2-dev
+         libffi-dev (>= 3.0.5)
+Breaks: python-gobject-dev (<< 3.0.2-4)
+Replaces: python-gobject-dev (<< 3.0.2-4)
 Description: development headers for GObject Python bindings
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -141,3 +154,36 @@ Description: development headers for GObject Python bindings
  .
  This package contains the development headers needed to build C extensions
  which use pygobject.
+
+Package: python-gobject
+Architecture: all
+Depends: ${misc:Depends},
+         python-gi (>= ${source:Version}),
+         python-gobject-2
+Description: Python 2.x bindings for GObject - transitional package 
+ This package will bring the two versions of GObject Python modules: the 
+ deprecated gobject module, and the new gobject-introspection system. It 
+ is here for upgrade purposes only. You can remove it safely when 
+ nothing else depends on it.
+
+Package: python-gobject-dbg
+Architecture: all
+Depends: ${misc:Depends},
+         python-gi-dbg (>= ${source:Version}),
+         python-gobject-2-dbg
+Description: Python 2.x debugging modules for GObject - transitional package 
+ This package will bring the two debugging versions of GObject Python 
+ modules: one for the deprecated gobject module, and one for the new 
+ gobject-introspection system. It is here for upgrade purposes only. 
+ You can remove it safely when nothing else depends on it.
+
+Package: python-gobject-dev
+Architecture: all
+Depends: ${misc:Depends},
+         python-gi-dev (= ${source:Version}),
+         python-gobject-2-dev
+Description: Python 2.x development headers for GObject - transitional package 
+ This package will bring development headers for the two versions of 
+ GObject Python modules: the deprecated gobject module, and the new 
+ gobject-introspection system. It is here for upgrade purposes only. You 
+ can remove it safely when nothing else depends on it. 

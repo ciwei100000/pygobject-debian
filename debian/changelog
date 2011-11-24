@@ -1,4 +1,4 @@
-pygobject (3.0.2-4) UNRELEASED; urgency=low
+pygobject (3.0.2-4) unstable; urgency=low
 
   [ Sjoerd Simons ]
   * debian/control.in: Make the Vcs-* tags refer to the unstable repos
@@ -11,8 +11,22 @@ pygobject (3.0.2-4) UNRELEASED; urgency=low
   [ Josselin Mouette ]
   * Bump dependencies on gir1.2-glib-2.0 according to upstream 
     requirements. Closes: #649611.
+  * Rename packages to python-gi*.
+  * Remove dependencies on python-gobject-2*. The dependency will be the 
+    other way round so that the old pygobject-2 can be dropped 
+    eventually.
+  * Add appropriate Breaks/Replaces/Conflicts/Provides.
+  * Add a missing python-gi-cairo → python-gi dependency.
+  * Drop a pair of unneeded Recommends/Suggests.
+  * Add transitional python-gobject/python-gobject-dev packages that 
+    depend on both python-gi* and python-gobject-2*.
+  * Same for python-gobject-dbg.
+  * Break python-nautilus <= the current version which is broken by 
+    pygobject 3.x. Closes: #649861. The only other affected package is 
+    totem-plugins and the issue is not severe enough to warrant blocking 
+    the ongoing transitions.
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sun, 20 Nov 2011 15:55:20 +0000
+ -- Josselin Mouette <joss@debian.org>  Thu, 24 Nov 2011 18:43:28 +0100
 
 pygobject (3.0.2-3) unstable; urgency=low
 
