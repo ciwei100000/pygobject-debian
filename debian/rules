@@ -98,30 +98,30 @@ check: $(PYVERS:%=build-%/check-stamp) $(PYVERS:%=dbg-build-%/check-stamp)
 build-2.%/install-stamp: build-2.%/build-stamp
 	dh_testdir
 	dh_testroot
-	PYTHON=/usr/bin/python2.$* $(MAKE) -C build-2.$* install DESTDIR=$(CURDIR)/debian/python-gobject pyexecdir=$(call py_libdir_sh, 2.$*)
+	PYTHON=/usr/bin/python2.$* $(MAKE) -C build-2.$* install DESTDIR=$(CURDIR)/debian/python-gi pyexecdir=$(call py_libdir_sh, 2.$*)
 	# install development parts
-	mkdir -p debian/python-gobject-dev/usr/lib
-	cp -r debian/python-gobject/usr/include debian/python-gobject-dev/usr/
-	cp -r debian/python-gobject/usr/lib/pkgconfig debian/python-gobject-dev/usr/lib
-	# remove stuff that we do not need in python-gobject
-	-find debian/python-gobject/ ! -path '*/usr/lib/*' -delete
-	find debian/python-gobject/ \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -delete
+	mkdir -p debian/python-gi-dev/usr/lib
+	cp -r debian/python-gi/usr/include debian/python-gi-dev/usr/
+	cp -r debian/python-gi/usr/lib/pkgconfig debian/python-gi-dev/usr/lib
+	# remove stuff that we do not need in python-gi
+	-find debian/python-gi/ ! -path '*/usr/lib/*' -delete
+	find debian/python-gi/ \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -delete
 	# dh_python2 trips over this empty dir in the sanity check for >= 2.6, so remove it
-	rmdir debian/python-gobject/usr/lib/python2.$*/site-packages
-	rm -r debian/python-gobject/usr/lib/pkgconfig
+	rmdir debian/python-gi/usr/lib/python2.$*/site-packages
+	rm -r debian/python-gi/usr/lib/pkgconfig
 
 build-3.%/install-stamp: build-3.%/build-stamp
 	dh_testdir
 	dh_testroot
-	PYTHON=/usr/bin/python3.$* $(MAKE) -C build-3.$* install DESTDIR=$(CURDIR)/debian/python3-gobject pyexecdir=$(call py_libdir_sh, 3.$*)
-	-find debian/python3-gobject/ ! -path '*/usr/lib/*' -delete
-	find debian/python3-gobject/ \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -delete
-	rm -r debian/python3-gobject/usr/lib/pkgconfig
+	PYTHON=/usr/bin/python3.$* $(MAKE) -C build-3.$* install DESTDIR=$(CURDIR)/debian/python3-gi pyexecdir=$(call py_libdir_sh, 3.$*)
+	-find debian/python3-gi/ ! -path '*/usr/lib/*' -delete
+	find debian/python3-gi/ \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -delete
+	rm -r debian/python3-gi/usr/lib/pkgconfig
 	
 	# tag the Python extensions like distutils, as upstream build system
 	# uses autotools and does not know about http://www.python.org/dev/peps/pep-3149/
 	ABITAG=`python3.$* -c "import sysconfig; print(sysconfig.get_config_var('SOABI'))"`; \
-	for f in `find debian/python3-gobject/usr/lib/python* -name '*.so'`; do \
+	for f in `find debian/python3-gi/usr/lib/python* -name '*.so'`; do \
 	    mv $$f $${f%.so}.$$ABITAG.so; \
 	done
 	
@@ -130,22 +130,22 @@ build-3.%/install-stamp: build-3.%/build-stamp
 dbg-build-2.%/install-stamp: dbg-build-2.%/build-stamp
 	dh_testdir
 	dh_testroot
-	PYTHON=/usr/bin/python2.$*-dbg $(MAKE) -C dbg-build-2.$* install DESTDIR=$(CURDIR)/debian/python-gobject-dbg pyexecdir=$(call py_libdir_sh, 2.$*)
-	find debian/python-gobject-dbg ! -type d ! \( -name '*.so' -o -name '*.so.*' \) -delete
-	find debian/python-gobject-dbg -type d -empty -delete
+	PYTHON=/usr/bin/python2.$*-dbg $(MAKE) -C dbg-build-2.$* install DESTDIR=$(CURDIR)/debian/python-gi-dbg pyexecdir=$(call py_libdir_sh, 2.$*)
+	find debian/python-gi-dbg ! -type d ! \( -name '*.so' -o -name '*.so.*' \) -delete
+	find debian/python-gi-dbg -type d -empty -delete
 	touch $@
 
 dbg-build-3.%/install-stamp: dbg-build-3.%/build-stamp
 	dh_testdir
 	dh_testroot
-	PYTHON=/usr/bin/python3.$*-dbg $(MAKE) -C dbg-build-3.$* install DESTDIR=$(CURDIR)/debian/python3-gobject-dbg pyexecdir=$(call py_libdir_sh, 3.$*)
-	find debian/python3-gobject-dbg ! -type d ! \( -name '*.so' -o -name '*.so.*' \) -delete
-	find debian/python3-gobject-dbg -type d -empty -delete
+	PYTHON=/usr/bin/python3.$*-dbg $(MAKE) -C dbg-build-3.$* install DESTDIR=$(CURDIR)/debian/python3-gi-dbg pyexecdir=$(call py_libdir_sh, 3.$*)
+	find debian/python3-gi-dbg ! -type d ! \( -name '*.so' -o -name '*.so.*' \) -delete
+	find debian/python3-gi-dbg -type d -empty -delete
 	
 	# tag the Python extensions like distutils, as upstream build system
 	# uses autotools and does not know about http://www.python.org/dev/peps/pep-3149/
 	ABITAG=`python3.$*-dbg -c "import sysconfig; print(sysconfig.get_config_var('SOABI'))"`; \
-	for f in `find debian/python3-gobject-dbg/usr/lib/python* -name '*.so'`; do \
+	for f in `find debian/python3-gi-dbg/usr/lib/python* -name '*.so'`; do \
 	    mv $$f $${f%.so}.$$ABITAG.so; \
 	done
 	
@@ -161,11 +161,11 @@ install-stamp: $(PYVERS:%=build-%/build-stamp) $(PYVERS:%=dbg-build-%/build-stam
 	$(MAKE) -f debian/rules $(PYVERS:%=build-%/install-stamp) $(PYVERS:%=dbg-build-%/install-stamp)
 	for i in $(PYVERS); do \
 		[ "$${i#3.}" = "$$i" ] || continue; \
-		mkdir -p debian/python-gobject-cairo/$(call py_libdir_sh, $$i)/gi; \
-		mv debian/python-gobject/$(call py_libdir_sh, $$i)/gi/_gi_cairo.so debian/python-gobject-cairo/$(call py_libdir_sh, $$i)/gi; \
+		mkdir -p debian/python-gi-cairo/$(call py_libdir_sh, $$i)/gi; \
+		mv debian/python-gi/$(call py_libdir_sh, $$i)/gi/_gi_cairo.so debian/python-gi-cairo/$(call py_libdir_sh, $$i)/gi; \
 	done
-	mkdir -p debian/python-gobject/usr/lib
-	for i in $$(find debian/python-gobject-dbg -name '*.so' -path 'debian/python-gobject-dbg/usr/lib/python*/*-packages/*'); do \
+	mkdir -p debian/python-gi/usr/lib
+	for i in $$(find debian/python-gi-dbg -name '*.so' -path 'debian/python-gi-dbg/usr/lib/python*/*-packages/*'); do \
 		b=$$(basename $$i .so); \
 		mv $$i $$(dirname $$i)/$${b}_d.so; \
 	done
@@ -206,20 +206,20 @@ binary-arch: install $(maybe_check)
 	dh_installdocs -s
 	dh_installexamples -s
 	dh_installchangelogs -s ChangeLog
-	dh_strip -ppython-gobject --dbg-package=python-gobject-dbg
-	dh_strip -ppython-gobject-cairo --dbg-package=python-gobject-dbg
-	dh_strip -ppython3-gobject --dbg-package=python3-gobject-dbg
-	rm -rf debian/python-gobject-dbg/usr/share/doc/python-gobject-dbg
-	ln -sf python-gobject debian/python-gobject-dbg/usr/share/doc/python-gobject-dbg
+	dh_strip -ppython-gi --dbg-package=python-gi-dbg
+	dh_strip -ppython-gi-cairo --dbg-package=python-gi-dbg
+	dh_strip -ppython3-gi --dbg-package=python3-gi-dbg
+	rm -rf debian/python-gi-dbg/usr/share/doc/python-gi-dbg
+	ln -sf python-gi debian/python-gi-dbg/usr/share/doc/python-gi-dbg
 	dh_link -s
 	dh_compress -s -X.py
 	dh_fixperms -s
 	dh_python2 -a
 	dh_python3 -a
-	dh_makeshlibs -ppython-gobject      -V'python-gobject (>= 2.90.1)'
-	dh_makeshlibs -ppython-gobject-dbg  -V'python-gobject-dbg (>= 2.90.1)'
-	dh_makeshlibs -ppython3-gobject     -V'python3-gobject (>= 2.90.1)'
-	dh_makeshlibs -ppython3-gobject-dbg -V'python3-gobject-dbg (>= 2.90.1)'
+	dh_makeshlibs -ppython-gi      -V'python-gi (>= 2.90.1)'
+	dh_makeshlibs -ppython-gi-dbg  -V'python-gi-dbg (>= 2.90.1)'
+	dh_makeshlibs -ppython3-gi     -V'python3-gi (>= 2.90.1)'
+	dh_makeshlibs -ppython3-gi-dbg -V'python3-gi-dbg (>= 2.90.1)'
 	dh_installdeb -s
 	dh_shlibdeps -s
 	dh_gencontrol -s
