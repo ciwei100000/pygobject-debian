@@ -166,6 +166,17 @@ Description: Python 2.x bindings for GObject - transitional package
  is here for upgrade purposes only. You can remove it safely when 
  nothing else depends on it.
 
+Package: python-gobject-dbg
+Architecture: all
+Depends: ${misc:Depends},
+         python-gi-dbg (>= ${source:Version}),
+         python-gobject-2-dbg
+Description: Python 2.x debugging modules for GObject - transitional package 
+ This package will bring the two debugging versions of GObject Python 
+ modules: one for the deprecated gobject module, and one for the new 
+ gobject-introspection system. It is here for upgrade purposes only. 
+ You can remove it safely when nothing else depends on it.
+
 Package: python-gobject-dev
 Architecture: all
 Depends: ${misc:Depends},

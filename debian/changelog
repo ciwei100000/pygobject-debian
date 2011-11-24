@@ -20,6 +20,7 @@ pygobject (3.0.2-4) unstable; urgency=low
   * Drop a pair of unneeded Recommends/Suggests.
   * Add transitional python-gobject/python-gobject-dev packages that 
     depend on both python-gi* and python-gobject-2*.
+  * Same for python-gobject-dbg.
   * Break python-nautilus <= the current version which is broken by 
     pygobject 3.x. Closes: #649861. The only other affected package is 
     totem-plugins and the issue is not severe enough to warrant blocking 
