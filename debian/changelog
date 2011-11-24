@@ -11,6 +11,13 @@ pygobject (3.0.2-4) UNRELEASED; urgency=low
   [ Josselin Mouette ]
   * Bump dependencies on gir1.2-glib-2.0 according to upstream 
     requirements. Closes: #649611.
+  * Rename packages to python-gi*.
+  * Remove dependencies on python-gobject-2*. The dependency will be the 
+    other way round so that the old pygobject-2 can be dropped 
+    eventually.
+  * Add appropriate Breaks/Replaces/Conflicts/Provides.
+  * Add a missing python-gi-cairo → python-gi dependency.
+  * Drop a pair of unneeded Recommends/Suggests.
 
  -- Sjoerd Simons <sjoerd@debian.org>  Sun, 20 Nov 2011 15:55:20 +0000
 
