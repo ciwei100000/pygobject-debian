@@ -1,4 +1,4 @@
-pygobject (3.0.2-4) UNRELEASED; urgency=low
+pygobject (3.0.2-4) unstable; urgency=low
 
   [ Sjoerd Simons ]
   * debian/control.in: Make the Vcs-* tags refer to the unstable repos
@@ -21,7 +21,7 @@ pygobject (3.0.2-4) UNRELEASED; urgency=low
   * Add transitional python-gobject/python-gobject-dev packages that 
     depend on both python-gi* and python-gobject-2*.
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sun, 20 Nov 2011 15:55:20 +0000
+ -- Josselin Mouette <joss@debian.org>  Thu, 24 Nov 2011 18:43:28 +0100
 
 pygobject (3.0.2-3) unstable; urgency=low
 
