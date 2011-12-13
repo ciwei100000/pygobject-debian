@@ -1,3 +1,9 @@
+pygobject (3.0.2-5) UNRELEASED; urgency=low
+
+  * debian/watch: Switch to xz tarballs, upstream now only releases those.
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 13 Dec 2011 13:00:55 +0100
+
 pygobject (3.0.2-4) unstable; urgency=low
 
   [ Sjoerd Simons ]
