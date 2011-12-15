@@ -1,10 +1,10 @@
-pygobject (3.0.3-1) UNRELEASED; urgency=low
+pygobject (3.0.3-1) unstable; urgency=low
 
   * debian/watch: Switch to xz tarballs, upstream now only releases those.
   * New upstream bug fix release.
   * Drop 00git_marshal_gvariant_arrays.patch, included upstream.
 
- -- Martin Pitt <mpitt@debian.org>  Tue, 13 Dec 2011 13:00:55 +0100
+ -- Martin Pitt <mpitt@debian.org>  Thu, 15 Dec 2011 07:31:30 +0100
 
 pygobject (3.0.2-4) unstable; urgency=low
 
