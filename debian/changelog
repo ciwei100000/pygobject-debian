@@ -1,3 +1,16 @@
+pygobject (3.0.3-2) UNRELEASED; urgency=low
+
+  * Add 01_revert_tree_model_unicode_conversion.patch: Revert "Convert all
+    strings to utf-8 encoding when retrieving from TreeModel" change from
+    previous release. This changes existing behaviour (model values being str
+    instead of unicode) and also makes tree model behaviour incompatible to
+    the rest of Gtk behaviour (which always returns UTF-8 encoded str objects,
+    not unicode). The original bug description was a bug in the test case
+    code, you cannot mix str and unicode objects in interpolation.
+    (LP: #905602)
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 06 Jan 2012 16:32:36 +0100
+
 pygobject (3.0.3-1) unstable; urgency=low
 
   * debian/watch: Switch to xz tarballs, upstream now only releases those.
