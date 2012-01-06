@@ -1,5 +1,7 @@
-pygobject (3.0.3-2) UNRELEASED; urgency=low
+pygobject (3.0.3-2) unstable; urgency=medium
 
+  * Urgency medium as the previous release with the regression already made it
+    into testing and is causing quite a few unexpected breakages.
   * Add 01_revert_tree_model_unicode_conversion.patch: Revert "Convert all
     strings to utf-8 encoding when retrieving from TreeModel" change from
     previous release. This changes existing behaviour (model values being str
@@ -9,7 +11,7 @@ pygobject (3.0.3-2) UNRELEASED; urgency=low
     code, you cannot mix str and unicode objects in interpolation.
     (LP: #905602)
 
- -- Martin Pitt <mpitt@debian.org>  Fri, 06 Jan 2012 16:32:36 +0100
+ -- Martin Pitt <mpitt@debian.org>  Fri, 06 Jan 2012 16:38:51 +0100
 
 pygobject (3.0.3-1) unstable; urgency=low
 
