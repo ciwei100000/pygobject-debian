@@ -1,4 +1,4 @@
-pygobject (3.0.3-3) UNRELEASED; urgency=low
+pygobject (3.0.3-3) unstable; urgency=low
 
   * debian/control.in: Set python-gobject-dbg section/priority to debug/extra,
     according to to archive overrides.
@@ -11,7 +11,7 @@ pygobject (3.0.3-3) UNRELEASED; urgency=low
     on GError* arguments, causing crashes due to double-freeing them.
     Backported from upstream git head.
 
- -- Martin Pitt <mpitt@debian.org>  Fri, 06 Jan 2012 20:05:07 +0100
+ -- Martin Pitt <mpitt@debian.org>  Wed, 25 Jan 2012 07:19:31 +0100
 
 pygobject (3.0.3-2) unstable; urgency=medium
 
