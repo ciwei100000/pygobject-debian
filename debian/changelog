@@ -6,6 +6,10 @@ pygobject (3.0.3-3) UNRELEASED; urgency=low
     GError as callback/closure arguments. Backported from upstream git head,
     but without the test cases, as they require an addition to
     gobject-introspection. (LP: #904783)
+  * Add 00git_gerror_transfer_none.patch: Respect transfer-type when
+    demarshalling GErrors. The marshaller previously ignored "transfer full"
+    on GError* arguments, causing crashes due to double-freeing them.
+    Backported from upstream git head.
 
  -- Martin Pitt <mpitt@debian.org>  Fri, 06 Jan 2012 20:05:07 +0100
 
