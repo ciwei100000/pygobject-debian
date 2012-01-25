@@ -2,6 +2,10 @@ pygobject (3.0.3-3) UNRELEASED; urgency=low
 
   * debian/control.in: Set python-gobject-dbg section/priority to debug/extra,
     according to to archive overrides.
+  * Add 00git_ghashtable_gerror_callback_args.patch: Support GHashTable and
+    GError as callback/closure arguments. Backported from upstream git head,
+    but without the test cases, as they require an addition to
+    gobject-introspection. (LP: #904783)
 
  -- Martin Pitt <mpitt@debian.org>  Fri, 06 Jan 2012 20:05:07 +0100
 
