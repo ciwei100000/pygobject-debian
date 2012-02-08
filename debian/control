@@ -142,7 +142,7 @@ Architecture: all
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          python-gobject (>= ${source:Version}),
-         python-gobject (<= ${source:Version}.1~),
+         python-gobject (<< ${source:Version}.1~),
          libglib2.0-dev (>= 2.24.0),
          libffi-dev (>= 3.0.5)
 Breaks: python-gobject-dev (<< 3.0.2-4)
