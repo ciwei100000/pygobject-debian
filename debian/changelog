@@ -1,11 +1,11 @@
-pygobject (3.1.0-1) UNRELEASED; urgency=low
+pygobject (3.1.0-1) unstable; urgency=low
 
   * New upstream release. No new features or code reorg, just a lot of crash
     and introspectability fixes, and well covered by test cases. This works
     fine with GNOME 3.2.
   * Drop all patches, all upstream now.
 
- -- Martin Pitt <mpitt@debian.org>  Wed, 08 Feb 2012 07:05:57 +0100
+ -- Martin Pitt <mpitt@debian.org>  Wed, 08 Feb 2012 07:28:19 +0100
 
 pygobject (3.0.3-3) unstable; urgency=low
 
