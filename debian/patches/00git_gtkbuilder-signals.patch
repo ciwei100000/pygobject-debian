@@ -1,0 +1,31 @@
+From 671f9b0dd73ac41a84caf9d1f04cec351bc01b47 Mon Sep 17 00:00:00 2001
+From: Ryan Lortie <desrt@desrt.ca>
+Date: Wed, 8 Feb 2012 16:06:22 -0500
+Subject: fix GtkBuilder signal connection 'after' logic
+
+All GtkBuilder signals are presently being connected 'after', ignoring
+what is specified in the builder XML.  This is due to an obvious logic
+error.
+
+Bug: https://bugzilla.gnome.org/show_bug.cgi?id=669705
+Bug-Ubuntu: https://launchpad.net/bugs/925676 
+---
+ gi/overrides/Gtk.py |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/gi/overrides/Gtk.py b/gi/overrides/Gtk.py
+index 1d0cb49..2b44282 100644
+--- a/gi/overrides/Gtk.py
++++ b/gi/overrides/Gtk.py
+@@ -350,7 +350,7 @@ class Builder(Gtk.Builder):
+             if not _callable(handler):
+                 raise TypeError('Handler %s is not a method or function' % handler_name)
+ 
+-            after = flags or GObject.ConnectFlags.AFTER
++            after = flags & GObject.ConnectFlags.AFTER
+             if connect_obj is not None:
+                 if after:
+                     gobj.connect_object_after(signal_name, handler, connect_obj)
+-- 
+1.7.9
+

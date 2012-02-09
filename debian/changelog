@@ -5,6 +5,8 @@ pygobject (3.1.0-2) UNRELEASED; urgency=low
   * Add 00git_pygspawn_error_check.patch: Fix crash in pygspawn() when the
     argv or envp arguments are not proper sequences. Backported from upstream
     git head.
+  * Add 00git_gtkbuilder-signals.patch: Fix GtkBuilder signal connection
+    'after' logic. Backported from upstream git head. (LP: #925676)
 
  -- Martin Pitt <mpitt@debian.org>  Thu, 09 Feb 2012 06:47:36 +0100
 
