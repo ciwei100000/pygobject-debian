@@ -2,6 +2,9 @@ pygobject (3.1.0-2) UNRELEASED; urgency=low
 
   * Add glib_2.30.patch: Partially revert commit ee62df4 to drop the usage of
     g_value_*_schar. This was introduced in glib 2.31 only. (Closes: #659184)
+  * Add 00git_pygspawn_error_check.patch: Fix crash in pygspawn() when the
+    argv or envp arguments are not proper sequences. Backported from upstream
+    git head.
 
  -- Martin Pitt <mpitt@debian.org>  Thu, 09 Feb 2012 06:47:36 +0100
 
