@@ -1,4 +1,4 @@
-pygobject (3.1.0-2) UNRELEASED; urgency=low
+pygobject (3.1.0-2) unstable; urgency=low
 
   * Add glib_2.30.patch: Partially revert commit ee62df4 to drop the usage of
     g_value_*_schar. This was introduced in glib 2.31 only. (Closes: #659184)
@@ -8,7 +8,7 @@ pygobject (3.1.0-2) UNRELEASED; urgency=low
   * Add 00git_gtkbuilder-signals.patch: Fix GtkBuilder signal connection
     'after' logic. Backported from upstream git head. (LP: #925676)
 
- -- Martin Pitt <mpitt@debian.org>  Thu, 09 Feb 2012 06:47:36 +0100
+ -- Martin Pitt <mpitt@debian.org>  Thu, 09 Feb 2012 07:01:44 +0100
 
 pygobject (3.1.0-1) unstable; urgency=low
 
