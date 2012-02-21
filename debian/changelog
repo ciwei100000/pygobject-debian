@@ -1,3 +1,10 @@
+pygobject (3.1.0-3) UNRELEASED; urgency=low
+
+  * debian/control.in: Have python-gi-dev depend on python-gi, not
+    the transitional python-gobject.
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 21 Feb 2012 08:41:37 +0100
+
 pygobject (3.1.0-2) unstable; urgency=low
 
   * Add glib_2.30.patch: Partially revert commit ee62df4 to drop the usage of
