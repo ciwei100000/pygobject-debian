@@ -4,6 +4,7 @@ pygobject (3.1.0-3) UNRELEASED; urgency=low
     the transitional python-gobject.
   * debian/watch: Watch for odd-numbered minor versions as well, as we are
     using these for GNOME 3.2.
+  * debian/control.in: Update Vcs-* for experimental branch.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 21 Feb 2012 08:41:37 +0100
 
