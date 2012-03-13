@@ -1,0 +1,26 @@
+Description: Partially revert commit ee62df4 to drop the usage of g_value_*_schar. This was introduced in glib 2.31 only.
+Author: Martin Pitt <mpitt@debian.org>
+Forwarded: No, Debian specific. Can be dropped once Debian gets glib >= 2.31.
+
+Index: pygobject/gi/pygi-property.c
+===================================================================
+--- pygobject.orig/gi/pygi-property.c	2012-02-06 18:52:49.000000000 +0100
++++ pygobject/gi/pygi-property.c	2012-02-09 06:45:09.421541123 +0100
+@@ -121,8 +121,6 @@
+             arg.v_boolean = g_value_get_boolean (&value);
+             break;
+         case GI_TYPE_TAG_INT8:
+-            arg.v_int8 = g_value_get_schar (&value);
+-            break;
+         case GI_TYPE_TAG_INT16:
+         case GI_TYPE_TAG_INT32:
+             if (G_VALUE_HOLDS_LONG (&value))
+@@ -316,8 +314,6 @@
+             g_value_set_boolean (&value, arg.v_boolean);
+             break;
+         case GI_TYPE_TAG_INT8:
+-            g_value_set_schar (&value, arg.v_int8);
+-            break;
+         case GI_TYPE_TAG_INT16:
+         case GI_TYPE_TAG_INT32:
+             if (G_VALUE_HOLDS_LONG (&value))

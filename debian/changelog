@@ -1,3 +1,107 @@
+pygobject (3.1.0-3) UNRELEASED; urgency=low
+
+  * debian/control.in: Have python-gi-dev depend on python-gi, not
+    the transitional python-gobject.
+  * debian/watch: Watch for odd-numbered minor versions as well, as we are
+    using these for GNOME 3.2.
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 21 Feb 2012 08:41:37 +0100
+
+pygobject (3.1.0-2) unstable; urgency=low
+
+  * Add glib_2.30.patch: Partially revert commit ee62df4 to drop the usage of
+    g_value_*_schar. This was introduced in glib 2.31 only. (Closes: #659184)
+  * Add 00git_pygspawn_error_check.patch: Fix crash in pygspawn() when the
+    argv or envp arguments are not proper sequences. Backported from upstream
+    git head.
+  * Add 00git_gtkbuilder-signals.patch: Fix GtkBuilder signal connection
+    'after' logic. Backported from upstream git head. (LP: #925676)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 09 Feb 2012 07:01:44 +0100
+
+pygobject (3.1.0-1) unstable; urgency=low
+
+  * New upstream release. No new features or code reorg, just a lot of crash
+    and introspectability fixes, and well covered by test cases. This works
+    fine with GNOME 3.2.
+  * Drop all patches, all upstream now.
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 08 Feb 2012 07:28:19 +0100
+
+pygobject (3.0.3-3) unstable; urgency=low
+
+  * debian/control.in: Set python-gobject-dbg section/priority to debug/extra,
+    according to to archive overrides.
+  * Add 00git_ghashtable_gerror_callback_args.patch: Support GHashTable and
+    GError as callback/closure arguments. Backported from upstream git head,
+    but without the test cases, as they require an addition to
+    gobject-introspection. (LP: #904783)
+  * Add 00git_gerror_transfer_none.patch: Respect transfer-type when
+    demarshalling GErrors. The marshaller previously ignored "transfer full"
+    on GError* arguments, causing crashes due to double-freeing them.
+    Backported from upstream git head.
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 25 Jan 2012 07:19:31 +0100
+
+pygobject (3.0.3-2) unstable; urgency=medium
+
+  * Urgency medium as the previous release with the regression already made it
+    into testing and is causing quite a few unexpected breakages.
+  * Add 01_revert_tree_model_unicode_conversion.patch: Revert "Convert all
+    strings to utf-8 encoding when retrieving from TreeModel" change from
+    previous release. This changes existing behaviour (model values being str
+    instead of unicode) and also makes tree model behaviour incompatible to
+    the rest of Gtk behaviour (which always returns UTF-8 encoded str objects,
+    not unicode). The original bug description was a bug in the test case
+    code, you cannot mix str and unicode objects in interpolation.
+    (LP: #905602)
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 06 Jan 2012 16:38:51 +0100
+
+pygobject (3.0.3-1) unstable; urgency=low
+
+  * debian/watch: Switch to xz tarballs, upstream now only releases those.
+  * New upstream bug fix release.
+  * Drop 00git_marshal_gvariant_arrays.patch, included upstream.
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 15 Dec 2011 07:31:30 +0100
+
+pygobject (3.0.2-4) unstable; urgency=low
+
+  [ Sjoerd Simons ]
+  * debian/control.in: Make the Vcs-* tags refer to the unstable repos
+
+  [ Martin Pitt ]
+  * debian/control.in: Drop gir1.2-gtk-3.0 build dependency on m68k, as that
+    arch does not yet have GTK-3 yet. It is only needed for the testsuite
+    anyway. As per request from Thorsten Glaser.
+
+  [ Josselin Mouette ]
+  * Bump dependencies on gir1.2-glib-2.0 according to upstream 
+    requirements. Closes: #649611.
+  * Rename packages to python-gi*.
+  * Remove dependencies on python-gobject-2*. The dependency will be the 
+    other way round so that the old pygobject-2 can be dropped 
+    eventually.
+  * Add appropriate Breaks/Replaces/Conflicts/Provides.
+  * Add a missing python-gi-cairo → python-gi dependency.
+  * Drop a pair of unneeded Recommends/Suggests.
+  * Add transitional python-gobject/python-gobject-dev packages that 
+    depend on both python-gi* and python-gobject-2*.
+  * Same for python-gobject-dbg.
+  * Break python-nautilus <= the current version which is broken by 
+    pygobject 3.x. Closes: #649861. The only other affected package is 
+    totem-plugins and the issue is not severe enough to warrant blocking 
+    the ongoing transitions.
+
+ -- Josselin Mouette <joss@debian.org>  Thu, 24 Nov 2011 18:43:28 +0100
+
+pygobject (3.0.2-3) unstable; urgency=low
+
+  * Upload to unstable
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Sun, 20 Nov 2011 13:02:33 +0000
+
 pygobject (3.0.2-2) experimental; urgency=low
 
   * debian/control.in: Add locales build dependency, to ensure that the test
