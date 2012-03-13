@@ -1,5 +1,12 @@
-pygobject (3.1.0-3) UNRELEASED; urgency=low
+pygobject (3.1.1-1) UNRELEASED; urgency=low
 
+  * New upstream bug fix release.
+  * debian/control.in: Bump libglib2.0-dev build dependency as per
+    configure.ac.
+  * Drop 00git_gtkbuilder-signals.patch, 00git_pygspawn_error_check.patch:
+    Included upstream.
+  * Drop glib_2.30.patch: Not necessary any more, we have a recent enough
+    glib in experimental now.
   * debian/control.in: Have python-gi-dev depend on python-gi, not
     the transitional python-gobject.
   * debian/watch: Watch for odd-numbered minor versions as well, as we are
