@@ -1,4 +1,4 @@
-pygobject (3.1.1-1) UNRELEASED; urgency=low
+pygobject (3.1.1-1) experimental; urgency=low
 
   * New upstream bug fix release.
   * debian/control.in: Bump libglib2.0-dev build dependency as per
@@ -13,7 +13,7 @@ pygobject (3.1.1-1) UNRELEASED; urgency=low
     using these for GNOME 3.2.
   * debian/control.in: Update Vcs-* for experimental branch.
 
- -- Martin Pitt <mpitt@debian.org>  Tue, 21 Feb 2012 08:41:37 +0100
+ -- Martin Pitt <mpitt@debian.org>  Tue, 13 Mar 2012 15:22:44 +0100
 
 pygobject (3.1.0-2) unstable; urgency=low
 
