@@ -1,3 +1,11 @@
+pygobject (3.1.92-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    - Fix Gtk override API for tree models to send out only one signal after
+      the data is set. (LP: #939450)
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 19 Mar 2012 17:22:41 +0100
+
 pygobject (3.1.1-1) experimental; urgency=low
 
   * New upstream bug fix release.
