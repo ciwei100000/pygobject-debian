@@ -1,4 +1,4 @@
-pygobject (3.1.93-1) UNRELEASED; urgency=low
+pygobject (3.2.0-1) UNRELEASED; urgency=low
 
   * New upstream bug fix release, to fix two regressions in 3.1.92.
 
