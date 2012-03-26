@@ -1,8 +1,8 @@
-pygobject (3.2.0-1) UNRELEASED; urgency=low
+pygobject (3.2.0-1) experimental; urgency=low
 
   * New upstream bug fix release, to fix two regressions in 3.1.92.
 
- -- Martin Pitt <mpitt@debian.org>  Thu, 22 Mar 2012 11:04:15 +0100
+ -- Martin Pitt <mpitt@debian.org>  Mon, 26 Mar 2012 13:50:26 +0200
 
 pygobject (3.1.92-1) experimental; urgency=low
 
