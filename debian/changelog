@@ -1,11 +1,33 @@
-pygobject (3.1.0-3) UNRELEASED; urgency=low
+pygobject (3.2.0-1) experimental; urgency=low
 
+  * New upstream bug fix release, to fix two regressions in 3.1.92.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 26 Mar 2012 13:50:26 +0200
+
+pygobject (3.1.92-1) experimental; urgency=low
+
+  * New upstream release.
+    - Fix Gtk override API for tree models to send out only one signal after
+      the data is set. (LP: #939450)
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 19 Mar 2012 17:29:07 +0100
+
+pygobject (3.1.1-1) experimental; urgency=low
+
+  * New upstream bug fix release.
+  * debian/control.in: Bump libglib2.0-dev build dependency as per
+    configure.ac.
+  * Drop 00git_gtkbuilder-signals.patch, 00git_pygspawn_error_check.patch:
+    Included upstream.
+  * Drop glib_2.30.patch: Not necessary any more, we have a recent enough
+    glib in experimental now.
   * debian/control.in: Have python-gi-dev depend on python-gi, not
     the transitional python-gobject.
   * debian/watch: Watch for odd-numbered minor versions as well, as we are
     using these for GNOME 3.2.
+  * debian/control.in: Update Vcs-* for experimental branch.
 
- -- Martin Pitt <mpitt@debian.org>  Tue, 21 Feb 2012 08:41:37 +0100
+ -- Martin Pitt <mpitt@debian.org>  Tue, 13 Mar 2012 15:22:44 +0100
 
 pygobject (3.1.0-2) unstable; urgency=low
 
