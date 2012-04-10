@@ -1,9 +1,9 @@
-pygobject (3.2.0-3) UNRELEASED; urgency=low
+pygobject (3.2.0-3) unstable; urgency=low
 
   * debian/control.in, debian/rules: Build a python3-gi-cairo package, now
     that py3cairo is packaged in Debian. (LP: #879405)
 
- -- Martin Pitt <mpitt@debian.org>  Tue, 10 Apr 2012 13:00:38 +0200
+ -- Martin Pitt <mpitt@debian.org>  Tue, 10 Apr 2012 13:10:34 +0200
 
 pygobject (3.2.0-2) unstable; urgency=low
 
