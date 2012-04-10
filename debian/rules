@@ -41,30 +41,12 @@ build-%/configure-stamp: patch-stamp
 			$(CURDIR)/configure $(configure_flags)
 	touch $@
 
-# FIXME: temporary rule until py3cairo gets packaged
-build-3.2/configure-stamp: patch-stamp
-	dh_testdir
-	mkdir -p build-3.2
-	cd build-3.2 && \
-		PYTHON=/usr/bin/python3.2 CFLAGS="$(CFLAGS)" \
-			$(CURDIR)/configure $(configure_flags) --disable-cairo CFLAGS="-g -O2 -I/usr/include/cairo"
-	touch $@
-
 dbg-build-%/configure-stamp: patch-stamp
 	dh_testdir
 	mkdir -p dbg-build-$*
 	cd dbg-build-$* && \
 		PYTHON=/usr/bin/python$*-dbg CFLAGS="$(CFLAGS) -O0" \
 			$(CURDIR)/configure $(configure_flags)
-	touch $@
-
-# FIXME: temporary rule until py3cairo gets packaged
-dbg-build-3.2/configure-stamp: patch-stamp
-	dh_testdir
-	mkdir -p dbg-build-3.2
-	cd dbg-build-3.2 && \
-		PYTHON=/usr/bin/python3.2-dbg CFLAGS="$(CFLAGS) -O0" \
-			$(CURDIR)/configure $(configure_flags) --disable-cairo CFLAGS="-g -O2 -I/usr/include/cairo"
 	touch $@
 
 build-%/build-stamp: build-%/configure-stamp
@@ -160,9 +142,14 @@ install-stamp: $(PYVERS:%=build-%/build-stamp) $(PYVERS:%=dbg-build-%/build-stam
 	rm -f $(PYVERS:%=build-%/install-stamp) $(PYVERS:%=dbg-build-%/install-stamp)
 	$(MAKE) -f debian/rules $(PYVERS:%=build-%/install-stamp) $(PYVERS:%=dbg-build-%/install-stamp)
 	for i in $(PYVERS); do \
-		[ "$${i#3.}" = "$$i" ] || continue; \
-		mkdir -p debian/python-gi-cairo/$(call py_libdir_sh, $$i)/gi; \
-		mv debian/python-gi/$(call py_libdir_sh, $$i)/gi/_gi_cairo.so debian/python-gi-cairo/$(call py_libdir_sh, $$i)/gi; \
+		if [ "$${i#3.}" = "$$i" ]; then \
+			mkdir -p debian/python-gi-cairo/$(call py_libdir_sh, $$i)/gi; \
+			mv debian/python-gi/$(call py_libdir_sh, $$i)/gi/_gi_cairo.so debian/python-gi-cairo/$(call py_libdir_sh, $$i)/gi; \
+		else \
+			ABITAG=`python$$i -c "import sysconfig; print(sysconfig.get_config_var('SOABI'))"`; \
+			mkdir -p debian/python3-gi-cairo/$(call py_libdir_sh, $$i)/gi; \
+			mv debian/python3-gi/$(call py_libdir_sh, $$i)/gi/_gi_cairo.$$ABITAG.so debian/python3-gi-cairo/$(call py_libdir_sh, $$i)/gi; \
+		fi \
 	done
 	mkdir -p debian/python-gi/usr/lib
 	for i in $$(find debian/python-gi-dbg -name '*.so' -path 'debian/python-gi-dbg/usr/lib/python*/*-packages/*'); do \
