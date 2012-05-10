@@ -1,3 +1,9 @@
+pygobject (3.2.1-1) UNRELEASED; urgency=low
+
+  * New upstream bug fix release.
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 10 May 2012 14:08:08 -0700
+
 pygobject (3.2.0-3) unstable; urgency=low
 
   * debian/control.in, debian/rules: Build a python3-gi-cairo package, now
