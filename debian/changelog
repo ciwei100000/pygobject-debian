@@ -1,6 +1,7 @@
 pygobject (3.2.1-1) UNRELEASED; urgency=low
 
   * New upstream bug fix release.
+    - GTK overrides: Add missing keyword arguments (Closes: #667057)
 
  -- Martin Pitt <mpitt@debian.org>  Thu, 10 May 2012 14:08:08 -0700
 
