@@ -1,4 +1,4 @@
-pygobject (3.3.1-1) UNRELEASED; urgency=low
+pygobject (3.3.1-1) experimental; urgency=low
 
   * debian/control.in: Update Vcs-* for experimental branch.
   * New upstream release. The 3.3.x series is targetted at GNOME 3.6, but will
@@ -7,7 +7,7 @@ pygobject (3.3.1-1) UNRELEASED; urgency=low
   * debian/control.in: Add pep8 and pyflakes build dependencies, now used by
     the test suite.
 
- -- Martin Pitt <mpitt@debian.org>  Tue, 15 May 2012 15:41:25 +0200
+ -- Martin Pitt <mpitt@debian.org>  Tue, 15 May 2012 16:00:59 +0200
 
 pygobject (3.2.2-1) unstable; urgency=low
 
