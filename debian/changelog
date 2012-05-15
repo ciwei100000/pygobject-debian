@@ -1,6 +1,8 @@
-pygobject (3.2.2-2) UNRELEASED; urgency=low
+pygobject (3.3.1-1) UNRELEASED; urgency=low
 
   * debian/control.in: Update Vcs-* for experimental branch.
+  * New upstream release. The 3.3.x series is targetted at GNOME 3.6, but will
+    also work with GNOME 3.4. There are a few small API changes/fixes, though.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 15 May 2012 15:41:25 +0200
 
