@@ -203,10 +203,10 @@ binary-arch: install $(maybe_check)
 	dh_fixperms -s
 	dh_python2 -a
 	dh_python3 -a
-	dh_makeshlibs -ppython-gi      -V'python-gi (>= 2.90.1)'
-	dh_makeshlibs -ppython-gi-dbg  -V'python-gi-dbg (>= 2.90.1)'
-	dh_makeshlibs -ppython3-gi     -V'python3-gi (>= 2.90.1)'
-	dh_makeshlibs -ppython3-gi-dbg -V'python3-gi-dbg (>= 2.90.1)'
+	dh_makeshlibs -ppython-gi      -V'python-gi (>= 3.3.1)'
+	dh_makeshlibs -ppython-gi-dbg  -V'python-gi-dbg (>= 3.3.1)'
+	dh_makeshlibs -ppython3-gi     -V'python3-gi (>= 3.3.1)'
+	dh_makeshlibs -ppython3-gi-dbg -V'python3-gi-dbg (>= 3.3.1)'
 	dh_installdeb -s
 	dh_shlibdeps -s
 	dh_gencontrol -s
