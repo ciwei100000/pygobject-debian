@@ -7,7 +7,7 @@ Source: pygobject
 Section: python
 Priority: optional
 Maintainer: Josselin Mouette <joss@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Sjoerd Simons <sjoerd@debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
 Build-Depends: debhelper (>= 7),
                gnome-pkg-tools (>= 0.10),
                dh-autoreconf,
@@ -20,6 +20,7 @@ Build-Depends: debhelper (>= 7),
                gobject-introspection (>= 1.31.0),
                libgirepository1.0-dev (>= 1.31.0),
                python-cairo-dev (>= 1.2.0),
+               python3-cairo-dev (>= 1.10.0),
                xsltproc,
                xvfb,
                xauth,
@@ -35,9 +36,9 @@ Build-Depends: debhelper (>= 7),
                gir1.2-gtk-3.0 [!m68k],
                gir1.2-freedesktop
 X-Python-Version: >= 2.5
-Standards-Version: 3.9.2
-Vcs-Svn: svn://svn.debian.org/svn/pkg-gnome/desktop/experimental/pygobject
-Vcs-Browser: http://svn.debian.org/viewsvn/pkg-gnome/desktop/experimental/pygobject
+Standards-Version: 3.9.3
+Vcs-Svn: svn://svn.debian.org/svn/pkg-gnome/desktop/unstable/pygobject
+Vcs-Browser: http://svn.debian.org/viewsvn/pkg-gnome/desktop/unstable/pygobject
 
 Package: python-gi
 Architecture: any
@@ -165,6 +166,20 @@ Description: Python 2.x bindings for GObject - transitional package
  deprecated gobject module, and the new gobject-introspection system. It 
  is here for upgrade purposes only. You can remove it safely when 
  nothing else depends on it.
+
+Package: python3-gi-cairo
+Architecture: any
+Depends: ${python3:Depends},
+         ${shlibs:Depends},
+         ${misc:Depends},
+         python3-cairo
+Description: Python 3 Cairo bindings for the GObject library
+ GObject is an abstraction layer that allows programming with an object
+ paradigm that is compatible with many languages. It is a part of Glib,
+ the core library used to build GTK+ and GNOME.
+ .
+ This package contains the Python 3 Cairo bindings for GObject. It is mostly
+ used by other bindings to map their GObjects to Python objects.
 
 Package: python-gobject-dbg
 Section: debug

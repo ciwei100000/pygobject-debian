@@ -1,3 +1,33 @@
+pygobject (3.2.2-1) unstable; urgency=low
+
+  * New upstream bug fix release.
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 15 May 2012 15:29:38 +0200
+
+pygobject (3.2.1-1) unstable; urgency=low
+
+  * New upstream bug fix release.
+    - GTK overrides: Add missing keyword arguments (Closes: #667057)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 10 May 2012 14:27:02 -0700
+
+pygobject (3.2.0-3) unstable; urgency=low
+
+  * debian/control.in, debian/rules: Build a python3-gi-cairo package, now
+    that py3cairo is packaged in Debian. (LP: #879405)
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 10 Apr 2012 13:10:34 +0200
+
+pygobject (3.2.0-2) unstable; urgency=low
+
+  * Upload to unstable.
+  * debian/watch: Switch back to only watching for stable versions.
+  * debian/control.in: Set Vcs-* back to unstable branch.
+  * debian/copyright: Move to copyright 1.0 format.
+  * debian/control.in: Bump Standards-Version to 3.9.3.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 02 Apr 2012 08:18:17 +0200
+
 pygobject (3.2.0-1) experimental; urgency=low
 
   * New upstream bug fix release, to fix two regressions in 3.1.92.
