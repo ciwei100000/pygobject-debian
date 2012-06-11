@@ -1,10 +1,10 @@
-pygobject (3.3.2-1) UNRELEASED; urgency=low
+pygobject (3.3.2-1) experimental; urgency=low
 
   * New upstream release.
   * debian/control.in: Bump gobject-introspection build dep to >= 1.33.2 to
     ensure we have the necessary API for the tests.
 
- -- Martin Pitt <mpitt@debian.org>  Mon, 11 Jun 2012 16:26:43 +0200
+ -- Martin Pitt <mpitt@debian.org>  Mon, 11 Jun 2012 16:30:43 +0200
 
 pygobject (3.3.1-1) experimental; urgency=low
 
