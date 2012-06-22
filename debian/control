@@ -7,7 +7,7 @@ Source: pygobject
 Section: python
 Priority: optional
 Maintainer: Josselin Mouette <joss@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Martin Pitt <mpitt@debian.org>
 Build-Depends: debhelper (>= 7),
                gnome-pkg-tools (>= 0.10),
                dh-autoreconf,
@@ -33,7 +33,7 @@ Build-Depends: debhelper (>= 7),
                python-apt-dbg,
                python-cairo-dbg,
                gir1.2-glib-2.0,
-               gir1.2-gtk-3.0 [!m68k],
+               gir1.2-gtk-3.0,
                gir1.2-freedesktop
 X-Python-Version: >= 2.5
 Standards-Version: 3.9.3

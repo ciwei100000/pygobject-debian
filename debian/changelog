@@ -1,3 +1,9 @@
+pygobject (3.2.2-2) UNRELEASED; urgency=low
+
+  * Enable again gtk3 on m68k.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 22 Jun 2012 20:52:29 +0200
+
 pygobject (3.2.2-1) unstable; urgency=low
 
   * New upstream bug fix release.
