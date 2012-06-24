@@ -167,6 +167,7 @@ Architecture: any
 Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
+         python3-gi (= ${binary:Version}),
          python3-cairo
 Description: Python 3 Cairo bindings for the GObject library
  GObject is an abstraction layer that allows programming with an object
