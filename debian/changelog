@@ -1,4 +1,4 @@
-pygobject (3.3.4-1) UNRELEASED; urgency=low
+pygobject (3.3.4-1) experimental; urgency=low
 
   * New upstream release.
   * Add debian/tests/: autopkgtest for using GI modules with Python 2 and 3.
@@ -7,7 +7,7 @@ pygobject (3.3.4-1) UNRELEASED; urgency=low
     verify that the headers and pkg-config file are installed correctly.
   * debian/watch: Look for unstable versions in experimental branch.
 
- -- Martin Pitt <mpitt@debian.org>  Wed, 04 Jul 2012 13:36:12 +0200
+ -- Martin Pitt <mpitt@debian.org>  Sun, 22 Jul 2012 11:13:46 +0200
 
 pygobject (3.3.3.1-1) experimental; urgency=low
 
