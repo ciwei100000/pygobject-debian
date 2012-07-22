@@ -1,5 +1,6 @@
-pygobject (3.3.3.1-2) UNRELEASED; urgency=low
+pygobject (3.3.4-1) UNRELEASED; urgency=low
 
+  * New upstream release.
   * Add debian/tests/: autopkgtest for using GI modules with Python 2 and 3.
   * debian/control.in: Add XS-Testsuite header as per current DEP-8.
   * Add debian/tests/build: Build and run a program against pygobject, to
