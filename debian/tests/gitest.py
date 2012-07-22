@@ -2,6 +2,7 @@ import unittest
 import sys
 from gi.repository import GLib
 
+
 class TestGI(unittest.TestCase):
     def test_glib_enum(self):
         '''GLib enum'''
