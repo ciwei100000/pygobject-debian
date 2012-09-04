@@ -1,6 +1,7 @@
 pygobject (3.3.91-1) UNRELEASED; urgency=low
 
   * New upstream release.
+  * debian/control.in: Bump g-i build dependencies as per configure.ac.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 04 Sep 2012 12:32:16 +0200
 
