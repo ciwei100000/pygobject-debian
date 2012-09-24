@@ -1,3 +1,9 @@
+pygobject (3.4.0-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 24 Sep 2012 09:42:34 +0200
+
 pygobject (3.3.92-1) experimental; urgency=low
 
   * New upstream release.
