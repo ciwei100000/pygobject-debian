@@ -88,7 +88,8 @@ build-2.%/install-stamp: build-2.%/build-stamp
 	# remove stuff that we do not need in python-gi
 	-find debian/python-gi/ ! -path '*/usr/lib/*' -delete
 	find debian/python-gi/ \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -delete
-	# dh_python2 trips over this empty dir in the sanity check for >= 2.6, so remove it
+	# Make dh_python2 happy; there is no --install-layout option for pygobject
+	mv debian/python-gi/usr/lib/python2.$*/site-packages/* debian/python-gi/usr/lib/python2.$*/dist-packages/
 	rmdir debian/python-gi/usr/lib/python2.$*/site-packages
 	rm -r debian/python-gi/usr/lib/pkgconfig
 

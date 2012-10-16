@@ -1,6 +1,8 @@
 pygobject (3.4.1-1) UNRELEASED; urgency=low
 
   * New upstream bug fix release.
+  * debian/rules: Update handling of site-packages directory, as this version
+    now ships an .egg-info.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 16 Oct 2012 06:57:55 +0200
 
