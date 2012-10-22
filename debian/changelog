@@ -1,4 +1,7 @@
-pygobject (3.4.1-2) UNRELEASED; urgency=low
+pygobject (3.4.1.1-1) UNRELEASED; urgency=low
+
+  [ Martin Pitt ]
+  * New upstream release.
 
   [ Matthias Klose ]
   * Fix renaming of python3 extensions.
