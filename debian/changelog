@@ -3,6 +3,7 @@ pygobject (3.4.1.1-1) UNRELEASED; urgency=low
   [ Martin Pitt ]
   * New upstream release.
   * debian/control.in: Bump g-i dependencies according to configure.ac.
+  * debian/rules: Remove moving of site-packages, this was fixed upstream now.
 
   [ Matthias Klose ]
   * Fix renaming of python3 extensions.
