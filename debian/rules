@@ -104,7 +104,7 @@ build-3.%/install-stamp: build-3.%/build-stamp
 	# tag the Python extensions like distutils, as upstream build system
 	# uses autotools and does not know about http://www.python.org/dev/peps/pep-3149/
 	ABITAG=`python3.$* -c "import sysconfig; print(sysconfig.get_config_var('SOABI'))"`; \
-	for f in `find debian/python3-gi/usr/lib/python* -name '*.so'`; do \
+	for f in `find debian/python3-gi/usr/lib/python* -name '*.so' ! -name '*.cpython*.so'`; do \
 	    mv $$f $${f%.so}.$$ABITAG.so; \
 	done
 	
@@ -128,7 +128,7 @@ dbg-build-3.%/install-stamp: dbg-build-3.%/build-stamp
 	# tag the Python extensions like distutils, as upstream build system
 	# uses autotools and does not know about http://www.python.org/dev/peps/pep-3149/
 	ABITAG=`python3.$*-dbg -c "import sysconfig; print(sysconfig.get_config_var('SOABI'))"`; \
-	for f in `find debian/python3-gi-dbg/usr/lib/python* -name '*.so'`; do \
+	for f in `find debian/python3-gi-dbg/usr/lib/python* -name '*.so' ! -name '*.cpython*.so'`; do \
 	    mv $$f $${f%.so}.$$ABITAG.so; \
 	done
 	
