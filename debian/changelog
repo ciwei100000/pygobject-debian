@@ -2,6 +2,8 @@ pygobject (3.4.1-2) UNRELEASED; urgency=low
 
   [ Matthias Klose ]
   * Fix renaming of python3 extensions.
+  * Configure with --disable-silent-rules.
+  * debian/rules (clean): Remove __pycache__ directories.
 
  -- Martin Pitt <mpitt@debian.org>  Mon, 22 Oct 2012 11:44:38 +0200
 
