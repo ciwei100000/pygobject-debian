@@ -2,7 +2,6 @@
 # 
 # Modifications should be made to debian/control.in instead.
 # This file is regenerated automatically in the clean target.
-
 Source: pygobject
 Section: python
 Priority: optional
@@ -10,8 +9,6 @@ Maintainer: Josselin Mouette <joss@debian.org>
 Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
 Build-Depends: debhelper (>= 7),
                gnome-pkg-tools (>= 0.10),
-               dh-autoreconf,
-               quilt,
                python-all-dev (>= 2.6.6-3~),
                python3-all-dev,
                libglib2.0-dev (>= 2.31.0),
@@ -29,7 +26,6 @@ Build-Depends: debhelper (>= 7),
                docbook-xsl,
                pep8,
                pyflakes,
-               autotools-dev,
                python-all-dbg,
                python3-all-dbg,
                python-apt-dbg,

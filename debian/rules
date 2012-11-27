@@ -27,14 +27,7 @@ PYDEFAULTVER := $(shell pyversions --default --version)
 PYVERS := $(shell pyversions --requested --version debian/control)
 PYVERS := $(filter-out $(PYDEFAULTVER), $(PYVERS)) $(PYDEFAULTVER) $(shell py3versions --supported --version)
 
-patch-stamp:
-	dh_testdir
-	dh_autoreconf
-	touch $@
-
-patch: patch-stamp
-
-build-%/configure-stamp: patch-stamp
+build-%/configure-stamp:
 	dh_testdir
 	mkdir -p build-$*
 	cd build-$* && \
@@ -42,7 +35,7 @@ build-%/configure-stamp: patch-stamp
 			$(CURDIR)/configure $(configure_flags)
 	touch $@
 
-dbg-build-%/configure-stamp: patch-stamp
+dbg-build-%/configure-stamp:
 	dh_testdir
 	mkdir -p dbg-build-$*
 	cd dbg-build-$* && \
@@ -164,7 +157,6 @@ clean::
 	dh_testdir
 	dh_testroot
 	rm -f install-stamp
-	rm -f patch-stamp
 	rm -rf build-* dbg-build-*
 	dh_autoreconf_clean
 	dh_clean *.pyc */*.pyc
@@ -215,4 +207,4 @@ binary-arch: install $(maybe_check)
 	dh_builddeb -s
 
 binary: binary-arch binary-indep
-.PHONY: patch build check install clean binary-indep binary-arch binary
+.PHONY: build check install clean binary-indep binary-arch binary
