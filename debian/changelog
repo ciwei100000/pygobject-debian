@@ -5,6 +5,8 @@ pygobject (3.4.2-2) UNRELEASED; urgency=low
   * Greatly simplify debian/rules, by switching to dh7 build system and
     factorizing the per-flavor rules in a simpler and better way. Also move to
     dh compat 9 to get multiarch compatible library directories.
+  * debian/control.in: Bump g-i requirement according to upstream
+    configure.ac.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 27 Nov 2012 11:11:57 +0100
 

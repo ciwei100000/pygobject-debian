@@ -6,7 +6,7 @@ Source: pygobject
 Section: python
 Priority: optional
 Maintainer: Josselin Mouette <joss@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Martin Pitt <mpitt@debian.org>
 Build-Depends: debhelper (>= 9),
                gnome-pkg-tools (>= 0.10),
                python-all-dev (>= 2.6.6-3~),
@@ -14,8 +14,8 @@ Build-Depends: debhelper (>= 9),
                libglib2.0-dev (>= 2.31.0),
                libcairo2-dev,
                libffi-dev (>= 3.0.5),
-               gobject-introspection (>= 1.33.14),
-               libgirepository1.0-dev (>= 1.33.14),
+               gobject-introspection (>= 1.34.1.1),
+               libgirepository1.0-dev (>= 1.34.1.1),
                python-cairo-dev (>= 1.2.0),
                python3-cairo-dev (>= 1.10.0),
                xsltproc,
