@@ -7,6 +7,9 @@ pygobject (3.4.2-2) UNRELEASED; urgency=low
     dh compat 9 to get multiarch compatible library directories.
   * debian/control.in: Bump g-i requirement according to upstream
     configure.ac.
+  * debian/control.in: Drop support for Python 2.6. It's going to be dropped
+    after Wheezy anyway, it receives zero testing by upstream and will soon be
+    dropped upstream anyway.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 27 Nov 2012 11:11:57 +0100
 
