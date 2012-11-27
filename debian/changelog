@@ -12,8 +12,10 @@ pygobject (3.4.2-2) experimental; urgency=low
     dropped upstream anyway.
   * debian/rules: Use py3versions --supported instead of --requested; the
     former is broken right now and we don't request particular versions anyway.
+  * debian/control.in: Add missing ${misc:Pre-Depends} and versioned dpkg-dev
+    build dependency.
 
- -- Martin Pitt <mpitt@debian.org>  Tue, 27 Nov 2012 15:49:07 +0100
+ -- Martin Pitt <mpitt@debian.org>  Tue, 27 Nov 2012 16:15:23 +0100
 
 pygobject (3.4.2-1) experimental; urgency=low
 
