@@ -7,7 +7,7 @@ DISABLE_UPDATE_UPLOADERS=1
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
 -include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
-PYVERS := $(shell pyversions --requested --version debian/control) $(shell py3versions --requested --version debian/control)
+PYVERS := $(shell pyversions --requested -v debian/control) $(shell py3versions --supported -v)
 FLAVOURS := $(PYVERS) $(patsubst %,%-dbg,$(PYVERS))
 
 configure_flags += \

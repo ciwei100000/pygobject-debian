@@ -10,6 +10,8 @@ pygobject (3.4.2-2) UNRELEASED; urgency=low
   * debian/control.in: Drop support for Python 2.6. It's going to be dropped
     after Wheezy anyway, it receives zero testing by upstream and will soon be
     dropped upstream anyway.
+  * debian/rules: Use py3versions --supported instead of --requested; the
+    former is broken right now and we don't request particular versions anyway.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 27 Nov 2012 11:11:57 +0100
 
