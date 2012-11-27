@@ -1,4 +1,4 @@
-pygobject (3.4.2-2) experimental; urgency=low
+pygobject (3.4.2-2) UNRELEASED; urgency=low
 
   * Drop quilt (not necessary, we are using 3.0 (quilt) source format), and
     dh_autoreconf (we have no patches).
@@ -12,6 +12,8 @@ pygobject (3.4.2-2) experimental; urgency=low
     dropped upstream anyway.
   * debian/rules: Use py3versions --supported instead of --requested; the
     former is broken right now and we don't request particular versions anyway.
+  * debian/control.in: Add missing ${misc:Pre-Depends} and versioned dpkg-dev
+    build dependency.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 27 Nov 2012 15:49:07 +0100
 

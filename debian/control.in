@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Josselin Mouette <joss@debian.org>
 Uploaders: @GNOME_TEAM@
 Build-Depends: debhelper (>= 9),
+               dpkg-dev (>= 1.16.1~),
                gnome-pkg-tools (>= 0.10),
                python-all-dev (>= 2.6.6-3~),
                python3-all-dev,
@@ -37,6 +38,7 @@ XS-Testsuite: autopkgtest
 
 Package: python-gi
 Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -57,6 +59,7 @@ Description: Python 2.x bindings for gobject-introspection libraries
 
 Package: python3-gi
 Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -75,6 +78,7 @@ Description: Python 3 bindings for gobject-introspection libraries
 
 Package: python-gi-cairo
 Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -95,6 +99,7 @@ Package: python-gi-dbg
 Section: debug
 Priority: extra
 Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -115,6 +120,7 @@ Package: python3-gi-dbg
 Section: debug
 Priority: extra
 Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -135,6 +141,7 @@ Description: Python 3 bindings for gobject-introspection libraries (debug extens
 
 Package: python-gi-dev
 Architecture: all
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          python-gi (>= ${source:Version}),
@@ -153,6 +160,7 @@ Description: development headers for GObject Python bindings
 
 Package: python-gobject
 Architecture: all
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
          python-gi (>= ${source:Version}),
          python-gobject-2
@@ -164,6 +172,7 @@ Description: Python 2.x bindings for GObject - transitional package
 
 Package: python3-gi-cairo
 Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -180,6 +189,7 @@ Package: python-gobject-dbg
 Section: debug
 Priority: extra
 Architecture: all
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
          python-gi-dbg (>= ${source:Version}),
          python-gobject-2-dbg
@@ -191,6 +201,7 @@ Description: Python 2.x debugging modules for GObject - transitional package
 
 Package: python-gobject-dev
 Architecture: all
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
          python-gi-dev (= ${source:Version}),
          python-gobject-2-dev
