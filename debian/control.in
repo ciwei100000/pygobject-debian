@@ -207,7 +207,7 @@ Priority: extra
 Architecture: all
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
-         python-gi-dev (= ${source:Version}),
+         python-gi-dev (>= ${source:Version}),
          python-gobject-2-dev
 Description: Python 2.x development headers for GObject - transitional package 
  This package will bring development headers for the two versions of 

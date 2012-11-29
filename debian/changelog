@@ -4,6 +4,7 @@ pygobject (3.4.2-3) UNRELEASED; urgency=low
     paths for the pkg-config file.
   * debian/control.in: Put transitional packages into section oldlibs, and
     priority extra. Thanks lintian.
+  * debian/control.in: Fix non-bin-NMUable dependency of python-gobject-dev.
 
  -- Martin Pitt <mpitt@debian.org>  Thu, 29 Nov 2012 08:48:42 +0100
 
