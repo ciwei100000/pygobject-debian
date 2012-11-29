@@ -140,7 +140,7 @@ Description: Python 3 bindings for gobject-introspection libraries (debug extens
  This package contains the extensions built for the Python 3 debug interpreter.
 
 Package: python-gi-dev
-Architecture: all
+Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},

@@ -1,3 +1,10 @@
+pygobject (3.4.2-3) UNRELEASED; urgency=low
+
+  * debian/control.in: Make python-gi-dev Arch: any, as it now uses multiarch
+    paths for the pkg-config file.
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 29 Nov 2012 08:48:42 +0100
+
 pygobject (3.4.2-2) experimental; urgency=low
 
   * Drop quilt (not necessary, we are using 3.0 (quilt) source format), and
