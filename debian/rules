@@ -196,8 +196,6 @@ binary-arch: install $(maybe_check)
 	dh_strip -ppython-gi --dbg-package=python-gi-dbg
 	dh_strip -ppython-gi-cairo --dbg-package=python-gi-dbg
 	dh_strip -ppython3-gi --dbg-package=python3-gi-dbg
-	rm -rf debian/python-gi-dbg/usr/share/doc/python-gi-dbg
-	ln -sf python-gi debian/python-gi-dbg/usr/share/doc/python-gi-dbg
 	dh_link -s
 	dh_compress -s -X.py
 	dh_fixperms -s
