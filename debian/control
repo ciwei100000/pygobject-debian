@@ -7,7 +7,7 @@ Source: pygobject
 Section: python
 Priority: optional
 Maintainer: Josselin Mouette <joss@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Martin Pitt <mpitt@debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Martin Pitt <mpitt@debian.org>, Michael Biebl <biebl@debian.org>
 Build-Depends: debhelper (>= 7),
                gnome-pkg-tools (>= 0.10),
                dh-autoreconf,
@@ -157,6 +157,8 @@ Description: development headers for GObject Python bindings
  which use pygobject.
 
 Package: python-gobject
+Section: oldlibs
+Priority: extra
 Architecture: all
 Depends: ${misc:Depends},
          python-gi (>= ${source:Version}),
@@ -183,7 +185,7 @@ Description: Python 3 Cairo bindings for the GObject library
  used by other bindings to map their GObjects to Python objects.
 
 Package: python-gobject-dbg
-Section: debug
+Section: oldlibs
 Priority: extra
 Architecture: all
 Depends: ${misc:Depends},
@@ -196,6 +198,8 @@ Description: Python 2.x debugging modules for GObject - transitional package
  You can remove it safely when nothing else depends on it.
 
 Package: python-gobject-dev
+Section: oldlibs
+Priority: extra
 Architecture: all
 Depends: ${misc:Depends},
          python-gi-dev (= ${source:Version}),
