@@ -1,4 +1,4 @@
-pygobject (3.2.2-2) UNRELEASED; urgency=low
+pygobject (3.2.2-2) unstable; urgency=low
 
   [ Josselin Mouette ]
   * Enable again gtk3 on m68k.
@@ -12,7 +12,7 @@ pygobject (3.2.2-2) UNRELEASED; urgency=low
     symlink was mistakenly converted to a real directory which isn't handled
     nicely by dpkg. Closes: #700779
 
- -- Josselin Mouette <joss@debian.org>  Fri, 22 Jun 2012 20:52:29 +0200
+ -- Michael Biebl <biebl@debian.org>  Thu, 21 Feb 2013 18:23:46 +0100
 
 pygobject (3.2.2-1) unstable; urgency=low
 
