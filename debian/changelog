@@ -25,6 +25,9 @@ pygobject (3.4.2-3) experimental; urgency=low
     python-gobject-dbg, which was converted to a transitional package, the
     symlink was mistakenly converted to a real directory which isn't handled
     nicely by dpkg. (Closes: #700779)
+  * Use strict dependencies in python-gi-dev as the package is now
+    Architecture: any
+  * Tighten the dependency on python-gi-dev for python-gobject-dev.
 
  -- Michael Biebl <biebl@debian.org>  Thu, 21 Feb 2013 23:48:57 +0100
 

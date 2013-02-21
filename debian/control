@@ -149,10 +149,8 @@ Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         python-gi (>= ${source:Version}),
-         python-gi (<< ${source:Version}.1~),
-         python3-gi (>= ${source:Version}),
-         python3-gi (<< ${source:Version}.1~),
+         python-gi (= ${binary:Version}),
+         python3-gi (= ${binary:Version}),
          libglib2.0-dev (>= 2.24.0),
          libffi-dev (>= 3.0.5)
 Breaks: python-gobject-dev (<< 3.0.2-4)
@@ -216,6 +214,7 @@ Architecture: all
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
          python-gi-dev (>= ${source:Version}),
+         python-gi-dev (<< ${source:Version}.1~),
          python-gobject-2-dev
 Description: Python 2.x development headers for GObject - transitional package 
  This package will bring development headers for the two versions of 
