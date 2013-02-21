@@ -19,6 +19,13 @@ pygobject (3.4.2-3) UNRELEASED; urgency=low
   * Enable again gtk3 on m68k.
   * Add missing dependency python3-gi-cairo → python3-gi. (Closes: #673213)
 
+  [ Michael Biebl ]
+  * Stop using a doc symlink for the dbg package. The space savings are
+    negligible and they are prone to cause problems. In case of
+    python-gobject-dbg, which was converted to a transitional package, the
+    symlink was mistakenly converted to a real directory which isn't handled
+    nicely by dpkg. (Closes: #700779)
+
  -- Martin Pitt <mpitt@debian.org>  Thu, 29 Nov 2012 08:48:42 +0100
 
 pygobject (3.4.2-2) experimental; urgency=low
