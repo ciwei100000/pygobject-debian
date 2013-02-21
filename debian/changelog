@@ -7,7 +7,7 @@ pygobject (3.2.2-2) UNRELEASED; urgency=low
 
   [ Michael Biebl ]
   * Stop using a doc symlink for the dbg package. The space savings are
-    neglibile and they are prone to cause problems. In case of
+    negligible and they are prone to cause problems. In case of
     python-gobject-dbg, which was converted to a transitional package, the
     symlink was mistakenly converted to a real directory which isn't handled
     nicely by dpkg. Closes: #700779
