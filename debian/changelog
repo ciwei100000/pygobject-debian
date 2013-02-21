@@ -17,6 +17,7 @@ pygobject (3.4.2-3) UNRELEASED; urgency=low
 
   [ Josselin Mouette ]
   * Enable again gtk3 on m68k.
+  * Add missing dependency python3-gi-cairo → python3-gi. (Closes: #673213)
 
  -- Martin Pitt <mpitt@debian.org>  Thu, 29 Nov 2012 08:48:42 +0100
 
