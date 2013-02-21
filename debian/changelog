@@ -1,4 +1,4 @@
-pygobject (3.4.2-3) UNRELEASED; urgency=low
+pygobject (3.4.2-3) experimental; urgency=low
 
   [ Martin Pitt ]
   * debian/control.in: Make python-gi-dev Arch: any, as it now uses multiarch
@@ -26,7 +26,7 @@ pygobject (3.4.2-3) UNRELEASED; urgency=low
     symlink was mistakenly converted to a real directory which isn't handled
     nicely by dpkg. (Closes: #700779)
 
- -- Martin Pitt <mpitt@debian.org>  Thu, 29 Nov 2012 08:48:42 +0100
+ -- Michael Biebl <biebl@debian.org>  Thu, 21 Feb 2013 23:48:57 +0100
 
 pygobject (3.4.2-2) experimental; urgency=low
 
