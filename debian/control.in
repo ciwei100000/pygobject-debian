@@ -28,7 +28,7 @@ Build-Depends: debhelper (>= 9),
                python-apt-dbg,
                python-cairo-dbg,
                gir1.2-glib-2.0,
-               gir1.2-gtk-3.0 [!m68k],
+               gir1.2-gtk-3.0,
                gir1.2-freedesktop
 X-Python-Version: >= 2.7
 Standards-Version: 3.9.3

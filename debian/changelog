@@ -1,5 +1,6 @@
 pygobject (3.4.2-3) UNRELEASED; urgency=low
 
+  [ Martin Pitt ]
   * debian/control.in: Make python-gi-dev Arch: any, as it now uses multiarch
     paths for the pkg-config file.
   * debian/control.in: Put transitional packages into section oldlibs, and
@@ -13,6 +14,9 @@ pygobject (3.4.2-3) UNRELEASED; urgency=low
   * Add autopkgtests for the -dbg flavours of Python 2 and 3.
   * debian/control.in: Have python-gi-dev depend on python3-gi, too.
     (LP: #1101683)
+
+  [ Josselin Mouette ]
+  * Enable again gtk3 on m68k.
 
  -- Martin Pitt <mpitt@debian.org>  Thu, 29 Nov 2012 08:48:42 +0100
 
