@@ -1,4 +1,4 @@
-pygobject (3.7.91.1-1) UNRELEASED; urgency=low
+pygobject (3.7.91.1-1) experimental; urgency=low
 
   * New upstream release.
     - Works nicely with GLib >= 2.35.4. Closes: #702603.
@@ -7,7 +7,7 @@ pygobject (3.7.91.1-1) UNRELEASED; urgency=low
   * debian/python3-gi.lintian-overrides:
     - Also override dev-pkg-without-shlib-symlink for python3-gi.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 12 Mar 2013 12:25:56 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 12 Mar 2013 14:30:53 +0100
 
 pygobject (3.4.2-3) experimental; urgency=low
 
