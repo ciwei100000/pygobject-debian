@@ -1,6 +1,7 @@
 pygobject (3.7.91.1-1) UNRELEASED; urgency=low
 
   * New upstream release.
+    - Works nicely with GLib >= 2.35.4. Closes: #702603.
     - debian/control.in:
       + Update build dependencies.
   * debian/python3-gi.lintian-overrides:
