@@ -1,6 +1,8 @@
 pygobject (3.7.91.1-1) UNRELEASED; urgency=low
 
   * New upstream release.
+    - debian/control.in:
+      + Update build dependencies.
   * debian/python3-gi.lintian-overrides:
     - Also override dev-pkg-without-shlib-symlink for python3-gi.
 
