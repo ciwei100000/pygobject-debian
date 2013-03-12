@@ -1,6 +1,8 @@
 pygobject (3.7.91.1-1) UNRELEASED; urgency=low
 
   * New upstream release.
+  * debian/python3-gi.lintian-overrides:
+    - Also override dev-pkg-without-shlib-symlink for python3-gi.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 12 Mar 2013 12:25:56 +0100
 
