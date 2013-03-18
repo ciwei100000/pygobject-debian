@@ -1,8 +1,8 @@
-pygobject (3.7.92-1) UNRELEASED; urgency=low
+pygobject (3.7.92-1) experimental; urgency=low
 
   * New upstream release.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 18 Mar 2013 19:42:28 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 18 Mar 2013 20:59:27 +0100
 
 pygobject (3.7.91.1-1) experimental; urgency=low
 
