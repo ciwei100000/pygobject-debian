@@ -1,11 +1,11 @@
-pygobject (3.7.92-2) UNRELEASED; urgency=low
+pygobject (3.7.92-2) experimental; urgency=low
 
   * debian/control.in:
     + Bump gobject-introspection packages minimum build dependency
       in an attempt to fix the test suite in the buildds where it's
       currently hanging.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 19 Mar 2013 14:03:47 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 19 Mar 2013 14:06:39 +0100
 
 pygobject (3.7.92-1) experimental; urgency=low
 
