@@ -28,12 +28,17 @@ override_dh_auto_build:
 	done
 
 # don't run the tests under fakeroot, otherwise they will try to connect to
-# root's session D-BUS
+# root's session D-BUS; also, tests cause eternal hang on old kernels on
+# Debian's buildds, so don't run them on < 3.4
 override_dh_auto_test:
-	set -e unset LD_PRELOAD && for x in $(FLAVOURS); do \
-	    xvfb-run dh_auto_test --builddirectory=build-$$x || true; \
-	    while [ -e /tmp/.X99-lock ]; do echo "Waiting for xvfb to finish..."; sleep 0.5; done; \
-	done
+	if expr `uname -r | cut -c1-3` '>=' 3.4 > /dev/null; then \
+	    set -e; unset LD_PRELOAD && for x in $(FLAVOURS); do \
+	            xvfb-run dh_auto_test --builddirectory=build-$$x || true; \
+	            while [ -e /tmp/.X99-lock ]; do echo "Waiting for xvfb to finish..."; sleep 0.5; done; \
+	    done; \
+	else \
+	    echo "Skipping tests for old kernel version `uname -r`"; \
+	fi; \
 
 # we remove stuff that we do not need, and rename the *.so modules to what
 # Python expects for that flavor (http://www.python.org/dev/peps/pep-3149/)

@@ -2,6 +2,9 @@ pygobject (3.7.92-3) UNRELEASED; urgency=low
 
   * Add 01_cairo_region.patch: Add a foreign type for cairo_region_t.
     (LP: #1028115, bgo #667959)
+  * debian/rules: The test suite causes an eternal hang on Debian's buildds,
+    presumably due to running on very old kernels (2.6.32). This needs more
+    debugging, but skip the tests for kernels < 3.4 for now.
 
  -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 22 Mar 2013 07:11:51 +0100
 
