@@ -1,3 +1,10 @@
+pygobject (3.7.92-3) UNRELEASED; urgency=low
+
+  * Add 01_cairo_region.patch: Add a foreign type for cairo_region_t.
+    (LP: #1028115, bgo #667959)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 22 Mar 2013 07:11:51 +0100
+
 pygobject (3.7.92-2) experimental; urgency=low
 
   * debian/control.in:
