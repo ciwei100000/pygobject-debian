@@ -1,3 +1,11 @@
+pygobject (3.7.92-4) UNRELEASED; urgency=low
+
+  * debian/rules:
+    + Unconditionally run the tests again, since the problem is not
+      kernel related. This still needs further investigation.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 25 Mar 2013 00:48:51 +0100
+
 pygobject (3.7.92-3) experimental; urgency=low
 
   [ Martin Pitt ]
