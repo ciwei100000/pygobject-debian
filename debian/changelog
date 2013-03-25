@@ -1,5 +1,6 @@
-pygobject (3.7.92-4) UNRELEASED; urgency=low
+pygobject (3.8.0-1) UNRELEASED; urgency=low
 
+  * New upstream release.
   * debian/rules:
     + Unconditionally run the tests again, since the problem is not
       kernel related. This still needs further investigation.
