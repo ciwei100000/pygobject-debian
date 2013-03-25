@@ -7,7 +7,7 @@ Source: pygobject
 Section: python
 Priority: optional
 Maintainer: Josselin Mouette <joss@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Martin Pitt <mpitt@debian.org>, Michael Biebl <biebl@debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Martin Pitt <mpitt@debian.org>, Michael Biebl <biebl@debian.org>, Sjoerd Simons <sjoerd@debian.org>
 Build-Depends: debhelper (>= 9),
                dpkg-dev (>= 1.16.1~),
                gnome-pkg-tools (>= 0.10),
@@ -19,7 +19,7 @@ Build-Depends: debhelper (>= 9),
                gobject-introspection (>= 1.35.8),
                libgirepository1.0-dev (>= 1.35.8),
                python-cairo-dev (>= 1.2.0),
-               python3-cairo-dev (>= 1.10.0),
+               python3-cairo-dev (>= 1.10.0+dfsg-3~exp2),
                xsltproc,
                xvfb,
                xauth,
@@ -170,7 +170,7 @@ Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
          python3-gi (= ${binary:Version}),
-         python3-cairo (>= 1.10.0)
+         python3-cairo (>= 1.10.0+dfsg-3~exp2)
 Description: Python 3 Cairo bindings for the GObject library
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,

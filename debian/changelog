@@ -4,6 +4,11 @@ pygobject (3.8.0-1) UNRELEASED; urgency=low
   * debian/rules:
     + Unconditionally run the tests again, since the problem is not
       kernel related. This still needs further investigation.
+  * debian/patches/01_cairo_region.patch,
+    debian/control.in:
+    + Add a foreign type for cairo_region_t. Bump py3cairo build/binary
+      dependencies. (LP: #1028115, bgo #667959). Thanks to Martin Pitt
+      for this change.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 25 Mar 2013 00:48:51 +0100
 
