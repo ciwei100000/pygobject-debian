@@ -1,4 +1,4 @@
-pygobject (3.8.0-1) UNRELEASED; urgency=low
+pygobject (3.8.0-1) experimental; urgency=low
 
   [ Emilio Pozuelo Monfort ]
   * New upstream release.
@@ -16,7 +16,7 @@ pygobject (3.8.0-1) UNRELEASED; urgency=low
     writeable home directory for D-BUS sockets and XDG data. This fixes the
     eternal hangs in sbuild.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 25 Mar 2013 00:48:51 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 26 Mar 2013 10:15:24 +0100
 
 pygobject (3.7.92-3) experimental; urgency=low
 
