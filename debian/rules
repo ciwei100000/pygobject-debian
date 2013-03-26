@@ -31,7 +31,8 @@ override_dh_auto_build:
 # root's session D-BUS; also, tests cause eternal hang on old kernels on
 # Debian's buildds, so don't run them on < 3.4
 override_dh_auto_test:
-	set -e; unset LD_PRELOAD && for x in $(FLAVOURS); do \
+	set -e; export HOME=$(CURDIR)/debian/tmp/home; mkdir -p $$HOME/.local/share; unset LD_PRELOAD; \
+	for x in $(FLAVOURS); do \
 	        xvfb-run dh_auto_test --builddirectory=build-$$x || true; \
 	        while [ -e /tmp/.X99-lock ]; do echo "Waiting for xvfb to finish..."; sleep 0.5; done; \
 	done; \
