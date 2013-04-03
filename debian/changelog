@@ -3,6 +3,8 @@ pygobject (3.8.0-2) UNRELEASED; urgency=low
   * debian/tests/python[23]-dbg: Redirect stderr to stdout, to avoid the
     "[xxx refs]" error message failing the tests.
   * Bump Standards-Version to 3.9.4. No changes necessary.
+  * Have failing tests fail the build except on s390x and mipsel, where they
+    currently fail.
 
  -- Martin Pitt <mpitt@debian.org>  Wed, 27 Mar 2013 09:11:57 +0100
 
