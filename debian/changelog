@@ -1,4 +1,4 @@
-pygobject (3.8.0-2) UNRELEASED; urgency=low
+pygobject (3.8.0-2) experimental; urgency=low
 
   * debian/tests/python[23]-dbg: Redirect stderr to stdout, to avoid the
     "[xxx refs]" error message failing the tests.
@@ -8,7 +8,7 @@ pygobject (3.8.0-2) UNRELEASED; urgency=low
   * debian/control.in: Add explicit python3-dbg dependency to python3-gi-dbg,
     to work around dh_python3 bug #704579.
 
- -- Martin Pitt <mpitt@debian.org>  Wed, 27 Mar 2013 09:11:57 +0100
+ -- Martin Pitt <mpitt@debian.org>  Wed, 03 Apr 2013 10:04:37 +0200
 
 pygobject (3.8.0-1) experimental; urgency=low
 
