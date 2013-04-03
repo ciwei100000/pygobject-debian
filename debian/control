@@ -126,6 +126,7 @@ Priority: extra
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python3:Depends},
+         python3-dbg (>= 3.2),
          ${shlibs:Depends},
          ${misc:Depends},
          python3-gi (= ${binary:Version})
