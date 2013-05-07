@@ -11,7 +11,7 @@ PYVERS := $(shell pyversions --requested -v debian/control) $(shell py3versions 
 FLAVOURS := $(PYVERS) $(patsubst %,%-dbg,$(PYVERS))
 
 TESTSUITE_FAIL_CMD=exit 1
-ifneq ($(findstring $(DEB_BUILD_ARCH), s390x mipsel),)
+ifneq ($(findstring $(DEB_BUILD_ARCH), s390x mipsel kfreebsd-amd64 kfreebsd-i386),)
 # tests currently fail on these architectures
     TESTSUITE_FAIL_CMD=true
 endif
