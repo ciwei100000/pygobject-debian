@@ -41,7 +41,7 @@ override_dh_auto_test:
 	for x in $(FLAVOURS); do \
 	        xvfb-run dh_auto_test --builddirectory=build-$$x || $(TESTSUITE_FAIL_CMD); \
 	        while [ -e /tmp/.X99-lock ]; do echo "Waiting for xvfb to finish..."; sleep 0.5; done; \
-	done; \
+	done;
 endif
 
 # we remove stuff that we do not need, and rename the *.so modules to what
