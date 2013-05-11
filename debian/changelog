@@ -2,6 +2,12 @@ pygobject (3.8.1-3) UNRELEASED; urgency=low
 
   * debian/rules:
     + Don't abort if the test suite fails on hurd.
+    + We build for all the available python flavours. Previously we
+      were removing the prefix to which we install before installing
+      each flavour. We didn't notice any problems because we were
+      building only once for python3, but now that we build for 3.2
+      and 3.3, let's not remove the python3.2 bits when we install
+      the 3.3 stuff. This fixes pygobject on python3.2. Closes: #707318.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 10 May 2013 20:22:24 +0200
 
