@@ -33,6 +33,7 @@ override_dh_auto_build:
 	    dh_auto_build --builddirectory=build-$$x; \
 	done
 
+ifeq ($(findstring $(DEB_BUILD_ARCH), kfreebsd-amd64 kfreebsd-i386),)
 # don't run the tests under fakeroot, otherwise they will try to connect to
 # root's session D-BUS
 override_dh_auto_test:
@@ -41,6 +42,7 @@ override_dh_auto_test:
 	        xvfb-run dh_auto_test --builddirectory=build-$$x || $(TESTSUITE_FAIL_CMD); \
 	        while [ -e /tmp/.X99-lock ]; do echo "Waiting for xvfb to finish..."; sleep 0.5; done; \
 	done; \
+endif
 
 # we remove stuff that we do not need, and rename the *.so modules to what
 # Python expects for that flavor (http://www.python.org/dev/peps/pep-3149/)
