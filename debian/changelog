@@ -1,6 +1,7 @@
-pygobject (3.8.1-4) UNRELEASED; urgency=low
+pygobject (3.8.2-1) UNRELEASED; urgency=low
 
   * Reset watch file to look for stable releases only.
+  * New upstream bug fix release.
 
  -- Martin Pitt <mpitt@debian.org>  Wed, 15 May 2013 08:43:54 +0200
 
