@@ -1,11 +1,11 @@
-pygobject (3.8.2-1) UNRELEASED; urgency=low
+pygobject (3.8.2-1) unstable; urgency=low
 
   * Reset watch file to look for stable releases only.
   * New upstream bug fix release.
   * Re-enable 01_cairo_region.patch, now that a fixed py3cairo landed in
     unstable.
 
- -- Martin Pitt <mpitt@debian.org>  Wed, 15 May 2013 08:43:54 +0200
+ -- Martin Pitt <mpitt@debian.org>  Wed, 15 May 2013 08:54:32 +0200
 
 pygobject (3.8.1-3) unstable; urgency=low
 
