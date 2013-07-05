@@ -1,8 +1,8 @@
-pygobject (3.8.3-1) UNRELEASED; urgency=low
+pygobject (3.8.3-1) unstable; urgency=low
 
   * New upstream bug fix release.
 
- -- Martin Pitt <mpitt@debian.org>  Fri, 05 Jul 2013 07:57:28 +0200
+ -- Martin Pitt <mpitt@debian.org>  Fri, 05 Jul 2013 08:02:14 +0200
 
 pygobject (3.8.2-1) unstable; urgency=low
 
