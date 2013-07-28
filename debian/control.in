@@ -32,8 +32,8 @@ Build-Depends: debhelper (>= 9),
                gir1.2-gtk-3.0
 X-Python-Version: >= 2.7
 Standards-Version: 3.9.4
-Vcs-Svn: svn://svn.debian.org/svn/pkg-gnome/desktop/experimental/pygobject
-Vcs-Browser: http://svn.debian.org/viewsvn/pkg-gnome/desktop/experimental/pygobject
+Vcs-Svn: svn://svn.debian.org/pkg-gnome/desktop/unstable/pygobject
+Vcs-Browser: http://svn.debian.org/viewpkg-gnome/desktop/unstable/pygobject
 XS-Testsuite: autopkgtest
 
 Package: python-gi
