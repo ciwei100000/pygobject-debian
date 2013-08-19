@@ -1,3 +1,10 @@
+pygobject (3.8.3-2) UNRELEASED; urgency=low
+
+  * debian/control.in: Drop explicit python3-dbg dependency, dh-python got
+    fixed now (see #704579).
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 19 Aug 2013 09:39:20 +0200
+
 pygobject (3.8.3-1) unstable; urgency=low
 
   * New upstream bug fix release.
