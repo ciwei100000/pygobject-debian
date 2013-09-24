@@ -1,4 +1,4 @@
-pygobject (3.10.0-1) UNRELEASED; urgency=low
+pygobject (3.10.0-1) unstable; urgency=low
 
   * New upstream release.
   * debian/control.in: Bump glib and g-i dependencies for new release.
@@ -13,7 +13,7 @@ pygobject (3.10.0-1) UNRELEASED; urgency=low
   * debian/rules: Stop renaming the *.so files, upstream does it correctly
     now.
 
- -- Martin Pitt <mpitt@debian.org>  Mon, 19 Aug 2013 09:39:20 +0200
+ -- Martin Pitt <mpitt@debian.org>  Tue, 24 Sep 2013 09:37:30 +0200
 
 pygobject (3.8.3-1) unstable; urgency=low
 
