@@ -7,6 +7,9 @@ pygobject (3.10.0-1) UNRELEASED; urgency=low
   * debian/control.in: Add at-spi2-core build dependency, as apparently this
     is somehow needed on the buildds (not reproducible in sbuild).
     (Closes: #715536)
+  * debian/control.in: Add Breaks for older python-aptdaemon and
+    software-center (Ubuntu specific) to avoid potential crash caused by new
+    python-gi with old python-aptdaemon. (LP: #1173249)
 
  -- Martin Pitt <mpitt@debian.org>  Mon, 19 Aug 2013 09:39:20 +0200
 
