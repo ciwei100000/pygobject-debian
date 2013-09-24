@@ -10,6 +10,8 @@ pygobject (3.10.0-1) UNRELEASED; urgency=low
   * debian/control.in: Add Breaks for older python-aptdaemon and
     software-center (Ubuntu specific) to avoid potential crash caused by new
     python-gi with old python-aptdaemon. (LP: #1173249)
+  * debian/rules: Stop renaming the *.so files, upstream does it correctly
+    now.
 
  -- Martin Pitt <mpitt@debian.org>  Mon, 19 Aug 2013 09:39:20 +0200
 
