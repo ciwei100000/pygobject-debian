@@ -1,5 +1,6 @@
-pygobject (3.8.3-2) UNRELEASED; urgency=low
+pygobject (3.10.0-1) UNRELEASED; urgency=low
 
+  * New upstream release.
   * debian/control.in: Drop explicit python3-dbg dependency, dh-python got
     fixed now (see #704579).
   * debian/control.in: Add at-spi2-core build dependency, as apparently this
