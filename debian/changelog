@@ -1,3 +1,10 @@
+pygobject (3.10.0-2) UNRELEASED; urgency=low
+
+  * debian/control.in: Add homepage field
+  * debian/watch: Add support for more file formats
+
+ -- Jackson Doak <noskcaj@ubuntu.com>  Wed, 09 Oct 2013 19:07:53 +1100
+
 pygobject (3.10.0-1) unstable; urgency=low
 
   * New upstream release.
