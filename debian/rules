@@ -21,7 +21,7 @@ configure_flags += \
 		$(NULL)
 
 %:
-	dh $@ --with python2,python3
+	dh $@ --with python2,python3,autoreconf
 
 override_dh_auto_configure:
 	set -e && for x in $(FLAVOURS); do \

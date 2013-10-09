@@ -30,7 +30,8 @@ Build-Depends: debhelper (>= 9),
                python-cairo-dbg,
                gir1.2-glib-2.0 (>= 1.35.9),
                gir1.2-freedesktop (>= 1.35.9),
-               gir1.2-gtk-3.0
+               gir1.2-gtk-3.0,
+               dh-autoreconf
 X-Python-Version: >= 2.7
 Standards-Version: 3.9.4
 Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/pygobject
