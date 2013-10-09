@@ -5,7 +5,9 @@ pygobject (3.10.0-2) UNRELEASED; urgency=low
     - Add homepage field
     - Use canonical VCS fields
     - B-dep on dh-autoreconf
-  * debian/rules: Add autoreconf
+  * debian/rules: 
+    - Add autoreconf
+    - Enable hardening
   * debian/watch: Add support for more file formats
   * Generate symbols
 
