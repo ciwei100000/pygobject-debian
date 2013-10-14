@@ -1,6 +1,5 @@
 pygobject (3.10.0-2) UNRELEASED; urgency=low
 
-  * Create debian/source/options
   * debian/control.in: 
     - Add homepage field
     - Use canonical VCS fields
