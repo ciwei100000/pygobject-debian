@@ -34,12 +34,14 @@ Build-Depends: debhelper (>= 9),
                python-cairo-dbg,
                gir1.2-glib-2.0 (>= 1.35.9),
                gir1.2-freedesktop (>= 1.35.9),
-               gir1.2-gtk-3.0
+               gir1.2-gtk-3.0,
+               dh-autoreconf
 X-Python-Version: >= 2.7
 Standards-Version: 3.9.4
-Vcs-Svn: svn://svn.debian.org/pkg-gnome/desktop/unstable/pygobject
-Vcs-Browser: http://svn.debian.org/viewpkg-gnome/desktop/unstable/pygobject
+Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/pygobject
+Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/pygobject/
 XS-Testsuite: autopkgtest
+Homepage: https://wiki.gnome.org/PyGObject
 
 Package: python-gi
 Architecture: any
