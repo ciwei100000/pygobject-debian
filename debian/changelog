@@ -1,4 +1,4 @@
-pygobject (3.10.1-1) UNRELEASED; urgency=low
+pygobject (3.10.1-1) unstable; urgency=low
 
   [ Jackson Doak ]
   * debian/control.in: 
@@ -14,7 +14,7 @@ pygobject (3.10.1-1) UNRELEASED; urgency=low
   * New upstream bug fix release.
   * Add gnome-common build dependency so that autoreconf can actually work.
 
- -- Jackson Doak <noskcaj@ubuntu.com>  Wed, 09 Oct 2013 19:07:53 +1100
+ -- Martin Pitt <mpitt@debian.org>  Mon, 14 Oct 2013 13:32:02 +0200
 
 pygobject (3.10.0-1) unstable; urgency=low
 
