@@ -12,6 +12,7 @@ pygobject (3.10.1-1) UNRELEASED; urgency=low
 
   [ Martin Pitt ]
   * New upstream bug fix release.
+  * Add gnome-common build dependency so that autoreconf can actually work.
 
  -- Jackson Doak <noskcaj@ubuntu.com>  Wed, 09 Oct 2013 19:07:53 +1100
 
