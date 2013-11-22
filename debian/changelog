@@ -1,6 +1,7 @@
 pygobject (3.10.2-1) UNRELEASED; urgency=low
 
   * New upstream stable release.
+  * Bump Standards-Version to 3.9.5, no changes necessary.
 
  -- Martin Pitt <mpitt@debian.org>  Fri, 22 Nov 2013 07:01:19 +0100
 
