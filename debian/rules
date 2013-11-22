@@ -35,7 +35,7 @@ override_dh_auto_build:
 	    dh_auto_build --builddirectory=build-$$x; \
 	done
 
-ifeq ($(findstring $(DEB_BUILD_ARCH), kfreebsd-amd64 kfreebsd-i386),)
+ifneq ($(findstring $(DEB_BUILD_ARCH), kfreebsd-amd64 kfreebsd-i386),)
 # don't run the tests under fakeroot, otherwise they will try to connect to
 # root's session D-BUS
 override_dh_auto_test:
