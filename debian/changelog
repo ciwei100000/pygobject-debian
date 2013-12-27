@@ -2,6 +2,9 @@ pygobject (3.10.2-2) UNRELEASED; urgency=medium
 
   [ Colin Watson ]
   * Fix building for multiple Python 3 versions.
+  * 00git_non_recursive_make_python.patch: Avoid clash between gi/types.py and
+    the Python standard library when installing, which broke installation with
+    Python 3.4 (https://bugzilla.gnome.org/show_bug.cgi?id=721025).
 
  -- Martin Pitt <mpitt@debian.org>  Fri, 27 Dec 2013 15:29:08 +0100
 
