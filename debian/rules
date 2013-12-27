@@ -52,7 +52,6 @@ endif
 override_dh_auto_install:
 	set -e && for x in $(FLAVOURS); do \
 	    INST=debian/install-`echo $$x | sed 's/\.[0-9]*//'`; \
-	    rm -rf $$INST; \
 	    dh_auto_install --builddirectory=build-$$x --destdir=$$INST; \
 	    find $$INST \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -delete; \
 	done
