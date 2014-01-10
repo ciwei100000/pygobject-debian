@@ -1,4 +1,4 @@
-pygobject (3.10.2-2) UNRELEASED; urgency=medium
+pygobject (3.10.2-2) unstable; urgency=medium
 
   [ Colin Watson ]
   * Fix building for multiple Python 3 versions.
@@ -6,7 +6,7 @@ pygobject (3.10.2-2) UNRELEASED; urgency=medium
     the Python standard library when installing, which broke installation with
     Python 3.4 (https://bugzilla.gnome.org/show_bug.cgi?id=721025).
 
- -- Martin Pitt <mpitt@debian.org>  Fri, 27 Dec 2013 15:29:08 +0100
+ -- Martin Pitt <mpitt@debian.org>  Fri, 10 Jan 2014 11:57:34 +0100
 
 pygobject (3.10.2-1) unstable; urgency=low
 
