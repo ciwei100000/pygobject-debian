@@ -6,6 +6,7 @@ pygobject (3.11.91-1) UNRELEASED; urgency=medium
   * Drop 00git_non_recursive_make_python.patch, fixed upstream.
   * debian/*.install: Drop libpyglib-gi-*.so, these disappeared upstream.
   * debian/tests/control: Add missing build-essential dep for the "build" test.
+  * debian/rules: Fix cleaning.
 
  -- Martin Pitt <mpitt@debian.org>  Fri, 21 Feb 2014 15:58:28 -0800
 
