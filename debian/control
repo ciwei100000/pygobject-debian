@@ -6,23 +6,25 @@ Source: pygobject
 Section: python
 Priority: optional
 Maintainer: Josselin Mouette <joss@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Martin Pitt <mpitt@debian.org>, Michael Biebl <biebl@debian.org>, Sjoerd Simons <sjoerd@debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Martin Pitt <mpitt@debian.org>
 Build-Depends: debhelper (>= 9),
                dpkg-dev (>= 1.16.1~),
+               gnome-common,
                gnome-pkg-tools (>= 0.10),
                python-all-dev (>= 2.6.6-3~),
                python3-all-dev,
-               libglib2.0-dev (>= 2.34.2),
+               libglib2.0-dev (>= 2.35.9),
                libcairo2-dev,
                libffi-dev (>= 3.0.5),
-               gobject-introspection (>= 1.35.8),
-               libgirepository1.0-dev (>= 1.35.8),
+               gobject-introspection (>= 1.35.9),
+               libgirepository1.0-dev (>= 1.35.9),
                python-cairo-dev (>= 1.2.0),
-               python3-cairo-dev (>= 1.10.0+dfsg-3~exp2),
+               python3-cairo-dev (>= 1.10.0+dfsg-3),
                xsltproc,
                xvfb,
                xauth,
                dbus-x11,
+               at-spi2-core,
                locales,
                docbook-xsl,
                pep8,
@@ -31,14 +33,16 @@ Build-Depends: debhelper (>= 9),
                python3-all-dbg,
                python-apt-dbg,
                python-cairo-dbg,
-               gir1.2-glib-2.0 (>= 1.35.8),
-               gir1.2-freedesktop (>= 1.35.8),
-               gir1.2-gtk-3.0
+               gir1.2-glib-2.0 (>= 1.35.9),
+               gir1.2-freedesktop (>= 1.35.9),
+               gir1.2-gtk-3.0,
+               dh-autoreconf
 X-Python-Version: >= 2.7
-Standards-Version: 3.9.4
-Vcs-Svn: svn://svn.debian.org/svn/pkg-gnome/desktop/experimental/pygobject
-Vcs-Browser: http://svn.debian.org/viewsvn/pkg-gnome/desktop/experimental/pygobject
+Standards-Version: 3.9.5
+Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/pygobject
+Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/pygobject/
 XS-Testsuite: autopkgtest
+Homepage: https://wiki.gnome.org/PyGObject
 
 Package: python-gi
 Architecture: any
@@ -46,11 +50,13 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
-         gir1.2-glib-2.0 (>= 1.34.2)
+         gir1.2-glib-2.0 (>= 1.35.9)
 Provides: ${python:Provides}
 Suggests: python-gi-cairo
 Breaks: python-gobject (<< 3.0.2-4),
-        python-nautilus (<= 1.1-1)
+        python-nautilus (<= 1.1-1),
+        python-aptdaemon (<< 1.0),
+        software-center (<= 5.6.0-0ubuntu2)
 Replaces: python-gobject (<< 3.0.2-4)
 Description: Python 2.x bindings for gobject-introspection libraries
  GObject is an abstraction layer that allows programming with an object
@@ -67,7 +73,7 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
-         gir1.2-glib-2.0 (>= 1.34.2)
+         gir1.2-glib-2.0 (>= 1.35.9)
 Conflicts: python3-gobject
 Provides: python3-gobject
 Replaces: python3-gobject
@@ -126,7 +132,6 @@ Priority: extra
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python3:Depends},
-         python3-dbg (>= 3.2),
          ${shlibs:Depends},
          ${misc:Depends},
          python3-gi (= ${binary:Version})
@@ -151,7 +156,7 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
          python-gi (= ${binary:Version}),
          python3-gi (= ${binary:Version}),
-         libglib2.0-dev (>= 2.24.0),
+         libglib2.0-dev (>= 2.35.9),
          libffi-dev (>= 3.0.5)
 Breaks: python-gobject-dev (<< 3.0.2-4)
 Replaces: python-gobject-dev (<< 3.0.2-4)

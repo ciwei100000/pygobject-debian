@@ -1,8 +1,101 @@
-pygobject (3.8.1-2) UNRELEASED; urgency=low
+pygobject (3.10.2-3) UNRELEASED; urgency=medium
 
+  * debian/tests/control: Add missing build-essential dep for the "build" test.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 21 Feb 2014 15:58:28 -0800
+
+pygobject (3.10.2-2) unstable; urgency=medium
+
+  [ Colin Watson ]
+  * Fix building for multiple Python 3 versions.
+  * 00git_non_recursive_make_python.patch: Avoid clash between gi/types.py and
+    the Python standard library when installing, which broke installation with
+    Python 3.4 (https://bugzilla.gnome.org/show_bug.cgi?id=721025).
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 10 Jan 2014 11:57:34 +0100
+
+pygobject (3.10.2-1) unstable; urgency=low
+
+  * New upstream stable release.
+  * Bump Standards-Version to 3.9.5, no changes necessary.
+  * debian/rules: Fix typo which caused the tests not to run on non-BSD
+    platforms.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 22 Nov 2013 07:26:32 +0100
+
+pygobject (3.10.1-1) unstable; urgency=low
+
+  [ Jackson Doak ]
+  * debian/control.in: 
+    - Add homepage field
+    - Use canonical VCS fields
+    - B-dep on dh-autoreconf
+  * debian/rules: 
+    - Add autoreconf
+    - Enable hardening
+  * debian/watch: Add support for more file formats
+
+  [ Martin Pitt ]
+  * New upstream bug fix release.
+  * Add gnome-common build dependency so that autoreconf can actually work.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 14 Oct 2013 13:32:02 +0200
+
+pygobject (3.10.0-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/control.in: Bump glib and g-i dependencies for new release.
+  * debian/control.in: Drop explicit python3-dbg dependency, dh-python got
+    fixed now (see #704579).
+  * debian/control.in: Add at-spi2-core build dependency, as apparently this
+    is somehow needed on the buildds (not reproducible in sbuild).
+    (Closes: #715536)
+  * debian/control.in: Add Breaks for older python-aptdaemon and
+    software-center (Ubuntu specific) to avoid potential crash caused by new
+    python-gi with old python-aptdaemon. (LP: #1173249)
+  * debian/rules: Stop renaming the *.so files, upstream does it correctly
+    now.
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 24 Sep 2013 09:37:30 +0200
+
+pygobject (3.8.3-1) unstable; urgency=low
+
+  * New upstream bug fix release.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 05 Jul 2013 08:02:14 +0200
+
+pygobject (3.8.2-1) unstable; urgency=low
+
+  * Reset watch file to look for stable releases only.
+  * New upstream bug fix release.
+  * Re-enable 01_cairo_region.patch, now that a fixed py3cairo landed in
+    unstable.
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 15 May 2013 08:54:32 +0200
+
+pygobject (3.8.1-3) unstable; urgency=low
+
+  * debian/rules:
+    + Don't abort if the test suite fails on hurd.
+    + We build for all the available python flavours. Previously we
+      were removing the prefix to which we install before installing
+      each flavour. We didn't notice any problems because we were
+      building only once for python3, but now that we build for 3.2
+      and 3.3, let's not remove the python3.2 bits when we install
+      the 3.3 stuff. This fixes pygobject on python3.2. Closes: #707318.
+    + Stop running the test suite on kfreebsd as it currently hangs
+      (see #707733).
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 11 May 2013 17:22:49 +0200
+
+pygobject (3.8.1-2) unstable; urgency=low
+
+  * Merge experimental branch, upload to unstable.
   * Disable FTBFS on test failures on kfreebsd-*.
+  * Disable 01_cairo_region.patch for now, until experimental py3cairo gets
+    into unstable.
 
- -- Martin Pitt <mpitt@debian.org>  Tue, 07 May 2013 07:40:50 +0200
+ -- Martin Pitt <mpitt@debian.org>  Wed, 08 May 2013 07:30:48 +0200
 
 pygobject (3.8.1-1) experimental; urgency=low
 
@@ -219,6 +312,23 @@ pygobject (3.3.1-1) experimental; urgency=low
     the test suite.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 15 May 2012 16:00:59 +0200
+
+pygobject (3.2.2-2) unstable; urgency=low
+
+  [ Josselin Mouette ]
+  * Enable again gtk3 on m68k.
+  * Add missing dependency python3-gi-cairo → python3-gi.
+    Closes: #673213.
+
+  [ Michael Biebl ]
+  * Stop using a doc symlink for the dbg package. The space savings are
+    negligible and they are prone to cause problems. In case of
+    python-gobject-dbg, which was converted to a transitional package, the
+    symlink was mistakenly converted to a real directory which isn't handled
+    nicely by dpkg. Closes: #700779
+  * Move transitional packages into section oldlibs with priority extra.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 21 Feb 2013 18:23:46 +0100
 
 pygobject (3.2.2-1) unstable; urgency=low
 

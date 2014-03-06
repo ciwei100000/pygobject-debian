@@ -2,7 +2,7 @@
 
 set -e
 
-if [ "$1" = "upgrade" ] && dpkg --compare-versions "$2" lt-nl 3.4.2-3; then
+if [ "$1" = "upgrade" ] && dpkg --compare-versions "$2" lt-nl 3.2.2-2; then
     if [ -L /usr/share/doc/python-gobject-dbg ]; then
         rm -f /usr/share/doc/python-gobject-dbg
     fi

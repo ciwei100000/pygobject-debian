@@ -1,5 +1,5 @@
 Tests: build
-Depends: python-gi-dev, python3-dev
+Depends: build-essential, python-gi-dev, python3-dev
 
 Tests: python2 python3
 Depends: python-gi, python3-gi, gir1.2-glib-2.0
