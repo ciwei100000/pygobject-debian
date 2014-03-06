@@ -1,5 +1,10 @@
-pygobject (3.10.2-3) UNRELEASED; urgency=medium
+pygobject (3.11.91-1) UNRELEASED; urgency=medium
 
+  * New upstream release.
+  * Bump glib and gobject-introspection build depends as per upstream
+    configure.ac.
+  * Drop 00git_non_recursive_make_python.patch, fixed upstream.
+  * debian/*.install: Drop libpyglib-gi-*.so, these disappeared upstream.
   * debian/tests/control: Add missing build-essential dep for the "build" test.
 
  -- Martin Pitt <mpitt@debian.org>  Fri, 21 Feb 2014 15:58:28 -0800
