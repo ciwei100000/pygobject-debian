@@ -1,3 +1,9 @@
+pygobject (3.12.0-1) UNRELEASED; urgency=medium
+
+  * New upstream stable release for GNOME 3.12.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 24 Mar 2014 12:21:20 +0100
+
 pygobject (3.11.91-1) experimental; urgency=medium
 
   * New upstream release.
