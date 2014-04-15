@@ -1,8 +1,9 @@
-pygobject (3.12.1-1) UNRELEASED; urgency=medium
+pygobject (3.12.1-1) unstable; urgency=medium
 
   * New upstream bug fix release.
+  * Upload to unstable.
 
- -- Martin Pitt <mpitt@debian.org>  Tue, 15 Apr 2014 09:20:34 +0200
+ -- Martin Pitt <mpitt@debian.org>  Tue, 15 Apr 2014 09:21:00 +0200
 
 pygobject (3.12.0-1) experimental; urgency=medium
 
