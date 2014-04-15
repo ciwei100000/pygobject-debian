@@ -90,4 +90,5 @@ override_dh_clean:
 	# from uploaders.mk; this uses cdbs-style clean:: which breaks dh clean
 	{ cat $(CONTROL_HEADER) ; sed "s/@GNOME_TEAM@/$(UPLOADERS)/" debian/control.in ; } > debian/control
 	rm -rf debian/install-*
+	find \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -delete; \
 	dh_clean

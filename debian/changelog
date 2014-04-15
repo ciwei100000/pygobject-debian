@@ -1,8 +1,20 @@
-pygobject (3.10.2-3) UNRELEASED; urgency=medium
+pygobject (3.12.0-1) experimental; urgency=medium
 
+  * New upstream stable release for GNOME 3.12.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 24 Mar 2014 12:25:58 +0100
+
+pygobject (3.11.91-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Bump glib and gobject-introspection build depends as per upstream
+    configure.ac.
+  * Drop 00git_non_recursive_make_python.patch, fixed upstream.
+  * debian/*.install: Drop libpyglib-gi-*.so, these disappeared upstream.
   * debian/tests/control: Add missing build-essential dep for the "build" test.
+  * debian/rules: Fix cleaning.
 
- -- Martin Pitt <mpitt@debian.org>  Fri, 21 Feb 2014 15:58:28 -0800
+ -- Martin Pitt <mpitt@debian.org>  Thu, 06 Mar 2014 10:30:47 +0100
 
 pygobject (3.10.2-2) unstable; urgency=medium
 
