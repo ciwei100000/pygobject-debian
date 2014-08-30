@@ -1,8 +1,8 @@
-pygobject (3.13.90-1) UNRELEASED; urgency=medium
+pygobject (3.13.90-1) experimental; urgency=medium
 
   * New upstream release
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sat, 30 Aug 2014 13:43:21 +0200
+ -- Sjoerd Simons <sjoerd@debian.org>  Sat, 30 Aug 2014 17:11:07 +0200
 
 pygobject (3.12.1-1) unstable; urgency=medium
 
