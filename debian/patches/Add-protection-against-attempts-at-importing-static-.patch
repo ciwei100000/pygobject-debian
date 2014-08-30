@@ -1,0 +1,117 @@
+From 7966c84855834ca4c4f5a5a337e69fffa38e9668 Mon Sep 17 00:00:00 2001
+From: Simon Feltman <sfeltman@src.gnome.org>
+Date: Tue, 5 Aug 2014 22:45:46 -0700
+Subject: [PATCH] Add protection against attempts at importing static bindings
+
+Clobber gobject, gio, glib, gtk, and gtk.gdk in sys.modules upon importing
+gi with dummy modules which produce an error upon access.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=709183
+
+Conflicts:
+	gi/__init__.py
+	tests/test_overrides.py
+---
+ gi/__init__.py          | 26 +++++++++++++++++++++++---
+ tests/test_overrides.py | 41 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+), 3 deletions(-)
+
+diff --git a/gi/__init__.py b/gi/__init__.py
+index 7c1a279..b25cef1 100644
+--- a/gi/__init__.py
++++ b/gi/__init__.py
+@@ -26,12 +26,18 @@ __path__ = extend_path(__path__, __name__)
+ 
+ import sys
+ import os
++import importlib
++import types
++
++_static_binding_error = ('When using gi.repository you must not import static '
++                         'modules like "gobject". Please change all occurrences '
++                         'of "import gobject" to "from gi.repository import GObject". '
++                         'See: https://bugzilla.gnome.org/show_bug.cgi?id=709183')
+ 
+ # we can't have pygobject 2 loaded at the same time we load the internal _gobject
+ if 'gobject' in sys.modules:
+-    raise ImportError('When using gi.repository you must not import static '
+-                      'modules like "gobject". Please change all occurrences '
+-                      'of "import gobject" to "from gi.repository import GObject".')
++    raise ImportError(_static_binding_error)
++
+ 
+ from ._gi import _gobject
+ from ._gi import _API
+@@ -48,6 +54,20 @@ version_info = _gobject.pygobject_version[:]
+ __version__ = "{0}.{1}.{2}".format(*version_info)
+ 
+ 
++class _DummyStaticModule(types.ModuleType):
++    __path__ = None
++
++    def __getattr__(self, name):
++        raise RuntimeError(_static_binding_error)
++
++
++sys.modules['glib'] = _DummyStaticModule('glib', _static_binding_error)
++sys.modules['gobject'] = _DummyStaticModule('gobject', _static_binding_error)
++sys.modules['gio'] = _DummyStaticModule('gio', _static_binding_error)
++sys.modules['gtk'] = _DummyStaticModule('gtk', _static_binding_error)
++sys.modules['gtk.gdk'] = _DummyStaticModule('gtk.gdk', _static_binding_error)
++
++
+ def check_version(version):
+     if isinstance(version, str):
+         version_list = tuple(map(int, version.split(".")))
+diff --git a/tests/test_overrides.py b/tests/test_overrides.py
+index e1af1f1..ec70b1c 100644
+--- a/tests/test_overrides.py
++++ b/tests/test_overrides.py
+@@ -56,3 +56,44 @@ class TestModule(unittest.TestCase):
+ 
+         # Restore the previous cache
+         gi.module._introspection_modules = old_modules
++
++    def test_static_binding_protection(self):
++        # Importing old static bindings once gi has been imported should not
++        # crash but instead give back a dummy module which produces RuntimeErrors
++        # on access.
++        with self.assertRaises(RuntimeError):
++            import gobject
++            gobject.anything
++
++        with self.assertRaises(RuntimeError):
++            import glib
++            glib.anything
++
++        with self.assertRaises(RuntimeError):
++            import gio
++            gio.anything
++
++        with self.assertRaises(RuntimeError):
++            import gtk
++            gtk.anything
++
++        with self.assertRaises(RuntimeError):
++            import gtk.gdk
++            gtk.gdk.anything
++
++
++class TestImporter(unittest.TestCase):
++    def test_invalid_repository_module_name(self):
++        with self.assertRaises(ImportError) as context:
++            from gi.repository import InvalidGObjectRepositoryModuleName
++            InvalidGObjectRepositoryModuleName  # pyflakes
++
++        exception_string = str(context.exception)
++
++        self.assertTrue('InvalidGObjectRepositoryModuleName' in exception_string)
++
++        # The message of the custom exception in gi/importer.py is eaten in Python 2.7
++        if sys.version_info.major < 3:
++            self.assertTrue('introspection typelib' not in exception_string)
++        else:
++            self.assertTrue('introspection typelib' in exception_string)
+-- 
+2.1.0
+
