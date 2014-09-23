@@ -4,6 +4,7 @@ pygobject (3.14.0-1) UNRELEASED; urgency=medium
   * Drop Add-protection-against-attempts-at-importing-static-.patch, included
     in this version.
   * Refresh 01_cairo_region.patch to apply to this version.
+  * Bump g-i dependencies to >= 1.39 as per upstream configure.ac.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 23 Sep 2014 07:18:31 +0200
 
