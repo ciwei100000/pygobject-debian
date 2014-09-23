@@ -34,7 +34,7 @@ Build-Depends: debhelper (>= 9),
                gir1.2-gtk-3.0,
                dh-autoreconf
 X-Python-Version: >= 2.7
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/pygobject
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/pygobject/
 XS-Testsuite: autopkgtest
