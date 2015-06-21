@@ -1,3 +1,9 @@
+pygobject (3.16.2-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 21 Jun 2015 21:18:40 +0200
+
 pygobject (3.14.0-1) unstable; urgency=medium
 
   * New upstream release.
