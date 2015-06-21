@@ -5,6 +5,8 @@ pygobject (3.16.2-1) UNRELEASED; urgency=medium
   * Drop obsolete Conflicts/Replaces/Provides and Breaks/Replaces from
     pre-wheezy.
   * Update Homepage.
+  * Use Expat license instead of "MIT/X11 (BSD like)" since the license
+    specification recommends to use Expat if it matches.
 
  -- Michael Biebl <biebl@debian.org>  Sun, 21 Jun 2015 21:18:40 +0200
 
