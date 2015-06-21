@@ -1,6 +1,7 @@
 pygobject (3.16.2-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Track stable releases in debian/watch.
 
  -- Michael Biebl <biebl@debian.org>  Sun, 21 Jun 2015 21:18:40 +0200
 
