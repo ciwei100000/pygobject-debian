@@ -6,7 +6,7 @@ Source: pygobject
 Section: python
 Priority: optional
 Maintainer: Josselin Mouette <joss@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Martin Pitt <mpitt@debian.org>, Sjoerd Simons <sjoerd@debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Martin Pitt <mpitt@debian.org>, Michael Biebl <biebl@debian.org>, Sjoerd Simons <sjoerd@debian.org>
 Build-Depends: debhelper (>= 9),
                dpkg-dev (>= 1.16.1~),
                gnome-common,
@@ -53,11 +53,8 @@ Depends: ${python:Depends},
          gir1.2-glib-2.0 (>= 1.39.0)
 Provides: ${python:Provides}
 Suggests: python-gi-cairo
-Breaks: python-gobject (<< 3.0.2-4),
-        python-nautilus (<= 1.1-1),
-        python-aptdaemon (<< 1.0),
+Breaks: python-aptdaemon (<< 1.0),
         software-center (<= 5.6.0-0ubuntu2)
-Replaces: python-gobject (<< 3.0.2-4)
 Description: Python 2.x bindings for gobject-introspection libraries
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -74,9 +71,6 @@ Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
          gir1.2-glib-2.0 (>= 1.39.0)
-Conflicts: python3-gobject
-Provides: python3-gobject
-Replaces: python3-gobject
 Description: Python 3 bindings for gobject-introspection libraries
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -94,9 +88,6 @@ Depends: ${python:Depends},
          ${misc:Depends},
          python-gi (= ${binary:Version}),
          python-cairo
-Conflicts: python-gobject-cairo
-Replaces: python-gobject-cairo
-Provides: python-gobject-cairo
 Description: Python Cairo bindings for the GObject library
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -114,8 +105,6 @@ Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
          python-gi (= ${binary:Version})
-Breaks: python-gobject-dbg (<< 3.0.2-4)
-Replaces: python-gobject-dbg (<< 3.0.2-4)
 Description: Python bindings for the GObject library (debug extension)
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -135,9 +124,6 @@ Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
          python3-gi (= ${binary:Version})
-Conflicts: python3-gobject-dbg
-Provides: python3-gobject-dbg
-Replaces: python3-gobject-dbg
 Description: Python 3 bindings for gobject-introspection libraries (debug extension)
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
@@ -158,8 +144,6 @@ Depends: ${shlibs:Depends},
          python3-gi (= ${binary:Version}),
          libglib2.0-dev (>= 2.35.9),
          libffi-dev (>= 3.0.5)
-Breaks: python-gobject-dev (<< 3.0.2-4)
-Replaces: python-gobject-dev (<< 3.0.2-4)
 Description: development headers for GObject Python bindings
  GObject is an abstraction layer that allows programming with an object
  paradigm that is compatible with many languages. It is a part of Glib,
