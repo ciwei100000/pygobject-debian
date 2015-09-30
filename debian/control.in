@@ -37,7 +37,6 @@ X-Python-Version: >= 2.7
 Standards-Version: 3.9.6
 Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/pygobject
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/pygobject/
-XS-Testsuite: autopkgtest
 Homepage: https://wiki.gnome.org/Projects/PyGObject
 
 Package: python-gi
