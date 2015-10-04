@@ -60,27 +60,27 @@ override_dh_auto_clean:
 	rm -rf build-*
 	dh_auto_clean
 
-override_dh_install:
+override_dh_install-arch:
 	dh_install -ppython-gi -ppython-gi-cairo --sourcedir=debian/install-2
 	dh_install -ppython-gi-dbg --sourcedir=debian/install-2-dbg
 	dh_install -ppython3-gi -ppython3-gi-cairo -ppython-gi-dev --sourcedir=debian/install-3
 	dh_install -ppython3-gi-dbg --sourcedir=debian/install-3-dbg
-	# for transitional packages; this is not expected to install any files
-	dh_install --remaining-packages --sourcedir=/nonexisting
+	# for -dev etc.; this is not expected to install any files
+	dh_install -a --remaining-packages --sourcedir=/nonexisting
 	# cairo.so is installed into a separate package; modelling this with
 	# *.install files is a pain, so just remove it manually
 	rm debian/python*-gi/usr/lib/python*/*-packages/gi/*cairo*
 
-override_dh_strip:
+override_dh_strip-arch:
 	dh_strip -ppython-gi --dbg-package=python-gi-dbg
 	dh_strip -ppython-gi-cairo --dbg-package=python-gi-dbg
 	dh_strip -ppython3-gi --dbg-package=python3-gi-dbg
-	dh_strip --remaining-packages
+	dh_strip -a --remaining-packages
 
-override_dh_makeshlibs:
+override_dh_makeshlibs-arch:
 	dh_makeshlibs -ppython-gi  -V'python-gi (>= 3.4)'
 	dh_makeshlibs -ppython3-gi -V'python3-gi (>= 3.4)'
-	dh_makeshlibs --remaining-packages
+	dh_makeshlibs -a --remaining-packages
 
 # without this, dh_python2 insists on 2.6 modules
 override_dh_python2:
