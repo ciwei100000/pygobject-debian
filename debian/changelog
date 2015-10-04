@@ -1,4 +1,6 @@
-pygobject (3.18.0-1) UNRELEASED; urgency=medium
+pygobject (3.18.0-1) unstable; urgency=medium
+
+  * Team upload
 
   [ Michael Biebl ]
   * Drop the XS-Testsuite: autopkgtest field, no longer required
@@ -10,7 +12,7 @@ pygobject (3.18.0-1) UNRELEASED; urgency=medium
     used on the official arch:all buildd
   * Build-depend on dh-python as recommended by dh_python
 
- -- Simon McVittie <smcv@debian.org>  Sun, 04 Oct 2015 13:19:32 +0100
+ -- Simon McVittie <smcv@debian.org>  Sun, 04 Oct 2015 15:05:26 +0100
 
 pygobject (3.16.2-1) unstable; urgency=medium
 
