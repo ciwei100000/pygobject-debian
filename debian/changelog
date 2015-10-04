@@ -8,6 +8,7 @@ pygobject (3.18.0-1) UNRELEASED; urgency=medium
     - works with Gtk 3.18 typelib (Closes: #800870)
   * Fix FTBFS with dpkg-buildpackage -A (sbuild --arch-all-only) as
     used on the official arch:all buildd
+  * Build-depend on dh-python as recommended by dh_python
 
  -- Simon McVittie <smcv@debian.org>  Sun, 04 Oct 2015 13:19:32 +0100
 
