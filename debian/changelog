@@ -1,10 +1,10 @@
-pygobject (3.18.2-1) UNRELEASED; urgency=medium
+pygobject (3.18.2-1) unstable; urgency=medium
 
   * New upstream release.
   * Run test-suite on all architectures again.
   * If the test-suite fails and we ignore the failure, log this accordingly.
 
- -- Michael Biebl <biebl@debian.org>  Thu, 29 Oct 2015 02:45:24 +0100
+ -- Michael Biebl <biebl@debian.org>  Thu, 29 Oct 2015 03:12:29 +0100
 
 pygobject (3.18.0-1) unstable; urgency=medium
 
