@@ -6,6 +6,9 @@ pygobject (3.18.2-2) UNRELEASED; urgency=medium
     test-suite non-fatal).
   * Make the test-suite fatal for all architectures so we can more easily
     detect failures.
+  * Make the test-suite non-fatal for the the -dbg builds. With python3.4-dbg
+    and python3.5-dbg the test-suite currently fails. We still run it to get
+    the result for all architectures.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 30 Oct 2015 00:51:54 +0100
 
