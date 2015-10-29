@@ -13,7 +13,7 @@ FLAVOURS := $(PYVERS) $(patsubst %,%-dbg,$(PYVERS))
 TESTSUITE_FAIL_CMD=exit 1
 ifneq ($(findstring $(DEB_BUILD_ARCH), s390x mipsel kfreebsd-amd64 kfreebsd-i386 hurd-i386),)
 # tests currently fail on these architectures
-    TESTSUITE_FAIL_CMD=true
+    TESTSUITE_FAIL_CMD=( echo "*** test-suite FAILED but continuing anyway ***"; true; )
 endif
 
 configure_flags += \
