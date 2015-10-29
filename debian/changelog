@@ -1,4 +1,4 @@
-pygobject (3.18.2-2) UNRELEASED; urgency=medium
+pygobject (3.18.2-2) unstable; urgency=medium
 
   * Fix rules when deciding for which architecture the test-suite failure
     should be non-fatal. Use filter instead of findstring, as findstring also
@@ -10,7 +10,7 @@ pygobject (3.18.2-2) UNRELEASED; urgency=medium
     and python3.5-dbg the test-suite currently fails. We still run it to get
     the result for all architectures.
 
- -- Michael Biebl <biebl@debian.org>  Fri, 30 Oct 2015 00:51:54 +0100
+ -- Michael Biebl <biebl@debian.org>  Fri, 30 Oct 2015 00:59:18 +0100
 
 pygobject (3.18.2-1) unstable; urgency=medium
 
