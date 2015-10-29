@@ -4,6 +4,8 @@ pygobject (3.18.2-2) UNRELEASED; urgency=medium
     should be non-fatal. Use filter instead of findstring, as findstring also
     matches substrings (e.g. adding kfreebsd-amd64 did also make the amd64
     test-suite non-fatal).
+  * Make the test-suite fatal for all architectures so we can more easily
+    detect failures.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 30 Oct 2015 00:51:54 +0100
 
