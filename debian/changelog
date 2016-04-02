@@ -1,8 +1,78 @@
+pygobject (3.18.2-2) unstable; urgency=medium
+
+  * Fix rules when deciding for which architecture the test-suite failure
+    should be non-fatal. Use filter instead of findstring, as findstring also
+    matches substrings (e.g. adding kfreebsd-amd64 did also make the amd64
+    test-suite non-fatal).
+  * Make the test-suite fatal for all architectures so we can more easily
+    detect failures.
+  * Make the test-suite non-fatal for the the -dbg builds. With python3.4-dbg
+    and python3.5-dbg the test-suite currently fails. We still run it to get
+    the result for all architectures.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 30 Oct 2015 00:59:18 +0100
+
+pygobject (3.18.2-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Run test-suite on all architectures again.
+  * If the test-suite fails and we ignore the failure, log this accordingly.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 29 Oct 2015 03:12:29 +0100
+
+pygobject (3.18.0-1) unstable; urgency=medium
+
+  * Team upload
+
+  [ Michael Biebl ]
+  * Drop the XS-Testsuite: autopkgtest field, no longer required
+
+  [ Simon McVittie ]
+  * New upstream release
+    - works with Gtk 3.18 typelib (Closes: #800870)
+  * Fix FTBFS with dpkg-buildpackage -A (sbuild --arch-all-only) as
+    used on the official arch:all buildd
+  * Build-depend on dh-python as recommended by dh_python
+
+ -- Simon McVittie <smcv@debian.org>  Sun, 04 Oct 2015 15:05:26 +0100
+
+pygobject (3.16.2-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Track stable releases in debian/watch.
+  * Drop obsolete Conflicts/Replaces/Provides and Breaks/Replaces from
+    pre-wheezy.
+  * Update Homepage.
+  * Use Expat license instead of "MIT/X11 (BSD like)" since the license
+    specification recommends to use Expat if it matches.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 22 Jun 2015 00:30:04 +0200
+
+pygobject (3.14.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Drop Add-protection-against-attempts-at-importing-static-.patch, included
+    in this version.
+  * Refresh 01_cairo_region.patch to apply to this version.
+  * Bump g-i dependencies to >= 1.39 as per upstream configure.ac.
+  * Bump Standards-Version to 3.9.6 (no changes necessary).
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 23 Sep 2014 07:22:57 +0200
+
 pygobject (3.13.90-1) experimental; urgency=medium
 
   * New upstream release
 
  -- Sjoerd Simons <sjoerd@debian.org>  Sat, 30 Aug 2014 17:11:07 +0200
+
+pygobject (3.12.2-1) unstable; urgency=medium
+
+  * New upstream release
+  * d/p/Add-protection-against-attempts-at-importing-static-.patch
+    + Added. Prevents segfault when importing old-style modules in programs
+      using gi (From upstream git)
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Sat, 30 Aug 2014 14:23:05 +0200
 
 pygobject (3.12.1-1) unstable; urgency=medium
 
