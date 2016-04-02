@@ -1,0 +1,31 @@
+From b3f897b98c5a2c59ea34a8afcce0448b1ffb0731 Mon Sep 17 00:00:00 2001
+From: Iain Lane <iain@orangesquash.org.uk>
+Date: Thu, 24 Mar 2016 18:04:40 +0000
+Subject: test_gerror_novalue: Don't assign the error to a variable
+
+Otherwise the build fails with:
+
+  CHECK  Pyflakes examples gi tests pygtkcompat
+  tests/test_gobject.py:689: local variable 'error' is assigned to but never used
+
+https://bugzilla.gnome.org/show_bug.cgi?id=764165
+---
+ tests/test_gobject.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/test_gobject.py b/tests/test_gobject.py
+index e78132d..39a277b 100644
+--- a/tests/test_gobject.py
++++ b/tests/test_gobject.py
+@@ -686,7 +686,7 @@ class TestGValue(unittest.TestCase):
+         self.assertEqual(unboxed.code, error.code)
+ 
+     def test_gerror_novalue(self):
+-        error = GLib.Error('test message', domain='mydomain', code=42)
++        GLib.Error('test message', domain='mydomain', code=42)
+         value = GObject.Value(GLib.Error)
+         self.assertEqual(value.g_type, GObject.type_from_name('GError'))
+         self.assertEqual(value.get_value(), None)
+-- 
+cgit v0.12
+

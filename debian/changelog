@@ -1,3 +1,12 @@
+pygobject (3.20.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Bump build-dependency according to configure.ac changes:
+    - gobject-introspection (>= 1.46.0)
+  * Fix FTBFS by adding debian/patches/git_fix_test_build.patch from upstream
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sat, 02 Apr 2016 15:39:49 +0200
+
 pygobject (3.18.2-2) unstable; urgency=medium
 
   * Fix rules when deciding for which architecture the test-suite failure
