@@ -1,11 +1,12 @@
-pygobject (3.20.0-2) UNRELEASED; urgency=medium
+pygobject (3.20.0-2) unstable; urgency=medium
 
   * Drop uploaders.mk from debian/rules as this breaks the clean target with
     dh. Instead use the gnome dh addon which updates debian/control via
     dh_gnome_clean.
   * Remove obsolete migration code from pre-wheezy.
+  * Upload to unstable.
 
- -- Michael Biebl <biebl@debian.org>  Wed, 06 Apr 2016 00:58:18 +0200
+ -- Michael Biebl <biebl@debian.org>  Wed, 20 Apr 2016 01:29:44 +0200
 
 pygobject (3.20.0-1) experimental; urgency=medium
 
