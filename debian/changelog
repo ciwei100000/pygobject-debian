@@ -1,6 +1,7 @@
 pygobject (3.20.1-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Drop debian/patches/git_fix_test_build.patch, merged upstream.
 
  -- Michael Biebl <biebl@debian.org>  Wed, 27 Apr 2016 14:49:54 +0200
 
