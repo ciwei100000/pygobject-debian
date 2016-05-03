@@ -1,4 +1,4 @@
-pygobject (3.20.1-1) UNRELEASED; urgency=medium
+pygobject (3.20.1-1) unstable; urgency=medium
 
   * New upstream release.
   * Drop debian/patches/git_fix_test_build.patch, merged upstream.
@@ -6,7 +6,7 @@ pygobject (3.20.1-1) UNRELEASED; urgency=medium
   * Do not create automatic dbgsym packages as we already build specialised
     dbg packages.
 
- -- Michael Biebl <biebl@debian.org>  Wed, 27 Apr 2016 14:49:54 +0200
+ -- Michael Biebl <biebl@debian.org>  Tue, 03 May 2016 23:20:01 +0200
 
 pygobject (3.20.0-2) unstable; urgency=medium
 
