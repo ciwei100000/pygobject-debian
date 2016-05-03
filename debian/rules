@@ -73,7 +73,7 @@ override_dh_strip-arch:
 	dh_strip -ppython-gi --dbg-package=python-gi-dbg
 	dh_strip -ppython-gi-cairo --dbg-package=python-gi-dbg
 	dh_strip -ppython3-gi --dbg-package=python3-gi-dbg
-	dh_strip -a --remaining-packages
+	dh_strip -a --remaining-packages --no-automatic-dbgsym
 
 override_dh_makeshlibs-arch:
 	dh_makeshlibs -ppython-gi  -V'python-gi (>= 3.4)'
