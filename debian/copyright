@@ -1,9 +1,9 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: pygobject
 Upstream-Contact: 
  John (J5) Palmieri <johnp@redhat.com>
  Tomeu Vizoso <tomeu.vizoso@collabora.co.uk>
-Source: http://ftp.gnome.org/pub/GNOME/sources/pygobject/
+Source: https://download.gnome.org/sources/pygobject/
 
 Files: *
 Copyright:
@@ -62,4 +62,3 @@ License: Expat
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  IN THE SOFTWARE.
-
