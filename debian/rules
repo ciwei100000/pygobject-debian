@@ -14,10 +14,6 @@ ifneq ($(filter $(DEB_BUILD_ARCH), ),)
     TESTSUITE_FAIL_CMD=$(NON_FATAL)
 endif
 
-configure_flags += \
-		--disable-silent-rules \
-		$(NULL)
-
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
@@ -25,7 +21,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 override_dh_auto_configure:
 	set -e && for x in $(FLAVOURS); do \
-	    dh_auto_configure --builddirectory=build-$$x -- PYTHON=/usr/bin/python$$x $(configure_flags); \
+	    dh_auto_configure --builddirectory=build-$$x -- PYTHON=/usr/bin/python$$x; \
 	done
 
 override_dh_auto_build:
