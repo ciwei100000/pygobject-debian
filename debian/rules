@@ -14,10 +14,6 @@ ifneq ($(filter $(DEB_BUILD_ARCH), ),)
     TESTSUITE_FAIL_CMD=$(NON_FATAL)
 endif
 
-configure_flags += \
-		--disable-silent-rules \
-		$(NULL)
-
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
@@ -25,7 +21,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 override_dh_auto_configure:
 	set -e && for x in $(FLAVOURS); do \
-	    dh_auto_configure --builddirectory=build-$$x -- PYTHON=/usr/bin/python$$x $(configure_flags); \
+	    dh_auto_configure --builddirectory=build-$$x -- PYTHON=/usr/bin/python$$x; \
 	done
 
 override_dh_auto_build:
@@ -73,7 +69,7 @@ override_dh_strip-arch:
 	dh_strip -ppython-gi --dbg-package=python-gi-dbg
 	dh_strip -ppython-gi-cairo --dbg-package=python-gi-dbg
 	dh_strip -ppython3-gi --dbg-package=python3-gi-dbg
-	dh_strip -a --remaining-packages
+	dh_strip -a --remaining-packages --no-automatic-dbgsym
 
 override_dh_makeshlibs-arch:
 	dh_makeshlibs -ppython-gi  -V'python-gi (>= 3.4)'
