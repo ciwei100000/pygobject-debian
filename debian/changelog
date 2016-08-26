@@ -1,3 +1,12 @@
+pygobject (3.21.91-1) experimental; urgency=medium
+
+  * New upstream beta release.
+  * Set Maintainer to Debian GNOME Maintainers
+  * Add python{,3}-setuptools to build-dependencies
+    - as needed in debian/rules clean by the new setup.py
+
+ -- Andreas Henriksson <andreas@fatal.se>  Fri, 26 Aug 2016 10:57:27 +0200
+
 pygobject (3.21.0-1) experimental; urgency=medium
 
   [ Michael Biebl ]
