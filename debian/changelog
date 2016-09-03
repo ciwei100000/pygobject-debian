@@ -3,6 +3,10 @@ pygobject (3.21.91-2) UNRELEASED; urgency=medium
   [ Aurelien Jarno ]
   * Fix wrong enum to hash conversion on 64-bit big endian. (Closes: #835413)
 
+  [ Michael Biebl ]
+  * Use dbus-run-session instead of dbus-launch to run the tests.
+    (Closes: #836049)
+
  -- Michael Biebl <biebl@debian.org>  Sat, 03 Sep 2016 15:50:04 +0200
 
 pygobject (3.21.91-1) experimental; urgency=medium

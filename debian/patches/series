@@ -1,2 +1,3 @@
 01_cairo_region.patch
 02_Fix-list-hashtable-enum-hash-conversion-on-64-bit-bi.patch
+03_tests-use-dbus-run-session-instead-of-dbus-launch.patch
