@@ -1,0 +1,96 @@
+From 7ccc164b6da6d87c0a200ea50314d213470a1f18 Mon Sep 17 00:00:00 2001
+From: Christoph Reiter <creiter@src.gnome.org>
+Date: Sat, 3 Sep 2016 20:02:13 +0200
+Subject: [PATCH] Handle nullable filename parameters
+
+Make _pygi_marshal_from_py_filename handle None input
+values. This allows one to pass None to parameters
+annotated as nullable filenames.
+
+This fixes a test suite error in test_spawn_async_with_pipes
+triggered by an annotation change in glib.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=770821
+---
+ gi/pygi-basictype.c             |  5 +++++
+ tests/gimarshallingtestsextra.c | 22 ++++++++++++++++++++++
+ tests/gimarshallingtestsextra.h |  3 +++
+ tests/test_gi.py                |  4 ++++
+ 4 files changed, 34 insertions(+)
+
+diff --git a/gi/pygi-basictype.c b/gi/pygi-basictype.c
+index b6515c3..4a5e112 100644
+--- a/gi/pygi-basictype.c
++++ b/gi/pygi-basictype.c
+@@ -255,6 +255,11 @@ _pygi_marshal_from_py_filename (PyObject          *py_arg,
+     GError *error = NULL;
+     PyObject *tmp = NULL;
+ 
++    if (py_arg == Py_None) {
++        arg->v_pointer = NULL;
++        return TRUE;
++    }
++
+     if (PyUnicode_Check (py_arg)) {
+         tmp = PyUnicode_AsUTF8String (py_arg);
+         if (!tmp)
+diff --git a/tests/gimarshallingtestsextra.c b/tests/gimarshallingtestsextra.c
+index 56b0113..85a9fba 100644
+--- a/tests/gimarshallingtestsextra.c
++++ b/tests/gimarshallingtestsextra.c
+@@ -68,3 +68,25 @@ gi_marshalling_tests_ghashtable_enum_none_return (void)
+ 
+   return hash_table;
+ }
++
++/**
++ * gi_marshalling_tests_filename_copy:
++ * @path_in: (type filename) (nullable)
++ *
++ * Returns: (type filename) (nullable)
++ */
++gchar *
++gi_marshalling_tests_filename_copy (gchar *path_in)
++{
++  return g_strdup (path_in);
++}
++
++/**
++ * gi_marshalling_tests_filename_exists:
++ * @path: (type filename)
++ */
++gboolean
++gi_marshalling_tests_filename_exists (gchar *path)
++{
++  return g_file_test (path, G_FILE_TEST_EXISTS);
++}
+diff --git a/tests/gimarshallingtestsextra.h b/tests/gimarshallingtestsextra.h
+index ae6be1b..51a65f2 100644
+--- a/tests/gimarshallingtestsextra.h
++++ b/tests/gimarshallingtestsextra.h
+@@ -33,4 +33,7 @@ void gi_marshalling_tests_compare_two_gerrors_in_gvalue (GValue *v, GValue *v1);
+ void gi_marshalling_tests_ghashtable_enum_none_in (GHashTable *hash_table);
+ GHashTable * gi_marshalling_tests_ghashtable_enum_none_return (void);
+ 
++gchar * gi_marshalling_tests_filename_copy (gchar *path_in);
++gboolean gi_marshalling_tests_filename_exists (gchar *path);
++
+ #endif /* EXTRA_TESTS */
+diff --git a/tests/test_gi.py b/tests/test_gi.py
+index d246a01..d0c72b6 100644
+--- a/tests/test_gi.py
++++ b/tests/test_gi.py
+@@ -710,6 +710,10 @@ class TestFilename(unittest.TestCase):
+         self.assertEqual(result, True)
+         self.assertEqual(contents, b'hello world!\n\x01\x02')
+ 
++    def test_filename_in_nullable(self):
++        self.assertTrue(GIMarshallingTests.filename_copy(None) is None)
++        self.assertRaises(TypeError, GIMarshallingTests.filename_exists, None)
++
+     def test_filename_out(self):
+         self.assertRaises(GLib.GError, GLib.Dir.make_tmp, 'test')
+ 
+-- 
+2.9.3
+
