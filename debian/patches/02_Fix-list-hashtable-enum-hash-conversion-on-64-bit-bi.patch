@@ -1,0 +1,282 @@
+From 08cac8f2b9f661c4b5ac7996b81e8ea5d344f1ea Mon Sep 17 00:00:00 2001
+From: Aurelien Jarno <aurelien@aurel32.net>
+Date: Wed, 31 Aug 2016 22:16:06 +0200
+Subject: [PATCH] Fix list/hashtable enum <-> hash conversion on 64-bit big
+ endian
+
+glist and ghashtable objects both store pointers. Complex objects are
+stored as pointers to the objects, but simpler objects like an integer
+value are stored directly as a pointer, using for example the
+GINT_TO_POINTER and GPOINTER_TO_INT macros.
+
+This is done in pygobject with the _pygi_hash_pointer_to_arg and
+_pygi_arg_to_hash_pointer functions. These functions handle the various
+type of objects. However they consider that an enum, represented with the
+GI_TYPE_TAG_INTERFACE type (extended interface object), are always a
+pointer. This is wrong as it is often a 32-bit value. Therefore on 64-bit
+big endian machines, the value is handle with the 2 32-bit parts swapped.
+
+This patches fixes that by changing the second argument of both functions
+from GITypeTag to GITypeInfo. This way the interface can be determined,
+and the underlying storage type can also be determined. This currently
+only handles enum and flags, leaving other types as pointers. The patch
+also adds two tests in the testsuite, one for each direction.
+
+Bug-Debian: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=835413
+Bug: https://bugzilla.gnome.org/show_bug.cgi?id=770608
+---
+ gi/pygi-argument.c              | 33 +++++++++++++++++++++++++++++----
+ gi/pygi-argument.h              |  4 ++--
+ gi/pygi-hashtable.c             |  8 ++++----
+ gi/pygi-list.c                  |  8 ++++----
+ tests/gimarshallingtestsextra.c | 33 +++++++++++++++++++++++++++++++++
+ tests/gimarshallingtestsextra.h | 10 ++++++++++
+ tests/test_gi.py                | 11 +++++++++++
+ 7 files changed, 93 insertions(+), 14 deletions(-)
+
+diff --git a/gi/pygi-argument.c b/gi/pygi-argument.c
+index e9bfe3b..0929038 100644
+--- a/gi/pygi-argument.c
++++ b/gi/pygi-argument.c
+@@ -85,10 +85,33 @@ pygi_argument_to_gssize (GIArgument *arg_in,
+     }
+ }
+ 
++static GITypeTag
++_pygi_get_storage_type (GITypeInfo *type_info)
++{
++    GITypeTag type_tag = g_type_info_get_tag (type_info);
++
++    if (type_tag == GI_TYPE_TAG_INTERFACE) {
++        GIBaseInfo *interface = g_type_info_get_interface (type_info);
++        switch (g_base_info_get_type (interface)) {
++            case GI_INFO_TYPE_ENUM:
++            case GI_INFO_TYPE_FLAGS:
++                type_tag = g_enum_info_get_storage_type ((GIEnumInfo *)interface);
++                break;
++            default:
++                /* FIXME: we might have something to do for other types */
++                break;
++        }
++        g_base_info_unref (interface);
++    }
++    return type_tag;
++}
++
+ void
+ _pygi_hash_pointer_to_arg (GIArgument *arg,
+-                           GITypeTag  type_tag)
++                           GITypeInfo *type_info)
+ {
++    GITypeTag type_tag = _pygi_get_storage_type (type_info);
++
+     switch (type_tag) {
+         case GI_TYPE_TAG_INT8:
+             arg->v_int8 = GPOINTER_TO_INT (arg->v_pointer);
+@@ -122,8 +145,10 @@ _pygi_hash_pointer_to_arg (GIArgument *arg,
+ 
+ gpointer
+ _pygi_arg_to_hash_pointer (const GIArgument *arg,
+-                           GITypeTag        type_tag)
++                           GITypeInfo       *type_info)
+ {
++    GITypeTag type_tag = _pygi_get_storage_type (type_info);
++
+     switch (type_tag) {
+         case GI_TYPE_TAG_INT8:
+             return GINT_TO_POINTER (arg->v_int8);
+@@ -631,7 +656,7 @@ list_item_error:
+                 }
+ 
+                 g_hash_table_insert (hash_table, key.v_pointer,
+-                                     _pygi_arg_to_hash_pointer (&value, g_type_info_get_tag (value_type_info)));
++                                     _pygi_arg_to_hash_pointer (&value, value_type_info));
+                 continue;
+ 
+ hash_table_item_error:
+@@ -925,7 +950,7 @@ _pygi_argument_to_object (GIArgument  *arg,
+                     break;
+                 }
+ 
+-                _pygi_hash_pointer_to_arg (&value, g_type_info_get_tag (value_type_info));
++                _pygi_hash_pointer_to_arg (&value, value_type_info);
+                 py_value = _pygi_argument_to_object (&value, value_type_info, item_transfer);
+                 if (py_value == NULL) {
+                     Py_DECREF (py_key);
+diff --git a/gi/pygi-argument.h b/gi/pygi-argument.h
+index a923fd9..2e889dd 100644
+--- a/gi/pygi-argument.h
++++ b/gi/pygi-argument.h
+@@ -37,10 +37,10 @@ gssize _pygi_argument_array_length_marshal (gsize length_arg_index,
+                                             void *user_data2);
+ 
+ gpointer _pygi_arg_to_hash_pointer (const GIArgument *arg,
+-                                    GITypeTag         type_tag);
++                                    GITypeInfo       *type_info);
+ 
+ void _pygi_hash_pointer_to_arg (GIArgument *arg,
+-                                GITypeTag   type_tag);
++                                GITypeInfo *type_info);
+ 
+ GArray* _pygi_argument_to_array (GIArgument  *arg,
+                                  PyGIArgArrayLengthPolicy array_length_policy,
+diff --git a/gi/pygi-hashtable.c b/gi/pygi-hashtable.c
+index 84155d7..647bf04 100644
+--- a/gi/pygi-hashtable.c
++++ b/gi/pygi-hashtable.c
+@@ -134,8 +134,8 @@ _pygi_marshal_from_py_ghash (PyGIInvokeState   *state,
+             goto err;
+ 
+         g_hash_table_insert (hash_,
+-                             _pygi_arg_to_hash_pointer (&key, hash_cache->key_cache->type_tag),
+-                             _pygi_arg_to_hash_pointer (&value, hash_cache->value_cache->type_tag));
++                             _pygi_arg_to_hash_pointer (&key, hash_cache->key_cache->type_info),
++                             _pygi_arg_to_hash_pointer (&value, hash_cache->value_cache->type_info));
+         continue;
+ err:
+         /* FIXME: cleanup hash keys and values */
+@@ -264,7 +264,7 @@ _pygi_marshal_to_py_ghash (PyGIInvokeState   *state,
+         int retval;
+ 
+ 
+-        _pygi_hash_pointer_to_arg (&key_arg, hash_cache->key_cache->type_tag);
++        _pygi_hash_pointer_to_arg (&key_arg, hash_cache->key_cache->type_info);
+         py_key = key_to_py_marshaller ( state,
+                                       callable_cache,
+                                       key_arg_cache,
+@@ -275,7 +275,7 @@ _pygi_marshal_to_py_ghash (PyGIInvokeState   *state,
+             return NULL;
+         }
+ 
+-        _pygi_hash_pointer_to_arg (&value_arg, hash_cache->value_cache->type_tag);
++        _pygi_hash_pointer_to_arg (&value_arg, hash_cache->value_cache->type_info);
+         py_value = value_to_py_marshaller ( state,
+                                           callable_cache,
+                                           value_arg_cache,
+diff --git a/gi/pygi-list.c b/gi/pygi-list.c
+index 3eee849..72a3d20 100644
+--- a/gi/pygi-list.c
++++ b/gi/pygi-list.c
+@@ -75,7 +75,7 @@ _pygi_marshal_from_py_glist (PyGIInvokeState   *state,
+             goto err;
+ 
+         Py_DECREF (py_item);
+-        list_ = g_list_prepend (list_, _pygi_arg_to_hash_pointer (&item, sequence_cache->item_cache->type_tag));
++        list_ = g_list_prepend (list_, _pygi_arg_to_hash_pointer (&item, sequence_cache->item_cache->type_info));
+         continue;
+ err:
+         /* FIXME: clean up list
+@@ -152,7 +152,7 @@ _pygi_marshal_from_py_gslist (PyGIInvokeState   *state,
+             goto err;
+ 
+         Py_DECREF (py_item);
+-        list_ = g_slist_prepend (list_, _pygi_arg_to_hash_pointer (&item, sequence_cache->item_cache->type_tag));
++        list_ = g_slist_prepend (list_, _pygi_arg_to_hash_pointer (&item, sequence_cache->item_cache->type_info));
+         continue;
+ err:
+         /* FIXME: Clean up list
+@@ -261,7 +261,7 @@ _pygi_marshal_to_py_glist (PyGIInvokeState   *state,
+         PyObject *py_item;
+ 
+         item_arg.v_pointer = list_->data;
+-        _pygi_hash_pointer_to_arg (&item_arg, item_arg_cache->type_tag);
++        _pygi_hash_pointer_to_arg (&item_arg, item_arg_cache->type_info);
+         py_item = item_to_py_marshaller (state,
+                                          callable_cache,
+                                          item_arg_cache,
+@@ -310,7 +310,7 @@ _pygi_marshal_to_py_gslist (PyGIInvokeState   *state,
+         PyObject *py_item;
+ 
+         item_arg.v_pointer = list_->data;
+-        _pygi_hash_pointer_to_arg (&item_arg, item_arg_cache->type_tag);
++        _pygi_hash_pointer_to_arg (&item_arg, item_arg_cache->type_info);
+         py_item = item_to_py_marshaller (state,
+                                         callable_cache,
+                                         item_arg_cache,
+diff --git a/tests/gimarshallingtestsextra.c b/tests/gimarshallingtestsextra.c
+index 9624077..56b0113 100644
+--- a/tests/gimarshallingtestsextra.c
++++ b/tests/gimarshallingtestsextra.c
+@@ -35,3 +35,36 @@ gi_marshalling_tests_compare_two_gerrors_in_gvalue (GValue *v, GValue *v1)
+   g_assert_cmpint (error->code, ==, error1->code);
+   g_assert_cmpstr (error->message, ==, error1->message);
+ }
++
++/**
++ * gi_marshalling_tests_ghashtable_enum_none_in:
++ * @hash_table: (element-type gint GIMarshallingTestsExtraEnum) (transfer none):
++ */
++void
++gi_marshalling_tests_ghashtable_enum_none_in (GHashTable *hash_table)
++{
++  g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (hash_table, GINT_TO_POINTER (1))), ==, GI_MARSHALLING_TESTS_EXTRA_ENUM_VALUE1);
++  g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (hash_table, GINT_TO_POINTER (2))), ==, GI_MARSHALLING_TESTS_EXTRA_ENUM_VALUE2);
++  g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (hash_table, GINT_TO_POINTER (3))), ==, GI_MARSHALLING_TESTS_EXTRA_ENUM_VALUE3);
++}
++
++/**
++ * gi_marshalling_tests_ghashtable_enum_none_return:
++ *
++ * Returns: (element-type gint GIMarshallingTestsExtraEnum) (transfer none):
++ */
++GHashTable *
++gi_marshalling_tests_ghashtable_enum_none_return (void)
++{
++  static GHashTable *hash_table = NULL;
++
++  if (hash_table == NULL)
++    {
++      hash_table = g_hash_table_new (NULL, NULL);
++      g_hash_table_insert (hash_table, GINT_TO_POINTER (1), GINT_TO_POINTER (GI_MARSHALLING_TESTS_EXTRA_ENUM_VALUE1));
++      g_hash_table_insert (hash_table, GINT_TO_POINTER (2), GINT_TO_POINTER (GI_MARSHALLING_TESTS_EXTRA_ENUM_VALUE2));
++      g_hash_table_insert (hash_table, GINT_TO_POINTER (3), GINT_TO_POINTER (GI_MARSHALLING_TESTS_EXTRA_ENUM_VALUE3));
++    }
++
++  return hash_table;
++}
+diff --git a/tests/gimarshallingtestsextra.h b/tests/gimarshallingtestsextra.h
+index 6858551..ae6be1b 100644
+--- a/tests/gimarshallingtestsextra.h
++++ b/tests/gimarshallingtestsextra.h
+@@ -21,6 +21,16 @@
+ 
+ #include <glib-object.h>
+ 
++typedef enum
++{
++  GI_MARSHALLING_TESTS_EXTRA_ENUM_VALUE1,
++  GI_MARSHALLING_TESTS_EXTRA_ENUM_VALUE2,
++  GI_MARSHALLING_TESTS_EXTRA_ENUM_VALUE3 = 42
++} GIMarshallingTestsExtraEnum;
++
++
+ void gi_marshalling_tests_compare_two_gerrors_in_gvalue (GValue *v, GValue *v1);
++void gi_marshalling_tests_ghashtable_enum_none_in (GHashTable *hash_table);
++GHashTable * gi_marshalling_tests_ghashtable_enum_none_return (void);
+ 
+ #endif /* EXTRA_TESTS */
+diff --git a/tests/test_gi.py b/tests/test_gi.py
+index 1fbc216..d246a01 100644
+--- a/tests/test_gi.py
++++ b/tests/test_gi.py
+@@ -1265,6 +1265,17 @@ class TestGHashTable(unittest.TestCase):
+         self.assertEqual({'-1': '1', '0': '0', '1': '1'},
+                          GIMarshallingTests.ghashtable_utf8_full_inout(i))
+ 
++    def test_ghashtable_enum_none_in(self):
++        GIMarshallingTests.ghashtable_enum_none_in({1: GIMarshallingTests.ExtraEnum.VALUE1,
++                                                    2: GIMarshallingTests.ExtraEnum.VALUE2,
++                                                    3: GIMarshallingTests.ExtraEnum.VALUE3})
++
++    def test_ghashtable_enum_none_return(self):
++        self.assertEqual({1: GIMarshallingTests.ExtraEnum.VALUE1,
++                          2: GIMarshallingTests.ExtraEnum.VALUE2,
++                          3: GIMarshallingTests.ExtraEnum.VALUE3},
++                         GIMarshallingTests.ghashtable_enum_none_return())
++
+ 
+ class TestGValue(unittest.TestCase):
+ 
+-- 
+2.1.4
+
