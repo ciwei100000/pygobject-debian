@@ -1,9 +1,9 @@
-pygobject (3.21.92-1) UNRELEASED; urgency=medium
+pygobject (3.21.92-1) unstable; urgency=medium
 
   * New upstream development release.
   * Drop patches which have been merged upstream.
 
- -- Michael Biebl <biebl@debian.org>  Sun, 11 Sep 2016 14:48:16 +0200
+ -- Michael Biebl <biebl@debian.org>  Sun, 11 Sep 2016 15:02:27 +0200
 
 pygobject (3.21.91-2) unstable; urgency=medium
 
