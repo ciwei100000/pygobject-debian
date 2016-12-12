@@ -1,3 +1,9 @@
+pygobject (3.22.0-2) UNRELEASED; urgency=medium
+
+  * Temporarily disable pep8 during the build. Closes: #844924.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 12 Dec 2016 20:25:20 +0100
+
 pygobject (3.22.0-1) unstable; urgency=medium
 
   * New upstream release.
