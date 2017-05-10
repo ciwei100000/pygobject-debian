@@ -1,3 +1,42 @@
+pygobject (3.22.0-3) UNRELEASED; urgency=medium
+
+  * debian/watch: Find unstable versions.
+
+ -- Iain Lane <laney@debian.org>  Wed, 10 May 2017 16:24:10 +0100
+
+pygobject (3.22.0-2) unstable; urgency=medium
+
+  * Temporarily disable pep8 during the build. Closes: #844924.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 12 Dec 2016 20:37:34 +0100
+
+pygobject (3.22.0-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Mon, 19 Sep 2016 19:14:05 +0200
+
+pygobject (3.21.92-1) unstable; urgency=medium
+
+  * New upstream development release.
+  * Drop patches which have been merged upstream.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 11 Sep 2016 15:02:27 +0200
+
+pygobject (3.21.91-2) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * Fix wrong enum to hash conversion on 64-bit big endian. (Closes: #835413)
+
+  [ Michael Biebl ]
+  * Use dbus-run-session instead of dbus-launch to run the tests.
+    (Closes: #836049)
+  * Handle nullable filename parameters. This fixes a test suite error in
+    test_spawn_async_with_pipes triggered by an annotation change in glib.
+  * Drop override for dh_python2, no longer needed.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 04 Sep 2016 00:02:14 +0200
+
 pygobject (3.21.91-1) experimental; urgency=medium
 
   * New upstream beta release.

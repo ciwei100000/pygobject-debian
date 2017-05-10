@@ -76,10 +76,6 @@ override_dh_makeshlibs-arch:
 	dh_makeshlibs -ppython3-gi -V'python3-gi (>= 3.4)'
 	dh_makeshlibs -a --remaining-packages
 
-# without this, dh_python2 insists on 2.6 modules
-override_dh_python2:
-	dh_python2 --no-guessing-versions
-
 override_dh_clean:
 	rm -rf debian/install-*
 	find \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -delete; \
