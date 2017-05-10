@@ -1,9 +1,9 @@
-pygobject (3.24.1-1) UNRELEASED; urgency=medium
+pygobject (3.24.1-1) experimental; urgency=medium
 
   * New upstream release 3.24.1
   * debian/rules: Run the pep8 tests non-fatally
 
- -- Iain Lane <laney@debian.org>  Wed, 10 May 2017 16:24:10 +0100
+ -- Iain Lane <laney@debian.org>  Wed, 10 May 2017 18:04:04 +0100
 
 pygobject (3.22.0-2) unstable; urgency=medium
 
