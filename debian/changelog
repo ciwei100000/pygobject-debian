@@ -1,3 +1,10 @@
+pygobject (3.24.1-3) UNRELEASED; urgency=medium
+
+  * Revert the last upload (Build-Conflicts) - the offending package is
+    removed.
+
+ -- Iain Lane <laney@debian.org>  Thu, 11 May 2017 16:29:26 +0100
+
 pygobject (3.24.1-2) experimental; urgency=medium
 
   * debian/control{,.in}: Build-Conflict with
