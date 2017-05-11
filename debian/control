@@ -40,6 +40,8 @@ Build-Depends: debhelper (>= 9),
                gir1.2-gtk-3.0,
                dh-autoreconf,
                dh-python,
+# See #859912
+Build-Conflicts: open-infrastructure-locales-c.utf-8
 X-Python-Version: >= 2.7
 Standards-Version: 3.9.8
 Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/experimental/pygobject
