@@ -1,14 +1,14 @@
-pygobject (3.24.1-3) UNRELEASED; urgency=medium
-
-  [ Iain Lane ]
-  * Revert the last upload (Build-Conflicts) - the offending package is
-    removed.
+pygobject (3.24.1-3) unstable; urgency=medium
 
   [ Jeremy Bicha ]
   * Release to unstable (Closes: #870837)
   * Bump Standards-Version to 4.1.0
 
- -- Iain Lane <laney@debian.org>  Thu, 11 May 2017 16:29:26 +0100
+  [ Iain Lane ]
+  * Revert the last upload (Build-Conflicts) - the offending package is
+    removed.
+
+ -- Iain Lane <laney@debian.org>  Thu, 31 Aug 2017 00:29:26 +0100
 
 pygobject (3.24.1-2) experimental; urgency=medium
 
