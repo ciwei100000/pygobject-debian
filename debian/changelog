@@ -1,3 +1,27 @@
+pygobject (3.24.1-3) UNRELEASED; urgency=medium
+
+  * Revert the last upload (Build-Conflicts) - the offending package is
+    removed.
+
+ -- Iain Lane <laney@debian.org>  Thu, 11 May 2017 16:29:26 +0100
+
+pygobject (3.24.1-2) experimental; urgency=medium
+
+  * debian/control{,.in}: Build-Conflict with
+    open-infrastructure-locales-c.utf-8. This package gratutiously breaks our
+    testsuite because it provides 'locales' without actually providing all the
+    functionality of the locales package (specifically
+    /usr/share/i18n/charmaps in our case). See #859912.
+
+ -- Iain Lane <laney@debian.org>  Thu, 11 May 2017 13:47:21 +0100
+
+pygobject (3.24.1-1) experimental; urgency=medium
+
+  * New upstream release 3.24.1
+  * debian/rules: Run the pep8 tests non-fatally
+
+ -- Iain Lane <laney@debian.org>  Wed, 10 May 2017 18:04:04 +0100
+
 pygobject (3.22.0-2) unstable; urgency=medium
 
   * Temporarily disable pep8 during the build. Closes: #844924.

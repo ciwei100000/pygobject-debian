@@ -39,6 +39,8 @@ override_dh_auto_test:
 	        xvfb-run dh_auto_test --builddirectory=build-$$x-dbg || $(NON_FATAL); \
 	        while [ -e /tmp/.X99-lock ]; do echo "Waiting for xvfb to finish..."; sleep 0.5; done; \
 	done;
+	# run the pep8 test but don't fail on it
+	cd build-$(shell py3versions -v -d) && $(MAKE) check.quality || $(NON_FATAL)
 
 # we remove stuff that we do not need, and rename the *.so modules to what
 # Python expects for that flavor (http://www.python.org/dev/peps/pep-3149/)
