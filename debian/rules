@@ -32,6 +32,8 @@ override_dh_auto_build:
 # don't run the tests under fakeroot, otherwise they will try to connect to
 # root's session D-BUS
 override_dh_auto_test:
+ifeq (,$(filter nocheck, $(DEB_BUILD_OPTIONS)))
+ifeq ($(DEB_HOST_ARCH_OS), linux)
 	set -e; export HOME=$(CURDIR)/debian/tmp/home; mkdir -p $$HOME/.local/share; unset LD_PRELOAD; \
 	for x in $(PYVERS); do \
 	        xvfb-run dh_auto_test --builddirectory=build-$$x || $(TESTSUITE_FAIL_CMD); \
@@ -41,6 +43,8 @@ override_dh_auto_test:
 	done;
 	# run the pep8 test but don't fail on it
 	cd build-$(shell py3versions -v -d) && $(MAKE) check.quality || $(NON_FATAL)
+endif
+endif
 
 # we remove stuff that we do not need, and rename the *.so modules to what
 # Python expects for that flavor (http://www.python.org/dev/peps/pep-3149/)
