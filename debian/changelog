@@ -1,3 +1,9 @@
+pygobject (3.24.1-5) UNRELEASED; urgency=medium
+
+  * Mark some dependencies as only needed for build tests
+
+ -- Jeremy Bicha <jbicha@debian.org>  Sat, 04 Nov 2017 11:41:49 -0400
+
 pygobject (3.24.1-4) unstable; urgency=medium
 
   * Temporarily don't run build tests on non-Linux to unblock
