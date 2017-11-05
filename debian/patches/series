@@ -1,1 +1,2 @@
 01_cairo_region.patch
+closure-fix-unaligned-access.patch
