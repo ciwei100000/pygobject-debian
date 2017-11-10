@@ -34,7 +34,7 @@ Build-Depends: debhelper (>= 10),
                python-apt-dbg,
                python-cairo-dbg,
 X-Python-Version: >= 2.7
-Standards-Version: 4.1.0
+Standards-Version: 4.1.1
 Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/pygobject
 Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/pygobject/
 Homepage: https://wiki.gnome.org/Projects/PyGObject
@@ -93,7 +93,6 @@ Description: Python Cairo bindings for the GObject library
 
 Package: python-gi-dbg
 Section: debug
-Priority: extra
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python:Depends},
@@ -112,7 +111,6 @@ Description: Python bindings for the GObject library (debug extension)
 
 Package: python3-gi-dbg
 Section: debug
-Priority: extra
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python3:Depends},
@@ -165,7 +163,6 @@ Description: Python 3 Cairo bindings for the GObject library
 
 Package: python-gobject
 Section: oldlibs
-Priority: extra
 Architecture: all
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
@@ -179,7 +176,6 @@ Description: Python 2.x bindings for GObject - transitional package
 
 Package: python-gobject-dbg
 Section: oldlibs
-Priority: extra
 Architecture: all
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
@@ -193,7 +189,6 @@ Description: Python 2.x debugging modules for GObject - transitional package
 
 Package: python-gobject-dev
 Section: oldlibs
-Priority: extra
 Architecture: all
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},

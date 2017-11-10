@@ -2,6 +2,8 @@ pygobject (3.24.1-6) UNRELEASED; urgency=medium
 
   * Build-Depend on gir1.2-gtk-3.0 for build tests
   * Bump debhelper compat to 10
+  * Bump Standards-Version to 4.1.1
+    - Stop using obsolete Priority: extra
   * Add closure-fix-unaligned-access.patch:
     - Fix sparc64 build, thanks James Clarke! (Closes: #878317)
 
