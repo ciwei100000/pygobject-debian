@@ -17,7 +17,7 @@ endif
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
-	dh $@ --with python2,python3,autoreconf,gnome
+	dh $@ --with python2,python3,gnome
 
 override_dh_auto_configure:
 	set -e && for x in $(FLAVOURS); do \
