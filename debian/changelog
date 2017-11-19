@@ -1,4 +1,4 @@
-pygobject (3.26.1-1) UNRELEASED; urgency=medium
+pygobject (3.26.1-1) unstable; urgency=medium
 
   * New upstream release (Closes: #879638)
     - Bump pycairo requirement to 1.11.1
@@ -14,7 +14,7 @@ pygobject (3.26.1-1) UNRELEASED; urgency=medium
     to create a shlibs file and to trigger ldconfig.
 
 
- -- Laurent Bigonville <bigon@debian.org>  Sun, 19 Nov 2017 23:33:04 +0100
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 19 Nov 2017 23:40:08 +0100
 
 pygobject (3.24.1-6) unstable; urgency=medium
 
