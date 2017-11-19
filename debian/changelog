@@ -7,8 +7,14 @@ pygobject (3.26.1-1) UNRELEASED; urgency=medium
   * debian/control.in:
     - Drop python-gobject-dev and python-gobject-dbg transitional packages,
       nothing depends against it anymore (Closes: #878781)
+  * debian/rules: Run the test with locale C.UTF-8
+  * debian/*.lintian-overrides: Drop unused lintian overrides
+  * debian/rules: Do not call dh_makeshlibs during build, for some reasons the
+    python bindings are build with a SONAME set and this causes dh_makeshlibs
+    to create a shlibs file and to trigger ldconfig.
 
- -- Laurent Bigonville <bigon@debian.org>  Sun, 19 Nov 2017 17:00:19 +0100
+
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 19 Nov 2017 23:33:04 +0100
 
 pygobject (3.24.1-6) unstable; urgency=medium
 
