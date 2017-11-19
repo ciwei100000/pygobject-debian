@@ -4,8 +4,11 @@ pygobject (3.26.1-1) UNRELEASED; urgency=medium
     - Bump pycairo requirement to 1.11.1
     - Switch build-dep from gnome-common to autoconf-archive (Closes: #829934)
     - Drop all patches, they have been merged upstream
+  * debian/control.in:
+    - Drop python-gobject-dev and python-gobject-dbg transitional packages,
+      nothing depends against it anymore (Closes: #878781)
 
- -- Laurent Bigonville <bigon@debian.org>  Sun, 19 Nov 2017 15:57:33 +0100
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 19 Nov 2017 17:00:19 +0100
 
 pygobject (3.24.1-6) unstable; urgency=medium
 
