@@ -1,3 +1,12 @@
+pygobject (3.26.1-1) UNRELEASED; urgency=medium
+
+  * New upstream release (Closes: #879638)
+    - Bump pycairo requirement to 1.11.1
+    - Switch build-dep from gnome-common to autoconf-archive (Closes: #829934)
+    - Drop all patches, they have been merged upstream
+
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 19 Nov 2017 15:57:33 +0100
+
 pygobject (3.24.1-6) unstable; urgency=medium
 
   * Build-Depend on gir1.2-gtk-3.0 for build tests
