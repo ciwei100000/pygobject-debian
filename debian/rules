@@ -84,5 +84,5 @@ override_dh_makeshlibs:
 
 override_dh_clean:
 	rm -rf debian/install-*
-	find \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -delete; \
+	find \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -print -delete; \
 	dh_clean
