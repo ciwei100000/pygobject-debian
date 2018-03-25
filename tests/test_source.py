@@ -1,14 +1,15 @@
 # -*- Mode: Python -*-
 
+from __future__ import absolute_import
+
 import sys
-import gc
 import unittest
 import warnings
 
 from gi.repository import GLib
 from gi import PyGIDeprecationWarning
 
-from helper import capture_glib_warnings
+from .helper import capture_glib_warnings
 
 
 class Idle(GLib.Idle):
@@ -127,7 +128,6 @@ class TestSource(unittest.TestCase):
             return s
 
         s = f()
-        gc.collect()
         self.assertTrue(s.is_destroyed())
 
     def test_remove(self):
@@ -209,9 +209,8 @@ class TestSource(unittest.TestCase):
                 self.finalized = True
 
         source = S()
-        self.assertEqual(source.ref_count, 1)
-        source.attach()
-        self.assertEqual(source.ref_count, 2)
+        id = source.attach()
+        print('source id:', id)
         self.assertFalse(self.finalized)
         self.assertFalse(source.is_destroyed())
 
@@ -219,7 +218,6 @@ class TestSource(unittest.TestCase):
             pass
 
         source.destroy()
-        self.assertEqual(source.ref_count, 1)
         self.assertTrue(self.dispatched)
         self.assertFalse(self.finalized)
         self.assertTrue(source.is_destroyed())
@@ -425,7 +423,3 @@ class TestUserData(unittest.TestCase):
         GLib.idle_add(self.cb_with_data, data)
         self.loop.run()
         self.assertTrue(data['called'])
-
-
-if __name__ == '__main__':
-    unittest.main()

@@ -141,8 +141,10 @@ libgimarshallingtests_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 @ENABLE_CAIRO_FALSE@	$(am__DEPENDENCIES_1)
 @ENABLE_CAIRO_TRUE@libregress_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 @ENABLE_CAIRO_TRUE@	$(am__DEPENDENCIES_1)
+dist_libregress_la_OBJECTS = libregress_la-regressextra.lo
 nodist_libregress_la_OBJECTS = libregress_la-regress.lo
-libregress_la_OBJECTS = $(nodist_libregress_la_OBJECTS)
+libregress_la_OBJECTS = $(dist_libregress_la_OBJECTS) \
+	$(nodist_libregress_la_OBJECTS)
 libregress_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libregress_la_CFLAGS) \
 	$(CFLAGS) $(libregress_la_LDFLAGS) $(LDFLAGS) -o $@
@@ -193,9 +195,10 @@ am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(dist_libgimarshallingtests_la_SOURCES) \
 	$(nodist_libgimarshallingtests_la_SOURCES) \
-	$(nodist_libregress_la_SOURCES) $(testhelper_la_SOURCES)
-DIST_SOURCES = $(dist_libgimarshallingtests_la_SOURCES) \
+	$(dist_libregress_la_SOURCES) $(nodist_libregress_la_SOURCES) \
 	$(testhelper_la_SOURCES)
+DIST_SOURCES = $(dist_libgimarshallingtests_la_SOURCES) \
+	$(dist_libregress_la_SOURCES) $(testhelper_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -288,7 +291,6 @@ INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBFFI_PC = @LIBFFI_PC@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -430,9 +432,10 @@ libgimarshallingtests_la_CFLAGS = $(GLIB_CFLAGS)
 libgimarshallingtests_la_LDFLAGS = $(common_ldflags)
 libgimarshallingtests_la_LIBADD = $(GLIB_LIBS)
 nodist_libregress_la_SOURCES = $(GI_DATADIR)/tests/regress.c $(GI_DATADIR)/tests/regress.h
-@ENABLE_CAIRO_FALSE@libregress_la_CFLAGS = $(GIO_CFLAGS) -D_GI_DISABLE_CAIRO
+dist_libregress_la_SOURCES = $(srcdir)/regressextra.c $(srcdir)/regressextra.h
+@ENABLE_CAIRO_FALSE@libregress_la_CFLAGS = $(GIO_CFLAGS) -D_GI_DISABLE_CAIRO -I$(GI_DATADIR)/tests
 # We don't control the source so don't pass WARN_CFLAGS etc
-@ENABLE_CAIRO_TRUE@libregress_la_CFLAGS = $(GIO_CFLAGS) $(CAIRO_CFLAGS)
+@ENABLE_CAIRO_TRUE@libregress_la_CFLAGS = $(GIO_CFLAGS) $(CAIRO_CFLAGS) -I$(GI_DATADIR)/tests
 @ENABLE_CAIRO_FALSE@libregress_la_LIBADD = $(GIO_LIBS) $(CAIRO_LIBS)
 @ENABLE_CAIRO_TRUE@libregress_la_LIBADD = $(GIO_LIBS) $(CAIRO_LIBS)
 libregress_la_LDFLAGS = $(common_ldflags)
@@ -459,7 +462,6 @@ EXTRA_DIST = \
 	test-floating.h \
 	test-thread.h \
 	test-unknown.h \
-	te_ST@nouppera \
 	org.gnome.test.gschema.xml \
 	test_cairo.py \
 	test_error.py \
@@ -475,6 +477,7 @@ EXTRA_DIST = \
 	test_object_marshaling.py \
 	test_option.py \
 	test_properties.py \
+	test_pygtkcompat.py \
 	test_signal.py \
 	test_source.py \
 	test_subprocess.py \
@@ -493,7 +496,10 @@ EXTRA_DIST = \
 	test_docstring.py \
 	test_repository.py \
 	test_resulttuple.py \
-	compat_test_pygtk.py \
+	test_unknown.py \
+	test_ossig.py \
+	conftest.py \
+	__init__.py \
 	gi/__init__.py \
 	gi/overrides/__init__.py \
 	gi/overrides/Regress.py \
@@ -571,6 +577,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgimarshallingtests_la-gimarshallingtests.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgimarshallingtests_la-gimarshallingtestsextra.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libregress_la-regress.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libregress_la-regressextra.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testhelper_la-test-floating.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testhelper_la-test-thread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testhelper_la-test-unknown.Plo@am__quote@
@@ -610,6 +617,13 @@ libgimarshallingtests_la-gimarshallingtests.lo: $(GI_DATADIR)/tests/gimarshallin
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(GI_DATADIR)/tests/gimarshallingtests.c' object='libgimarshallingtests_la-gimarshallingtests.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgimarshallingtests_la_CFLAGS) $(CFLAGS) -c -o libgimarshallingtests_la-gimarshallingtests.lo `test -f '$(GI_DATADIR)/tests/gimarshallingtests.c' || echo '$(srcdir)/'`$(GI_DATADIR)/tests/gimarshallingtests.c
+
+libregress_la-regressextra.lo: $(srcdir)/regressextra.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libregress_la_CFLAGS) $(CFLAGS) -MT libregress_la-regressextra.lo -MD -MP -MF $(DEPDIR)/libregress_la-regressextra.Tpo -c -o libregress_la-regressextra.lo `test -f '$(srcdir)/regressextra.c' || echo '$(srcdir)/'`$(srcdir)/regressextra.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libregress_la-regressextra.Tpo $(DEPDIR)/libregress_la-regressextra.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/regressextra.c' object='libregress_la-regressextra.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libregress_la_CFLAGS) $(CFLAGS) -c -o libregress_la-regressextra.lo `test -f '$(srcdir)/regressextra.c' || echo '$(srcdir)/'`$(srcdir)/regressextra.c
 
 libregress_la-regress.lo: $(GI_DATADIR)/tests/regress.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libregress_la_CFLAGS) $(CFLAGS) -MT libregress_la-regress.lo -MD -MP -MF $(DEPDIR)/libregress_la-regress.Tpo -c -o libregress_la-regress.lo `test -f '$(GI_DATADIR)/tests/regress.c' || echo '$(srcdir)/'`$(GI_DATADIR)/tests/regress.c
@@ -882,7 +896,8 @@ Regress-1.0.gir: libregress.la Makefile
 	--library=libregress.la \
 	--libtool="$(top_builddir)/libtool" \
 	--output $@ \
-	$(nodist_libregress_la_SOURCES)
+	$(nodist_libregress_la_SOURCES) \
+	$(dist_libregress_la_SOURCES)
 Regress-1.0.typelib: Regress-1.0.gir Makefile
 	$(AM_V_GEN) $(INTROSPECTION_COMPILER) $< -o $@
 
@@ -893,18 +908,19 @@ $(target_libraries):
 	test -L $@ || $(LN_S) .libs/$@ $@
 
 clean-local:
-	rm -f $(target_libraries) file.txt~
+	rm -f $(target_libraries) file.txt~;
+	@if [ "$(abs_builddir)" != "$(abs_srcdir)" ]; then \
+		rm -f __init__.py; \
+	fi;
 
-# if dbus-run-session is available, use it, otherwise disable DBUS
-check-local:
-	DBUS_ENV=$$(dbus-run-session true && echo "dbus-run-session --" || echo "DBUS_SESSION_BUS_ADDRESS=.") $(MAKE) check.real
+# for non-srcdir builds
+$(abs_builddir)/__init__.py: $(abs_srcdir)/__init__.py
+	echo "__path__ = __import__('pkgutil').extend_path(__path__, __name__)" > $@
 
 # pygtkcompat tests need to be run in a separate process as they
 # clobber global name space
-check.real: $(target_libraries) $(test_typelibs) gschemas.compiled
-	$(RUN_TESTS_ENV_VARS) $(EXTRA_ENV) $(DBUS_ENV) $(EXEC_NAME) $(PYTHON) -Wd $(srcdir)/runtests.py; rc=$$?; \
-	[ "$$rc" -ne 0 ] || [ -n "$$TEST_NAMES" ] || { TEST_NAMES=compat_test_pygtk $(RUN_TESTS_ENV_VARS)  $(EXTRA_ENV) $(DBUS_ENV) $(EXEC_NAME) $(PYTHON) -Wd -Werror::PendingDeprecationWarning -Werror::DeprecationWarning -Werror::RuntimeWarning $(srcdir)/runtests.py; rc=$$?; }; \
-	exit $$rc
+check-local: $(target_libraries) $(test_typelibs) gschemas.compiled $(abs_builddir)/__init__.py
+	$(RUN_TESTS_ENV_VARS) $(EXTRA_ENV) $(EXEC_NAME) $(PYTHON) $(srcdir)/runtests.py;
 
 check.gdb:
 	EXEC_NAME="gdb --args" $(MAKE) check

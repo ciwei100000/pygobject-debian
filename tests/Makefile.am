@@ -53,12 +53,13 @@ GIMarshallingTests-1.0.typelib: GIMarshallingTests-1.0.gir Makefile
 test_ltlibraries += libregress.la
 test_typelibs += Regress-1.0.typelib
 nodist_libregress_la_SOURCES = $(GI_DATADIR)/tests/regress.c $(GI_DATADIR)/tests/regress.h
+dist_libregress_la_SOURCES = $(srcdir)/regressextra.c $(srcdir)/regressextra.h
 # We don't control the source so don't pass WARN_CFLAGS etc
 if ENABLE_CAIRO
-libregress_la_CFLAGS = $(GIO_CFLAGS) $(CAIRO_CFLAGS)
+libregress_la_CFLAGS = $(GIO_CFLAGS) $(CAIRO_CFLAGS) -I$(GI_DATADIR)/tests
 libregress_la_LIBADD = $(GIO_LIBS) $(CAIRO_LIBS)
 else
-libregress_la_CFLAGS = $(GIO_CFLAGS) -D_GI_DISABLE_CAIRO
+libregress_la_CFLAGS = $(GIO_CFLAGS) -D_GI_DISABLE_CAIRO -I$(GI_DATADIR)/tests
 libregress_la_LIBADD = $(GIO_LIBS) $(CAIRO_LIBS)
 endif
 libregress_la_LDFLAGS = $(common_ldflags)
@@ -71,7 +72,8 @@ Regress-1.0.gir: libregress.la Makefile
 	--library=libregress.la \
 	--libtool="$(top_builddir)/libtool" \
 	--output $@ \
-	$(nodist_libregress_la_SOURCES)
+	$(nodist_libregress_la_SOURCES) \
+	$(dist_libregress_la_SOURCES)
 Regress-1.0.typelib: Regress-1.0.gir Makefile
 	$(AM_V_GEN) $(INTROSPECTION_COMPILER) $< -o $@
 
@@ -110,7 +112,6 @@ EXTRA_DIST = \
 	test-floating.h \
 	test-thread.h \
 	test-unknown.h \
-	te_ST@nouppera \
 	org.gnome.test.gschema.xml \
 	test_cairo.py \
 	test_error.py \
@@ -126,6 +127,7 @@ EXTRA_DIST = \
 	test_object_marshaling.py \
 	test_option.py \
 	test_properties.py \
+	test_pygtkcompat.py \
 	test_signal.py \
 	test_source.py \
 	test_subprocess.py \
@@ -144,14 +146,20 @@ EXTRA_DIST = \
 	test_docstring.py \
 	test_repository.py \
 	test_resulttuple.py \
-	compat_test_pygtk.py \
+	test_unknown.py \
+	test_ossig.py \
+	conftest.py \
+	__init__.py \
 	gi/__init__.py \
 	gi/overrides/__init__.py \
 	gi/overrides/Regress.py \
 	$(NULL)
 
 clean-local:
-	rm -f $(target_libraries) file.txt~
+	rm -f $(target_libraries) file.txt~;
+	@if [ "$(abs_builddir)" != "$(abs_srcdir)" ]; then \
+		rm -f __init__.py; \
+	fi;
 
 # Unsetting MSYSTEM prevents msys2 from changing os.path.sep to "/"
 RUN_TESTS_ENV_VARS= \
@@ -161,16 +169,14 @@ RUN_TESTS_ENV_VARS= \
 	MSYSTEM= \
 	TESTS_BUILDDIR=$(builddir)
 
-# if dbus-run-session is available, use it, otherwise disable DBUS
-check-local:
-	DBUS_ENV=$$(dbus-run-session true && echo "dbus-run-session --" || echo "DBUS_SESSION_BUS_ADDRESS=.") $(MAKE) check.real
+# for non-srcdir builds
+$(abs_builddir)/__init__.py: $(abs_srcdir)/__init__.py
+	echo "__path__ = __import__('pkgutil').extend_path(__path__, __name__)" > $@
 
 # pygtkcompat tests need to be run in a separate process as they
 # clobber global name space
-check.real: $(target_libraries) $(test_typelibs) gschemas.compiled
-	$(RUN_TESTS_ENV_VARS) $(EXTRA_ENV) $(DBUS_ENV) $(EXEC_NAME) $(PYTHON) -Wd $(srcdir)/runtests.py; rc=$$?; \
-	[ "$$rc" -ne 0 ] || [ -n "$$TEST_NAMES" ] || { TEST_NAMES=compat_test_pygtk $(RUN_TESTS_ENV_VARS)  $(EXTRA_ENV) $(DBUS_ENV) $(EXEC_NAME) $(PYTHON) -Wd -Werror::PendingDeprecationWarning -Werror::DeprecationWarning -Werror::RuntimeWarning $(srcdir)/runtests.py; rc=$$?; }; \
-	exit $$rc
+check-local: $(target_libraries) $(test_typelibs) gschemas.compiled $(abs_builddir)/__init__.py
+	$(RUN_TESTS_ENV_VARS) $(EXTRA_ENV) $(EXEC_NAME) $(PYTHON) $(srcdir)/runtests.py;
 
 check.gdb:
 	EXEC_NAME="gdb --args" $(MAKE) check

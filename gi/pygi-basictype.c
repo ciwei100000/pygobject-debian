@@ -198,7 +198,7 @@ static gboolean
 _pygi_marshal_from_py_gtype (PyObject          *py_arg,
                              GIArgument        *arg)
 {
-    long type_ = pyg_type_from_object (py_arg);
+    GType type_ = pyg_type_from_object (py_arg);
 
     if (type_ == 0) {
         PyErr_Format (PyExc_TypeError, "Must be gobject.GType, not %s",
@@ -206,7 +206,7 @@ _pygi_marshal_from_py_gtype (PyObject          *py_arg,
         return FALSE;
     }
 
-    arg->v_long = type_;
+    arg->v_size = type_;
     return TRUE;
 }
 
@@ -684,7 +684,8 @@ static PyObject *
 _pygi_marshal_to_py_void (PyGIInvokeState   *state,
                           PyGICallableCache *callable_cache,
                           PyGIArgCache      *arg_cache,
-                          GIArgument        *arg)
+                          GIArgument        *arg,
+                          gpointer          *cleanup_data)
 {
     if (arg_cache->is_pointer) {
         return PyLong_FromVoidPtr (arg->v_pointer);
@@ -807,7 +808,7 @@ _pygi_marshal_to_py_basic_type (GIArgument  *arg,
             return PyFloat_FromDouble (arg->v_double);
 
         case GI_TYPE_TAG_GTYPE:
-            return pyg_type_wrapper_new ( (GType) arg->v_long);
+            return pyg_type_wrapper_new ( (GType) arg->v_size);
 
         case GI_TYPE_TAG_UNICHAR:
             return _pygi_marshal_to_py_unichar (arg);
@@ -828,7 +829,8 @@ PyObject *
 _pygi_marshal_to_py_basic_type_cache_adapter (PyGIInvokeState   *state,
                                               PyGICallableCache *callable_cache,
                                               PyGIArgCache      *arg_cache,
-                                              GIArgument        *arg)
+                                              GIArgument        *arg,
+                                              gpointer          *cleanup_data)
 {
     return _pygi_marshal_to_py_basic_type (arg,
                                             arg_cache->type_tag,
@@ -838,7 +840,7 @@ _pygi_marshal_to_py_basic_type_cache_adapter (PyGIInvokeState   *state,
 static void
 _pygi_marshal_cleanup_to_py_utf8 (PyGIInvokeState *state,
                                   PyGIArgCache    *arg_cache,
-                                  PyObject        *dummy,
+                                  gpointer         cleanup_data,
                                   gpointer         data,
                                   gboolean         was_processed)
 {

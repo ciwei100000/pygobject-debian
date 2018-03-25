@@ -2,11 +2,14 @@
 # coding=utf-8
 # vim: tabstop=4 shiftwidth=4 expandtab
 
+from __future__ import absolute_import
+
 import unittest
 import traceback
 import ctypes
 import warnings
 import sys
+import os
 
 from gi.repository import Regress as Everything
 from gi.repository import GObject
@@ -19,7 +22,8 @@ try:
 except:
     Gtk = None
 
-from helper import capture_exceptions
+from .compathelper import PY3
+from .helper import capture_exceptions
 
 
 if sys.version_info < (3, 0):
@@ -246,7 +250,11 @@ class TestEverything(unittest.TestCase):
         self.assertEqual(Everything.test_utf8_inout(const_str), noconst_str)
 
     def test_filename_return(self):
-        self.assertEqual(Everything.test_filename_return(), ['åäö', '/etc/fstab'])
+        if PY3 and os.name != "nt":
+            result = [os.fsdecode(b'\xc3\xa5\xc3\xa4\xc3\xb6'), '/etc/fstab']
+        else:
+            result = ['åäö', '/etc/fstab']
+        self.assertEqual(Everything.test_filename_return(), result)
 
     def test_int_out_utf8(self):
         # returns g_utf8_strlen() in out argument
@@ -1122,6 +1130,57 @@ class TestBoxed(unittest.TestCase):
         copy = boxed.copy()
         self.assertEqual(boxed, copy)
         self.assertNotEqual(id(boxed), id(copy))
+
+    def test_boxed_c_wrapper(self):
+        wrapper = Everything.TestBoxedCWrapper()
+        obj = wrapper.get()
+
+        # TestBoxedC uses refcounting, so we know that
+        # it should be 2 at this point:
+        # - one owned by @wrapper
+        # - another owned by @obj
+        self.assertEqual(obj.refcount, 2)
+        del wrapper
+        self.assertEqual(obj.refcount, 1)
+
+    def test_boxed_c_wrapper_copy(self):
+        wrapper = Everything.TestBoxedCWrapper()
+        wrapper_copy = wrapper.copy()
+        obj = wrapper.get()
+
+        # TestBoxedC uses refcounting, so we know that
+        # it should be 3 at this point:
+        # - one owned by @wrapper
+        # - one owned by @wrapper_copy
+        # - another owned by @obj
+        self.assertEqual(obj.refcount, 3)
+        del wrapper
+        self.assertEqual(obj.refcount, 2)
+        del wrapper_copy
+        self.assertEqual(obj.refcount, 1)
+        del obj
+
+    def test_array_fixed_boxed_none_out(self):
+        arr = Everything.test_array_fixed_boxed_none_out()
+        assert len(arr) == 2
+        assert arr[0].refcount == 2
+        assert arr[1].refcount == 2
+
+    def test_glist_boxed_none_return(self):
+        assert len(Everything.test_glist_boxed_none_return(0)) == 0
+
+        list_ = Everything.test_glist_boxed_none_return(2)
+        assert len(list_) == 2
+        assert list_[0].refcount == 2
+        assert list_[1].refcount == 2
+
+    def test_glist_boxed_full_return(self):
+        assert len(Everything.test_glist_boxed_full_return(0)) == 0
+
+        list_ = Everything.test_glist_boxed_full_return(2)
+        assert len(list_) == 2
+        assert list_[0].refcount == 1
+        assert list_[1].refcount == 1
 
 
 class TestTortureProfile(unittest.TestCase):

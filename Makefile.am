@@ -1,10 +1,7 @@
-# Limit PyFlakes and PEP8 to these directories.
-pycheck_dirs = examples gi tests pygtkcompat
-
 # Part of the gi subdirectory is handled with non-recursive make to avoid
 # py-compile getting confused between gi/types.py and Python's standard
 # types module.
-SUBDIRS = . $(pycheck_dirs)
+SUBDIRS = . examples gi tests pygtkcompat
 
 PLATFORM_VERSION = 3.0
 
@@ -17,13 +14,16 @@ EXTRA_DIST = \
 	pygobject-$(PLATFORM_VERSION).pc.in \
 	PKG-INFO \
 	PKG-INFO.in \
-	pygi-convert.sh \
+	tools/pygi-convert.sh \
 	m4/python.m4 \
 	m4/introspection.m4 \
-	setup.py
+	setup.py \
+	setup.cfg \
+	MANIFEST.in \
+	README.rst \
+	docs
 
 MAINTAINERCLEANFILES = \
-	$(srcdir)/INSTALL \
 	$(srcdir)/aclocal.m4 \
 	$(srcdir)/autoscan.log \
 	$(srcdir)/compile \
@@ -63,7 +63,8 @@ nobase_pyexec_PYTHON = \
 	gi/_propertyhelper.py \
 	gi/_signalhelper.py \
 	gi/_option.py \
-	gi/_error.py
+	gi/_error.py \
+	gi/_ossighelper.py
 
 # if we build in a separate tree, we need to symlink the *.py files from the
 # source tree; Python does not accept the extensions and modules in different
@@ -95,7 +96,7 @@ uninstall-local:
 	rm -f $(DESTDIR)$(pyexecdir)/$(EGG_NAME).egg-info
 
 release-news:
-	printf "%-8s%s\n" "$(VERSION)" "`LC_TIME=C date '+%d-%b-%Y'`" > NEWS.tmp
+	printf "%s - %s\n\n" "$(VERSION)" "`LC_TIME=C date -I`" > NEWS.tmp
 
 	@echo -e "\n\n\nFor blogging, you can copy&paste this HTML formatted news:"
 	@echo "-------------- 8< -------------"
@@ -104,7 +105,7 @@ release-news:
 	for commit in `git rev-list $$last..`; do \
 	   data=`git log --format="format:%s%n%an%n%b" $$commit^..$$commit`; \
 	   echo "$$data" | perl -e '$$subj = <>; chomp $$subj; $$author = <>; chomp $$author; while (<>) { if (/bugzilla.gnome.org.*id=([0-9]+)/) { $$bug = $$1 }};  print "  <li>$$subj ($$author)"; if ($$bug) { print " (<a href=\"https://bugzilla.gnome.org/show_bug.cgi?id=$$bug\">#$$bug</a>)"; }; print "</li>\n"'; \
-	   echo "$$data" | perl -e '$$subj = <>; chomp $$subj; $$author = <>; chomp $$author; while (<>) { if (/bugzilla.gnome.org.*id=([0-9]+)/) { $$bug = $$1 }};  print "        - $$subj ($$author)"; if ($$bug) { print " (#$$bug)"; }; print "\n"' >> NEWS.tmp; \
+	   echo "$$data" | perl -e '$$subj = <>; chomp $$subj; $$author = <>; chomp $$author; while (<>) { if (/bugzilla.gnome.org.*id=([0-9]+)/) { $$bug = $$1 }};  print "* $$subj ($$author)"; if ($$bug) { print " (#$$bug)"; }; print "\n"' >> NEWS.tmp; \
         done
 	@echo "</ul>"
 	@echo "-------------- 8< -------------"
@@ -140,20 +141,10 @@ dist-hook: $(BUILT_EXTRA_DIST)
 	for f in $$files; do \
 	  if test -f $$f; then d=.; else d=$(srcdir); fi; \
 	  rm -f $(distdir)/$$f && cp $$d/$$f $(distdir) || exit 1; done
-
-# pycheck_subdirs = 
+	rm -rf "$(distdir)/docs/_build"
 
 check.quality:
-	@echo "  CHECK  Pyflakes" $(pycheck_dirs)
-	@if type pyflakes >/dev/null 2>&1; then \
-		(cd $(abs_top_srcdir) && PYFLAKES_BUILTINS="basestring,long,unicode" pyflakes $(pycheck_dirs) ); \
-	else echo "skipped, pyflakes not installed"; \
-	fi
-	@echo "  CHECK  PEP8";
-	@if type pep8 >/dev/null 2>&1; then \
-		(cd $(abs_top_srcdir) && pep8 --ignore=E501,E123,E124,E402,E731,E722 --repeat --show-source $(pycheck_dirs) ); \
-	else echo "skipped, pep8 not installed"; \
-	fi
+	(cd $(abs_top_srcdir) && $(PYTHON) -m flake8);
 
 check.gdb:
 	cd tests && $(MAKE) check.gdb

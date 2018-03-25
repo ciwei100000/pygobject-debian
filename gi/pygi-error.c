@@ -275,7 +275,8 @@ static PyObject *
 _pygi_marshal_to_py_gerror (PyGIInvokeState   *state,
                             PyGICallableCache *callable_cache,
                             PyGIArgCache      *arg_cache,
-                            GIArgument        *arg)
+                            GIArgument        *arg,
+                            gpointer          *cleanup_data)
 {
     GError *error = arg->v_pointer;
     PyObject *py_obj = NULL;
@@ -375,7 +376,7 @@ pygerror_to_gvalue (GValue *value, PyObject *pyerror)
 void
 pygi_error_register_types (PyObject *module)
 {
-    PyObject *error_module = PyImport_ImportModule ("gi._error");
+    PyObject *error_module = PYGLIB_PyImport_ImportModule ("gi._error");
     if (!error_module) {
         return;
     }

@@ -3,7 +3,6 @@ exec_prefix=@exec_prefix@
 includedir=@includedir@
 datarootdir=@datarootdir@
 datadir=@datadir@
-libdir=@libdir@
 
 # you can use the --variable=pygobjectincludedir argument to
 # pkg-config to get this value. You might want to use this to
@@ -13,7 +12,7 @@ pygobjectincludedir=${includedir}/pygobject-3.0
 Name: PyGObject
 Description: Python bindings for GObject
 Requires: gobject-2.0
-Requires.private: @LIBFFI_PC@
+Requires.private: libffi
 Version: @VERSION@
 Cflags: -I${pygobjectincludedir}
 

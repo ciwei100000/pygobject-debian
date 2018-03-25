@@ -19,11 +19,11 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
 # USA
 
-import signal
 import warnings
 import sys
 import socket
 
+from .._ossighelper import wakeup_on_signal, register_sigint_fallback
 from ..module import get_introspection_module
 from .._gi import (variant_type_from_string, source_new,
                    source_set_callback, io_channel_read)
@@ -102,127 +102,55 @@ class _VariantCreator(object):
         'v': GLib.Variant.new_variant,
     }
 
-    def _create(self, format, args):
-        """Create a GVariant object from given format and argument list.
+    def _create(self, format, value):
+        """Create a GVariant object from given format and a value that matches
+        the format.
 
         This method recursively calls itself for complex structures (arrays,
         dictionaries, boxed).
 
-        Return a tuple (variant, rest_format, rest_args) with the generated
-        GVariant, the remainder of the format string, and the remainder of the
-        arguments.
+        Returns the generated GVariant.
 
-        If args is None, then this won't actually consume any arguments, and
-        just parse the format string and generate empty GVariant structures.
-        This is required for creating empty dictionaries or arrays.
+        If value is None it will generate an empty GVariant container type.
         """
-        # leaves (simple types)
-        constructor = self._LEAF_CONSTRUCTORS.get(format[0])
-        if constructor:
-            if args is not None:
-                if not args:
-                    raise TypeError('not enough arguments for GVariant format string')
-                v = constructor(args[0])
-                return (v, format[1:], args[1:])
-            else:
-                return (None, format[1:], None)
+        gvtype = GLib.VariantType(format)
+        if format in self._LEAF_CONSTRUCTORS:
+            return self._LEAF_CONSTRUCTORS[format](value)
 
-        if format[0] == '(':
-            return self._create_tuple(format, args)
+        # Since we discarded all leaf types, this must be a container
+        builder = GLib.VariantBuilder.new(gvtype)
+        if value is None:
+            return builder.end()
 
-        if format.startswith('a{'):
-            return self._create_dict(format, args)
+        if gvtype.is_maybe():
+            builder.add_value(self._create(gvtype.element().dup_string(), value))
+            return builder.end()
 
-        if format[0] == 'a':
-            return self._create_array(format, args)
+        try:
+            iter(value)
+        except TypeError:
+            raise TypeError("Could not create array, tuple or dictionary entry from non iterable value %s %s" %
+                            (format, value))
 
-        raise NotImplementedError('cannot handle GVariant type ' + format)
+        if gvtype.is_tuple() and gvtype.n_items() != len(value):
+            raise TypeError("Tuple mismatches value's number of elements %s %s" % (format, value))
+        if gvtype.is_dict_entry() and len(value) != 2:
+            raise TypeError("Dictionary entries must have two elements %s %s" % (format, value))
 
-    def _create_tuple(self, format, args):
-        """Handle the case where the outermost type of format is a tuple."""
-
-        format = format[1:]  # eat the '('
-        if args is None:
-            # empty value: we need to call _create() to parse the subtype
-            rest_format = format
-            while rest_format:
-                if rest_format.startswith(')'):
-                    break
-                rest_format = self._create(rest_format, None)[1]
-            else:
-                raise TypeError('tuple type string not closed with )')
-
-            rest_format = rest_format[1:]  # eat the )
-            return (None, rest_format, None)
+        if gvtype.is_array():
+            element_type = gvtype.element().dup_string()
+            if isinstance(value, dict):
+                value = value.items()
+            for i in value:
+                builder.add_value(self._create(element_type, i))
         else:
-            if not args or not isinstance(args[0], tuple):
-                raise TypeError('expected tuple argument')
+            remainer_format = format[1:]
+            for i in value:
+                dup = variant_type_from_string(remainer_format).dup_string()
+                builder.add_value(self._create(dup, i))
+                remainer_format = remainer_format[len(dup):]
 
-            builder = GLib.VariantBuilder.new(variant_type_from_string('r'))
-            for i in range(len(args[0])):
-                if format.startswith(')'):
-                    raise TypeError('too many arguments for tuple signature')
-
-                (v, format, _) = self._create(format, args[0][i:])
-                builder.add_value(v)
-            args = args[1:]
-            if not format.startswith(')'):
-                raise TypeError('tuple type string not closed with )')
-
-            rest_format = format[1:]  # eat the )
-            return (builder.end(), rest_format, args)
-
-    def _create_dict(self, format, args):
-        """Handle the case where the outermost type of format is a dict."""
-
-        builder = None
-        if args is None or not args[0]:
-            # empty value: we need to call _create() to parse the subtype,
-            # and specify the element type precisely
-            rest_format = self._create(format[2:], None)[1]
-            rest_format = self._create(rest_format, None)[1]
-            if not rest_format.startswith('}'):
-                raise TypeError('dictionary type string not closed with }')
-            rest_format = rest_format[1:]  # eat the }
-            element_type = format[:len(format) - len(rest_format)]
-            builder = GLib.VariantBuilder.new(variant_type_from_string(element_type))
-        else:
-            builder = GLib.VariantBuilder.new(variant_type_from_string('a{?*}'))
-            for k, v in args[0].items():
-                (key_v, rest_format, _) = self._create(format[2:], [k])
-                (val_v, rest_format, _) = self._create(rest_format, [v])
-
-                if not rest_format.startswith('}'):
-                    raise TypeError('dictionary type string not closed with }')
-                rest_format = rest_format[1:]  # eat the }
-
-                entry = GLib.VariantBuilder.new(variant_type_from_string('{?*}'))
-                entry.add_value(key_v)
-                entry.add_value(val_v)
-                builder.add_value(entry.end())
-
-        if args is not None:
-            args = args[1:]
-        return (builder.end(), rest_format, args)
-
-    def _create_array(self, format, args):
-        """Handle the case where the outermost type of format is an array."""
-
-        builder = None
-        if args is None or not args[0]:
-            # empty value: we need to call _create() to parse the subtype,
-            # and specify the element type precisely
-            rest_format = self._create(format[1:], None)[1]
-            element_type = format[:len(format) - len(rest_format)]
-            builder = GLib.VariantBuilder.new(variant_type_from_string(element_type))
-        else:
-            builder = GLib.VariantBuilder.new(variant_type_from_string('a*'))
-            for i in range(len(args[0])):
-                (v, rest_format, _) = self._create(format[1:], args[0][i:])
-                builder.add_value(v)
-        if args is not None:
-            args = args[1:]
-        return (builder.end(), rest_format, args)
+        return builder.end()
 
 
 class Variant(GLib.Variant):
@@ -238,10 +166,10 @@ class Variant(GLib.Variant):
           GLib.Variant('(asa{sv})', ([], {'foo': GLib.Variant('b', True),
                                           'bar': GLib.Variant('i', 2)}))
         """
+        if not GLib.VariantType.string_is_valid(format_string):
+            raise TypeError("Invalid GVariant format string '%s'", format_string)
         creator = _VariantCreator()
-        (v, rest_format, _) = creator._create(format_string, [value])
-        if rest_format:
-            raise TypeError('invalid remaining format string: "%s"' % rest_format)
+        v = creator._create(format_string, value)
         v.format_string = format_string
         return v
 
@@ -338,8 +266,9 @@ class Variant(GLib.Variant):
 
         # maybe
         if self.get_type_string().startswith('m'):
-            m = self.get_maybe()
-            return m.unpack() if m else None
+            if not self.n_children():
+                return None
+            return self.get_child_value(0).unpack()
 
         raise NotImplementedError('unsupported GVariant type ' + self.get_type_string())
 
@@ -560,32 +489,13 @@ class MainLoop(GLib.MainLoop):
     def __new__(cls, context=None):
         return GLib.MainLoop.new(context, False)
 
-    # Retain classic pygobject behaviour of quitting main loops on SIGINT
     def __init__(self, context=None):
-        def _handler(loop):
-            loop.quit()
-            loop._quit_by_sigint = True
-            # We handle signal deletion in __del__, return True so GLib
-            # doesn't do the deletion for us.
-            return True
-
-        if sys.platform != 'win32':
-            # compatibility shim, keep around until we depend on glib 2.36
-            if hasattr(GLib, 'unix_signal_add'):
-                fn = GLib.unix_signal_add
-            else:
-                fn = GLib.unix_signal_add_full
-            self._signal_source = fn(GLib.PRIORITY_DEFAULT, signal.SIGINT, _handler, self)
-
-    def __del__(self):
-        if hasattr(self, '_signal_source'):
-            GLib.source_remove(self._signal_source)
+        pass
 
     def run(self):
-        super(MainLoop, self).run()
-        if hasattr(self, '_quit_by_sigint'):
-            # caught by _main_loop_sigint_handler()
-            raise KeyboardInterrupt
+        with register_sigint_fallback(self.quit):
+            with wakeup_on_signal():
+                super(MainLoop, self).run()
 
 
 MainLoop = override(MainLoop)
@@ -613,6 +523,10 @@ class Source(GLib.Source):
 
     def __init__(self, *args, **kwargs):
         return super(Source, self).__init__()
+
+    def __del__(self):
+        if hasattr(self, '__pygi_custom_source'):
+            self.unref()
 
     def set_callback(self, fn, user_data=None):
         if hasattr(self, '__pygi_custom_source'):

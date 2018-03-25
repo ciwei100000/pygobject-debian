@@ -13,11 +13,11 @@ AC_PREREQ([2.68])
 #   $ ./configure --with-python=~/my-patched-python/python
 
 m4_define(python_min_ver, 2.7)
-m4_define(python3_min_ver, 3.3)
+m4_define(python3_min_ver, 3.4)
 
 dnl the pygobject version number
 m4_define(pygobject_major_version, 3)
-m4_define(pygobject_minor_version, 26)
+m4_define(pygobject_minor_version, 28)
 m4_define(pygobject_micro_version, 1)
 m4_define(pygobject_version, pygobject_major_version.pygobject_minor_version.pygobject_micro_version)
 
@@ -26,10 +26,14 @@ m4_define(introspection_required_version, 1.46.0)
 m4_define(pycairo_required_version, 1.11.1)
 m4_define(glib_required_version, 2.38.0)
 m4_define(gio_required_version, 2.38.0)
+m4_define(libffi_required_version, 3.0)
 
 AC_INIT([pygobject],[pygobject_version],
 	[http://bugzilla.gnome.org/enter_bug.cgi?product=pygobject],
 	[pygobject],[https://wiki.gnome.org/Projects/PyGObject/])
+
+m4_ifndef([AX_IS_RELEASE], [AC_MSG_ERROR(['autoconf-archive' missing])])
+
 AX_IS_RELEASE([minor-version])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([gi/gimodule.c])
@@ -131,12 +135,10 @@ PYTHON_VALGRIND_SUPP=`$PYTHON -c "import sys; sys.stdout.write('python' + sys.ve
 AC_SUBST([PYTHON_VALGRIND_SUPP])
 
 dnl libffi
-PKG_CHECK_MODULES(FFI, libffi >= 3.0)
-LIBFFI_PC=libffi
+PKG_CHECK_MODULES(FFI, libffi >= libffi_required_version)
 
 AC_SUBST(FFI_CFLAGS)
 AC_SUBST(FFI_LIBS)
-AC_SUBST(LIBFFI_PC)
 
 dnl gio
 PKG_CHECK_MODULES(GIO, gio-2.0 >= gio_required_version)
@@ -194,7 +196,6 @@ AX_CODE_COVERAGE()
 AC_CONFIG_FILES(
   Makefile
   pygobject-3.0.pc
-  pygobject-3.0-uninstalled.pc
   gi/Makefile
   gi/repository/Makefile
   gi/overrides/Makefile
