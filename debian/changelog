@@ -1,4 +1,4 @@
-pygobject (3.28.1-1) UNRELEASED; urgency=medium
+pygobject (3.28.1-1) unstable; urgency=medium
 
   * New upstream release
   * Build-Depend on pytest
@@ -6,7 +6,7 @@ pygobject (3.28.1-1) UNRELEASED; urgency=medium
   * Bump debhelper compat to 11
   * debian/docs: AUTHORS and README are no longer provided
 
- -- Jeremy Bicha <jbicha@debian.org>  Sun, 21 Jan 2018 10:26:10 -0500
+ -- Jeremy Bicha <jbicha@debian.org>  Sun, 25 Mar 2018 18:59:29 -0400
 
 pygobject (3.26.1-2) unstable; urgency=medium
 
@@ -292,11 +292,11 @@ pygobject (3.10.2-1) unstable; urgency=low
 pygobject (3.10.1-1) unstable; urgency=low
 
   [ Jackson Doak ]
-  * debian/control.in: 
+  * debian/control.in:
     - Add homepage field
     - Use canonical VCS fields
     - B-dep on dh-autoreconf
-  * debian/rules: 
+  * debian/rules:
     - Add autoreconf
     - Enable hardening
   * debian/watch: Add support for more file formats
@@ -727,21 +727,21 @@ pygobject (3.0.2-4) unstable; urgency=low
     anyway. As per request from Thorsten Glaser.
 
   [ Josselin Mouette ]
-  * Bump dependencies on gir1.2-glib-2.0 according to upstream 
+  * Bump dependencies on gir1.2-glib-2.0 according to upstream
     requirements. Closes: #649611.
   * Rename packages to python-gi*.
-  * Remove dependencies on python-gobject-2*. The dependency will be the 
-    other way round so that the old pygobject-2 can be dropped 
+  * Remove dependencies on python-gobject-2*. The dependency will be the
+    other way round so that the old pygobject-2 can be dropped
     eventually.
   * Add appropriate Breaks/Replaces/Conflicts/Provides.
   * Add a missing python-gi-cairo → python-gi dependency.
   * Drop a pair of unneeded Recommends/Suggests.
-  * Add transitional python-gobject/python-gobject-dev packages that 
+  * Add transitional python-gobject/python-gobject-dev packages that
     depend on both python-gi* and python-gobject-2*.
   * Same for python-gobject-dbg.
-  * Break python-nautilus <= the current version which is broken by 
-    pygobject 3.x. Closes: #649861. The only other affected package is 
-    totem-plugins and the issue is not severe enough to warrant blocking 
+  * Break python-nautilus <= the current version which is broken by
+    pygobject 3.x. Closes: #649861. The only other affected package is
+    totem-plugins and the issue is not severe enough to warrant blocking
     the ongoing transitions.
 
  -- Josselin Mouette <joss@debian.org>  Thu, 24 Nov 2011 18:43:28 +0100
@@ -912,7 +912,7 @@ pygobject (2.28.6-1) unstable; urgency=low
 pygobject (2.28.4-1) unstable; urgency=low
 
   [ Josselin Mouette ]
-  * Drop ${python:Provides} for python-gobject-cairo (it depends on 
+  * Drop ${python:Provides} for python-gobject-cairo (it depends on
     python-cairo).
 
   [ Laurent Bigonville ]
@@ -1038,9 +1038,9 @@ pygobject (2.27.0-1) experimental; urgency=low
 
 pygobject (2.21.4+is.2.21.3-1) unstable; urgency=low
 
-  * Downgrade to version 2.21.3 since PyGI is absolutely not ready to 
+  * Downgrade to version 2.21.3 since PyGI is absolutely not ready to
     make it to a stable release. Closes: #590680, #592570.
-  * Revert all Laurent’s corresponding packaging changes, except the 
+  * Revert all Laurent’s corresponding packaging changes, except the
     following:
     + 04_testsuite_gtk.patch: dropped, not needed anymore.
     + 64_gil_locking.patch: dropped, finally merged upstream.
@@ -1048,7 +1048,7 @@ pygobject (2.21.4+is.2.21.3-1) unstable; urgency=low
     + Bump Standards-Version to 3.9.0 (no further changes).
     + Bump debhelper version to 7.
     + Replace dh_clean -k by dh_prep.
-  * 20_deprecated_spam.patch: new patch. Avoid spamming the console for 
+  * 20_deprecated_spam.patch: new patch. Avoid spamming the console for
     using deprecated functions that every program uses.
 
  -- Josselin Mouette <joss@debian.org>  Mon, 16 Aug 2010 18:14:38 +0200
@@ -1068,7 +1068,7 @@ pygobject (2.21.4-1) unstable; urgency=low
     - Install files for python-gobject-cairo
     - Replace dh_clean -k by dh_prep
     - Make pygobject-codegen-2.0 call the default version of python
-  * Dropped debian/patches/03_maintainer_mode.patch 
+  * Dropped debian/patches/03_maintainer_mode.patch
     debian/patches/04_testsuite_gtk.patch,
     debian/patches/64_gil_locking.patch,
     debian/patches/90_autofoo.patch: not needed anymore
@@ -1130,7 +1130,7 @@ pygobject (2.20.0-1) unstable; urgency=low
 
   [ Josselin Mouette ]
   * New upstream release.
-  * Switch installation path to /usr/lib/pymodules instead of 
+  * Switch installation path to /usr/lib/pymodules instead of
     /var/lib/python-support.
   * Enable girepository support; build-depend on libgirepository1.0-dev.
   * Suggest some introspection packages.
@@ -1143,7 +1143,7 @@ pygobject (2.18.0-1) unstable; urgency=low
   * Fix English mistake in long descriptions. Closes: #524545.
   * New upstream release.
     + Fixes argument passing for glib.IOChannel. Closes: #528459.
-  * 01_pkgconfig-private.patch, 
+  * 01_pkgconfig-private.patch,
     62_install-pyglib-in-libdir-with-python-version.patch:
     dropped, merged upstream.
   * 90_autofoo.patch: regenerated.
@@ -1173,17 +1173,17 @@ pygobject (2.16.0-1) unstable; urgency=low
     targets.
 
   [ Josselin Mouette ]
-  * Install files to the python-support directory since objcopy is 
-    completely stupid and doesn’t add the full pathname to the 
+  * Install files to the python-support directory since objcopy is
+    completely stupid and doesn’t add the full pathname to the
     .gnu_debuglink section. Closes: #518026.
   * New upstream release.
   * 63_macro-dir.patch: removed, merged upstream.
   * 90_autofoo.patch: regenerated.
   * Fix quilt invocation so that patches are applied.
   * Pass echo=/bin/echo to the environment to work around the ☠☢☣⚡⚠✈║
-    libtool bug that is not able to find a command as simple as echo, is 
+    libtool bug that is not able to find a command as simple as echo, is
     that really too much to ask?
-  * 04_testsuite_gtk.patch: new patch. Don’t run tests that require 
+  * 04_testsuite_gtk.patch: new patch. Don’t run tests that require
     pygtk being installed.
 
  -- Josselin Mouette <joss@debian.org>  Sun, 08 Mar 2009 12:44:24 +0100
@@ -1212,7 +1212,7 @@ pygobject (2.15.4-1) experimental; urgency=low
         libdir/pygobject/python<python version> to have one lib per python
         version
     - debian/patches/63_macro-dir.patch:
-      + Add AC_CONFIG_MACRO_DIR for libtoolize. GNOME #551227. 
+      + Add AC_CONFIG_MACRO_DIR for libtoolize. GNOME #551227.
     - debian/patches/69_pyg-register-pointer-typo:
       + fixes crash on x86-64 due to a typo. GNOME #550463.
     - debian/patches/90_autofoo.patch:
@@ -1242,7 +1242,7 @@ pygobject (2.15.4-1) experimental; urgency=low
   [ Josselin Mouette ]
   * Re-add references in 61_wakeupfd-fctnl-and-read.patch.
   * 90_autofoo.patch: remove autom4te.cache.
-  * Depend on python 2.5, since the test suite does not run with python 
+  * Depend on python 2.5, since the test suite does not run with python
     2.4.
   * Use pyversions -vr to really disable the 2.4 build.
   * Pass /usr/share/pygobject to dh_pysupport.
@@ -1257,15 +1257,15 @@ pygobject (2.14.2-1) unstable; urgency=low
   * New upstream release.
     + Refresh patches.
   * 03_maintainer_mode.patch: add AM_MAINTAINER_MODE.
-  * 61_wakeupfd-fix.patch: do not use the wakeupfd in non-threaded 
+  * 61_wakeupfd-fix.patch: do not use the wakeupfd in non-threaded
     applications, as it is not initialized.
 
  -- Josselin Mouette <joss@debian.org>  Sat, 07 Jun 2008 15:05:11 +0200
 
 pygobject (2.14.1-8) unstable; urgency=low
 
-  * Revert last upload, the pygobject patch was fine and the bug lies in 
-    pygtk. Furthermore, wakeupfd gets used anyway since Python supports 
+  * Revert last upload, the pygobject patch was fine and the bug lies in
+    pygtk. Furthermore, wakeupfd gets used anyway since Python supports
     it, so we *need* this patch.
 
  -- Josselin Mouette <joss@debian.org>  Wed, 04 Jun 2008 00:08:02 +0200
@@ -1295,7 +1295,7 @@ pygobject (2.14.1-5) unstable; urgency=low
 
 pygobject (2.14.1-4) unstable; urgency=low
 
-  * Depend and build-depend on libffi-dev >= 3.0.5 so that the older 
+  * Depend and build-depend on libffi-dev >= 3.0.5 so that the older
     package without a .pc file is not used.
 
  -- Josselin Mouette <joss@debian.org>  Thu, 17 Apr 2008 20:24:59 +0200
@@ -1412,7 +1412,7 @@ pygobject (2.12.1-3) experimental; urgency=low
 
 pygobject (2.12.1-2) experimental; urgency=low
 
-  * 01_doc_licensing.patch: stolen from upstream CVS. Upstream agreed to 
+  * 01_doc_licensing.patch: stolen from upstream CVS. Upstream agreed to
     relicense the documentation to LGPL.
   * copyright: document that.
 
