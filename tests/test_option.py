@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+
 import unittest
-import sys
 
 # py3k has StringIO in a different module
 try:
@@ -12,9 +13,10 @@ except ImportError:
 
 from gi.repository import GLib
 
+from .helper import capture_exceptions
+
 
 class TestOption(unittest.TestCase):
-    EXCEPTION_MESSAGE = "This callback fails"
 
     def setUp(self):
         self.parser = GLib.option.OptionParser("NAMES...",
@@ -28,7 +30,7 @@ class TestOption(unittest.TestCase):
 
     def _create_group(self):
         def option_callback(option, opt, value, parser):
-            raise Exception(self.EXCEPTION_MESSAGE)
+            raise Exception("foo")
 
         group = GLib.option.OptionGroup(
             "unittest", "Unit test options", "Show all unittest options",
@@ -102,14 +104,10 @@ class TestOption(unittest.TestCase):
 
     def test_standard_error(self):
         self._create_group()
-        sio = StringIO()
-        old_stderr = sys.stderr
-        sys.stderr = sio
-        try:
+
+        with capture_exceptions() as exc:
             self.parser.parse_args(
                 ["test_option.py", "--callback-failure-test"])
-        finally:
-            sys.stderr = old_stderr
 
-        assert (sio.getvalue().split('\n')[-2] ==
-                "Exception: " + self.EXCEPTION_MESSAGE)
+        assert len(exc) == 1
+        assert exc[0].value.args[0] == "foo"

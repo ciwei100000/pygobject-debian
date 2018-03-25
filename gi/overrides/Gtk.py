@@ -24,6 +24,7 @@ import sys
 import warnings
 
 from gi.repository import GObject
+from .._ossighelper import wakeup_on_signal, register_sigint_fallback
 from ..overrides import override, strip_boolean_result, deprecated_init
 from ..module import get_introspection_module
 from gi import PyGIDeprecationWarning
@@ -543,6 +544,11 @@ class Dialog(Gtk.Dialog, Container):
         if add_buttons:
             self.add_buttons(*add_buttons)
 
+    def run(self, *args, **kwargs):
+        with register_sigint_fallback(self.destroy):
+            with wakeup_on_signal():
+                return Gtk.Dialog.run(self, *args, **kwargs)
+
     action_area = property(lambda dialog: dialog.get_action_area())
     vbox = property(lambda dialog: dialog.get_content_area())
 
@@ -1007,28 +1013,30 @@ class ListStore(Gtk.ListStore, TreeModel, TreeSortable):
         Gtk.ListStore.set_value(self, treeiter, column, value)
 
     def set(self, treeiter, *args):
-
-        def _set_lists(columns, values):
-            if len(columns) != len(values):
+        def _set_lists(cols, vals):
+            if len(cols) != len(vals):
                 raise TypeError('The number of columns do not match the number of values')
-            for col_num, val in zip(columns, values):
+
+            columns = []
+            values = []
+            for col_num, value in zip(cols, vals):
                 if not isinstance(col_num, int):
                     raise TypeError('TypeError: Expected integer argument for column.')
-                self.set_value(treeiter, col_num, val)
+
+                columns.append(col_num)
+                values.append(self._convert_value(col_num, value))
+
+            Gtk.ListStore.set(self, treeiter, columns, values)
 
         if args:
             if isinstance(args[0], int):
-                columns = args[::2]
-                values = args[1::2]
-                _set_lists(columns, values)
+                _set_lists(args[::2], args[1::2])
             elif isinstance(args[0], (tuple, list)):
                 if len(args) != 2:
                     raise TypeError('Too many arguments')
                 _set_lists(args[0], args[1])
             elif isinstance(args[0], dict):
-                columns = args[0].keys()
-                values = args[0].values()
-                _set_lists(columns, values)
+                _set_lists(list(args[0]), args[0].values())
             else:
                 raise TypeError('Argument list must be in the form of (column, value, ...), ((columns,...), (values, ...)) or {column: value}.  No -1 termination is needed.')
 
@@ -1269,28 +1277,30 @@ class TreeStore(Gtk.TreeStore, TreeModel, TreeSortable):
         Gtk.TreeStore.set_value(self, treeiter, column, value)
 
     def set(self, treeiter, *args):
-
-        def _set_lists(columns, values):
-            if len(columns) != len(values):
+        def _set_lists(cols, vals):
+            if len(cols) != len(vals):
                 raise TypeError('The number of columns do not match the number of values')
-            for col_num, val in zip(columns, values):
+
+            columns = []
+            values = []
+            for col_num, value in zip(cols, vals):
                 if not isinstance(col_num, int):
                     raise TypeError('TypeError: Expected integer argument for column.')
-                self.set_value(treeiter, col_num, val)
+
+                columns.append(col_num)
+                values.append(self._convert_value(col_num, value))
+
+            Gtk.TreeStore.set(self, treeiter, columns, values)
 
         if args:
             if isinstance(args[0], int):
-                columns = args[::2]
-                values = args[1::2]
-                _set_lists(columns, values)
+                _set_lists(args[::2], args[1::2])
             elif isinstance(args[0], (tuple, list)):
                 if len(args) != 2:
                     raise TypeError('Too many arguments')
                 _set_lists(args[0], args[1])
             elif isinstance(args[0], dict):
-                columns = args[0].keys()
-                values = args[0].values()
-                _set_lists(columns, values)
+                _set_lists(args[0].keys(), args[0].values())
             else:
                 raise TypeError('Argument list must be in the form of (column, value, ...), ((columns,...), (values, ...)) or {column: value}.  No -1 termination is needed.')
 
@@ -1465,6 +1475,8 @@ class Adjustment(Gtk.Adjustment):
         # was set, we set it again here.
         if 'value' in kwargs:
             self.set_value(kwargs['value'])
+        elif len(args) >= 1:
+            self.set_value(args[0])
 
 
 Adjustment = override(Adjustment)
@@ -1588,6 +1600,16 @@ _Gtk_main_quit = Gtk.main_quit
 @override(Gtk.main_quit)
 def main_quit(*args):
     _Gtk_main_quit()
+
+
+_Gtk_main = Gtk.main
+
+
+@override(Gtk.main)
+def main(*args, **kwargs):
+    with register_sigint_fallback(Gtk.main_quit):
+        with wakeup_on_signal():
+            return _Gtk_main(*args, **kwargs)
 
 
 if Gtk._version in ("2.0", "3.0"):

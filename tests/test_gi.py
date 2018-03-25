@@ -2,18 +2,17 @@
 # coding=utf-8
 # vim: tabstop=4 shiftwidth=4 expandtab
 
+from __future__ import absolute_import
+
 import sys
 
 import unittest
 import tempfile
 import shutil
 import os
-import locale
-import subprocess
 import gc
 import weakref
 import warnings
-from io import StringIO, BytesIO
 
 import gi
 import gi.overrides
@@ -23,8 +22,8 @@ from gi.repository import GObject, GLib, Gio
 
 from gi.repository import GIMarshallingTests
 
-from compathelper import PY2, PY3
-from helper import capture_exceptions
+from .compathelper import PY2, PY3
+from .helper import capture_exceptions, capture_output
 
 
 CONSTANT_UTF8 = "const ♥ utf8"
@@ -695,6 +694,13 @@ class TestFilename(unittest.TestCase):
     @unittest.skipIf(os.name == "nt", "fixme")
     def test_filename_in(self):
         fname = os.path.join(self.workdir, u'testäø.txt')
+
+        try:
+            os.path.exists(fname)
+        except ValueError:
+            # non-unicode fs encoding
+            return
+
         self.assertRaises(GLib.GError, GLib.file_get_contents, fname)
 
         with open(fname.encode('UTF-8'), 'wb') as f:
@@ -711,8 +717,15 @@ class TestFilename(unittest.TestCase):
     @unittest.skipIf(os.name == "nt", "fixme")
     def test_filename_out(self):
         self.assertRaises(GLib.GError, GLib.Dir.make_tmp, 'test')
+        name = 'testäø.XXXXXX'
 
-        dirname = GLib.Dir.make_tmp('testäø.XXXXXX')
+        try:
+            os.path.exists(name)
+        except ValueError:
+            # non-unicode fs encoding
+            return
+
+        dirname = GLib.Dir.make_tmp(name)
         self.assertTrue(os.path.sep + 'testäø.' in dirname, dirname)
         self.assertTrue(os.path.isdir(dirname))
         os.rmdir(dirname)
@@ -868,7 +881,16 @@ class TestFilename(unittest.TestCase):
         if os.name != "nt":
             paths.append((wdb, b"\xff\xfe-5"))
 
+        def valid_path(p):
+            try:
+                os.path.exists(p)
+            except ValueError:
+                return False
+            return True
+
         for (d, path) in paths:
+            if not valid_path(path):
+                continue
             path = os.path.join(d, path)
             with open(path, "wb"):
                 self.assertTrue(GIMarshallingTests.filename_exists(path))
@@ -1634,35 +1656,6 @@ class TestPointer(unittest.TestCase):
 
 
 class TestEnum(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        '''Run tests under a test locale.
-
-        Upper case conversion of member names should not be locale specific
-        e.  g. in Turkish, "i".upper() == "i", which gives results like "iNVALiD"
-
-        Run test under a locale which defines toupper('a') == 'a'
-        '''
-        if sys.platform == "darwin" or os.name == "nt":
-            return
-        cls.locale_dir = tempfile.mkdtemp()
-        src = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'te_ST@nouppera')
-        dest = os.path.join(cls.locale_dir, 'te_ST.UTF-8@nouppera')
-        subprocess.check_call(['localedef', '-i', src, '-c', '-f', 'UTF-8', dest])
-        os.environ['LOCPATH'] = cls.locale_dir
-        locale.setlocale(locale.LC_ALL, 'te_ST.UTF-8@nouppera')
-
-    @classmethod
-    def tearDownClass(cls):
-        if sys.platform == "darwin" or os.name == "nt":
-            return
-        locale.setlocale(locale.LC_ALL, 'C')
-        shutil.rmtree(cls.locale_dir)
-        try:
-            del os.environ['LOCPATH']
-        except KeyError:
-            pass
 
     def test_enum(self):
         self.assertTrue(issubclass(GIMarshallingTests.Enum, int))
@@ -2980,8 +2973,10 @@ class TestKeywords(unittest.TestCase):
 
 class TestModule(unittest.TestCase):
     def test_path(self):
-        self.assertTrue(GIMarshallingTests.__path__.endswith('GIMarshallingTests-1.0.typelib'),
-                        GIMarshallingTests.__path__)
+        path = GIMarshallingTests.__path__
+        assert isinstance(path, list)
+        assert len(path) == 1
+        assert path[0].endswith('GIMarshallingTests-1.0.typelib')
 
     def test_str(self):
         self.assertTrue("'GIMarshallingTests' from '" in str(GIMarshallingTests),
@@ -3002,16 +2997,9 @@ class TestModule(unittest.TestCase):
             self.assertTrue(hasattr(item, '__class__'))
 
     def test_help(self):
-        orig_stdout = sys.stdout
-        try:
-            if sys.version_info < (3, 0):
-                sys.stdout = BytesIO()
-            else:
-                sys.stdout = StringIO()
+        with capture_output() as (stdout, stderr):
             help(GIMarshallingTests)
-            output = sys.stdout.getvalue()
-        finally:
-            sys.stdout = orig_stdout
+        output = stdout.getvalue()
 
         self.assertTrue('SimpleStruct' in output, output)
         self.assertTrue('Interface2' in output, output)

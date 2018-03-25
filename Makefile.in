@@ -117,8 +117,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES = pygobject-3.0.pc pygobject-3.0-uninstalled.pc \
-	PKG-INFO
+CONFIG_CLEAN_FILES = pygobject-3.0.pc PKG-INFO
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -213,10 +212,8 @@ CTAGS = ctags
 CSCOPE = cscope
 DIST_SUBDIRS = $(SUBDIRS)
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/PKG-INFO.in \
-	$(srcdir)/config.h.in \
-	$(srcdir)/pygobject-3.0-uninstalled.pc.in \
-	$(srcdir)/pygobject-3.0.pc.in AUTHORS COPYING ChangeLog \
-	INSTALL NEWS README compile config.guess config.sub install-sh \
+	$(srcdir)/config.h.in $(srcdir)/pygobject-3.0.pc.in COPYING \
+	ChangeLog NEWS compile config.guess config.sub install-sh \
 	ltmain.sh missing py-compile
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
@@ -326,7 +323,6 @@ INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBFFI_PC = @LIBFFI_PC@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -437,13 +433,10 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
-# Limit PyFlakes and PEP8 to these directories.
-pycheck_dirs = examples gi tests pygtkcompat
-
 # Part of the gi subdirectory is handled with non-recursive make to avoid
 # py-compile getting confused between gi/types.py and Python's standard
 # types module.
-SUBDIRS = . $(pycheck_dirs)
+SUBDIRS = . examples gi tests pygtkcompat
 PLATFORM_VERSION = 3.0
 CLEANFILES = \
 	`find "$(builddir)" -type f -name "*.pyc" -print`
@@ -454,13 +447,16 @@ EXTRA_DIST = \
 	pygobject-$(PLATFORM_VERSION).pc.in \
 	PKG-INFO \
 	PKG-INFO.in \
-	pygi-convert.sh \
+	tools/pygi-convert.sh \
 	m4/python.m4 \
 	m4/introspection.m4 \
-	setup.py
+	setup.py \
+	setup.cfg \
+	MANIFEST.in \
+	README.rst \
+	docs
 
 MAINTAINERCLEANFILES = \
-	$(srcdir)/INSTALL \
 	$(srcdir)/aclocal.m4 \
 	$(srcdir)/autoscan.log \
 	$(srcdir)/compile \
@@ -500,7 +496,8 @@ nobase_pyexec_PYTHON = \
 	gi/_propertyhelper.py \
 	gi/_signalhelper.py \
 	gi/_option.py \
-	gi/_error.py
+	gi/_error.py \
+	gi/_ossighelper.py
 
 
 # pkg-config files
@@ -563,8 +560,6 @@ $(srcdir)/config.h.in:  $(am__configure_deps)
 distclean-hdr:
 	-rm -f config.h stamp-h1
 pygobject-3.0.pc: $(top_builddir)/config.status $(srcdir)/pygobject-3.0.pc.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-pygobject-3.0-uninstalled.pc: $(top_builddir)/config.status $(srcdir)/pygobject-3.0-uninstalled.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 PKG-INFO: $(top_builddir)/config.status $(srcdir)/PKG-INFO.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
@@ -1135,7 +1130,7 @@ uninstall-local:
 	rm -f $(DESTDIR)$(pyexecdir)/$(EGG_NAME).egg-info
 
 release-news:
-	printf "%-8s%s\n" "$(VERSION)" "`LC_TIME=C date '+%d-%b-%Y'`" > NEWS.tmp
+	printf "%s - %s\n\n" "$(VERSION)" "`LC_TIME=C date -I`" > NEWS.tmp
 
 	@echo -e "\n\n\nFor blogging, you can copy&paste this HTML formatted news:"
 	@echo "-------------- 8< -------------"
@@ -1144,7 +1139,7 @@ release-news:
 	for commit in `git rev-list $$last..`; do \
 	   data=`git log --format="format:%s%n%an%n%b" $$commit^..$$commit`; \
 	   echo "$$data" | perl -e '$$subj = <>; chomp $$subj; $$author = <>; chomp $$author; while (<>) { if (/bugzilla.gnome.org.*id=([0-9]+)/) { $$bug = $$1 }};  print "  <li>$$subj ($$author)"; if ($$bug) { print " (<a href=\"https://bugzilla.gnome.org/show_bug.cgi?id=$$bug\">#$$bug</a>)"; }; print "</li>\n"'; \
-	   echo "$$data" | perl -e '$$subj = <>; chomp $$subj; $$author = <>; chomp $$author; while (<>) { if (/bugzilla.gnome.org.*id=([0-9]+)/) { $$bug = $$1 }};  print "        - $$subj ($$author)"; if ($$bug) { print " (#$$bug)"; }; print "\n"' >> NEWS.tmp; \
+	   echo "$$data" | perl -e '$$subj = <>; chomp $$subj; $$author = <>; chomp $$author; while (<>) { if (/bugzilla.gnome.org.*id=([0-9]+)/) { $$bug = $$1 }};  print "* $$subj ($$author)"; if ($$bug) { print " (#$$bug)"; }; print "\n"' >> NEWS.tmp; \
         done
 	@echo "</ul>"
 	@echo "-------------- 8< -------------"
@@ -1179,20 +1174,10 @@ dist-hook: $(BUILT_EXTRA_DIST)
 	for f in $$files; do \
 	  if test -f $$f; then d=.; else d=$(srcdir); fi; \
 	  rm -f $(distdir)/$$f && cp $$d/$$f $(distdir) || exit 1; done
-
-# pycheck_subdirs = 
+	rm -rf "$(distdir)/docs/_build"
 
 check.quality:
-	@echo "  CHECK  Pyflakes" $(pycheck_dirs)
-	@if type pyflakes >/dev/null 2>&1; then \
-		(cd $(abs_top_srcdir) && PYFLAKES_BUILTINS="basestring,long,unicode" pyflakes $(pycheck_dirs) ); \
-	else echo "skipped, pyflakes not installed"; \
-	fi
-	@echo "  CHECK  PEP8";
-	@if type pep8 >/dev/null 2>&1; then \
-		(cd $(abs_top_srcdir) && pep8 --ignore=E501,E123,E124,E402,E731,E722 --repeat --show-source $(pycheck_dirs) ); \
-	else echo "skipped, pep8 not installed"; \
-	fi
+	(cd $(abs_top_srcdir) && $(PYTHON) -m flake8);
 
 check.gdb:
 	cd tests && $(MAKE) check.gdb

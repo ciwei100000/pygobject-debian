@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import contextlib
 import unittest
 import inspect
@@ -10,7 +12,7 @@ import gi
 from gi import PyGIDeprecationWarning
 from gi.repository import GLib
 
-from compathelper import StringIO
+from .compathelper import StringIO
 
 
 ExceptionInfo = namedtuple("ExceptionInfo", ["type", "value", "traceback"])
@@ -113,7 +115,7 @@ def capture_glib_deprecation_warnings():
 @contextlib.contextmanager
 def capture_output():
     """
-    with capture_output as (stdout, stderr):
+    with capture_output() as (stdout, stderr):
         some_action()
     print(stdout.getvalue(), stderr.getvalue())
     """

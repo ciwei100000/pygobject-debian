@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 
 # system
 import gc
@@ -55,9 +56,9 @@ class Node(object):
         return 'Node("%s", %s)' % (self.name, self.value)
 
 
-class TesterModel(GenericTreeModel):
+class ATesterModel(GenericTreeModel):
     def __init__(self):
-        super(TesterModel, self).__init__()
+        super(ATesterModel, self).__init__()
         self.root = Node('root', 0,
                          Node('spam', 1,
                               Node('sushi', 2),
@@ -150,7 +151,7 @@ class TestReferences(unittest.TestCase):
         self.assertEqual(sys.getrefcount(obj), ref_count + 1)
 
     def test_leak_references_on(self):
-        model = TesterModel()
+        model = ATesterModel()
         obj_ref = weakref.ref(model.root)
         # Initial refcount is 1 for model.root + the temporary
         self.assertEqual(sys.getrefcount(model.root), 2)
@@ -179,7 +180,7 @@ class TestReferences(unittest.TestCase):
         self.assertEqual(obj_ref(), None)
 
     def test_row_deleted_frees_refs(self):
-        model = TesterModel()
+        model = ATesterModel()
         obj_ref = weakref.ref(model.root)
         # Initial refcount is 1 for model.root + the temporary
         self.assertEqual(sys.getrefcount(model.root), 2)
@@ -200,7 +201,7 @@ class TestReferences(unittest.TestCase):
         self.assertEqual(obj_ref(), None)
 
     def test_leak_references_off(self):
-        model = TesterModel()
+        model = ATesterModel()
         model.leak_references = False
 
         obj_ref = weakref.ref(model.root)
@@ -226,7 +227,7 @@ class TestReferences(unittest.TestCase):
     def test_iteration_refs(self):
         # Pull iterators off the model using the wrapped C API which will
         # then call back into the python overrides.
-        model = TesterModel()
+        model = ATesterModel()
         nodes = [node for node in model.iter_depth_first()]
         values = [node.value for node in nodes]
 
@@ -287,7 +288,7 @@ class TestReferences(unittest.TestCase):
 @unittest.skipUnless(has_gtk, 'Gtk not available')
 class TestIteration(unittest.TestCase):
     def test_iter_next_root(self):
-        model = TesterModel()
+        model = ATesterModel()
         it = model.get_iter([0])
         self.assertEqual(it.user_data, id(model.root))
         self.assertEqual(model.root.next, None)
@@ -296,7 +297,7 @@ class TestIteration(unittest.TestCase):
         self.assertEqual(it, None)
 
     def test_iter_next_multiple(self):
-        model = TesterModel()
+        model = ATesterModel()
         it = model.get_iter([0, 0])
         self.assertEqual(it.user_data, id(model.root.children[0]))
 
@@ -414,7 +415,3 @@ class TestReturnsAfterError(unittest.TestCase):
         with ExceptHook(NotImplementedError):
             res = self.model.iter_parent(child)
         self.assertEqual(res, None)
-
-
-if __name__ == '__main__':
-    unittest.main()
