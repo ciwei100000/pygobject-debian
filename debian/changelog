@@ -4,6 +4,7 @@ pygobject (3.28.1-1) UNRELEASED; urgency=medium
   * Build-Depend on pytest
   * Update Vcs fields for migration to https://salsa.debian.org/
   * Bump debhelper compat to 11
+  * debian/docs: AUTHORS and README are no longer provided
 
  -- Jeremy Bicha <jbicha@debian.org>  Sun, 21 Jan 2018 10:26:10 -0500
 
