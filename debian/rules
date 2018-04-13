@@ -2,7 +2,6 @@
 
 include /usr/share/dpkg/default.mk
 include /usr/share/python/python.mk
--include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
 PYVERS := $(shell pyversions --requested -v debian/control) $(shell py3versions --supported -v)
 FLAVOURS := $(PYVERS) $(patsubst %,%-dbg,$(PYVERS))
@@ -15,6 +14,7 @@ ifneq ($(filter $(DEB_BUILD_ARCH), ),)
 endif
 
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
 %:
 	dh $@ --with python2,python3,gnome

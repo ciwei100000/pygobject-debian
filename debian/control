@@ -41,14 +41,13 @@ Build-Depends: debhelper (>= 11),
                python-cairo-dbg,
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.4
-Standards-Version: 4.1.2
+Standards-Version: 4.1.4
 Vcs-Browser: https://salsa.debian.org/gnome-team/pygobject
 Vcs-Git: https://salsa.debian.org/gnome-team/pygobject.git
 Homepage: https://wiki.gnome.org/Projects/PyGObject
 
 Package: python-gi
 Architecture: any
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -68,7 +67,6 @@ Description: Python 2.x bindings for gobject-introspection libraries
 
 Package: python3-gi
 Architecture: any
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -84,7 +82,6 @@ Description: Python 3 bindings for gobject-introspection libraries
 
 Package: python-gi-cairo
 Architecture: any
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -101,7 +98,6 @@ Description: Python Cairo bindings for the GObject library
 Package: python-gi-dbg
 Section: debug
 Architecture: any
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -119,7 +115,6 @@ Description: Python bindings for the GObject library (debug extension)
 Package: python3-gi-dbg
 Section: debug
 Architecture: any
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -137,7 +132,6 @@ Description: Python 3 bindings for gobject-introspection libraries (debug extens
 
 Package: python-gi-dev
 Architecture: any
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          python-gi (= ${binary:Version}),
@@ -154,7 +148,6 @@ Description: development headers for GObject Python bindings
 
 Package: python3-gi-cairo
 Architecture: any
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
@@ -171,7 +164,6 @@ Description: Python 3 Cairo bindings for the GObject library
 Package: python-gobject
 Section: oldlibs
 Architecture: all
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
          python-gi (>= ${source:Version}),
          python-gobject-2
