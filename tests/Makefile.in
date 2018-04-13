@@ -418,6 +418,10 @@ extension_ldflags = \
 	-module \
 	-shrext $(PYTHON_SO)
 
+extension_cppflags = \
+	$(PYTHON_INCLUDES) \
+	-DPY_SSIZE_T_CLEAN
+
 nodist_libgimarshallingtests_la_SOURCES = \
 	$(GI_DATADIR)/tests/gimarshallingtests.c \
 	$(GI_DATADIR)/tests/gimarshallingtests.h
@@ -439,8 +443,8 @@ dist_libregress_la_SOURCES = $(srcdir)/regressextra.c $(srcdir)/regressextra.h
 @ENABLE_CAIRO_FALSE@libregress_la_LIBADD = $(GIO_LIBS) $(CAIRO_LIBS)
 @ENABLE_CAIRO_TRUE@libregress_la_LIBADD = $(GIO_LIBS) $(CAIRO_LIBS)
 libregress_la_LDFLAGS = $(common_ldflags)
-testhelper_la_CFLAGS = $(CODE_COVERAGE_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir)/gi $(PYTHON_INCLUDES) $(GLIB_CFLAGS)
-testhelper_la_CPPFLAGS = $(CODE_COVERAGE_CPPFLAGS)
+testhelper_la_CFLAGS = $(CODE_COVERAGE_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir)/gi $(extension_cppflags) $(GLIB_CFLAGS)
+testhelper_la_CPPFLAGS = $(CODE_COVERAGE_CPPFLAGS) $(extension_cppflags)
 testhelper_la_LDFLAGS = $(WARN_LDFLAGS) $(extension_ldflags)
 testhelper_la_LIBADD = $(CODE_COVERAGE_LIBS) $(GLIB_LIBS) $(extension_libadd)
 testhelper_la_SOURCES = \

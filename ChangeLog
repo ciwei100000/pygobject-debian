@@ -1,3 +1,111 @@
+commit 3ba1f36ebd63ce4477fab1c0d1c9d7fc817f19a8
+Author: Christoph Reiter <reiter.christoph@gmail.com>
+Date:   Tue Mar 27 22:48:17 2018 +0200
+
+    release
+
+ NEWS | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+commit 8eb973ec4cafa6bbedb47e8d12bd02e6ed318273
+Author: Christoph Reiter <reiter.christoph@gmail.com>
+Date:   Sun Mar 25 19:12:54 2018 +0200
+
+    resulttuple: fix a wrong decref
+
+    We don't get ownership here so don't unref.
+    Thist function is only used in the test suite.
+
+ gi/pygi-resulttuple.c     | 2 --
+ tests/test_resulttuple.py | 6 ++++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+commit 1c962cb74cd99e0169abed45cf813550574a2a80
+Author: Christoph Reiter <reiter.christoph@gmail.com>
+Date:   Fri Mar 23 07:23:21 2018 +0100
+
+    autotools: define PY_SSIZE_T_CLEAN for the test extension
+
+ tests/Makefile.am | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+commit 1b072bb45b07bbb461bf9c8318a81a26e0d65a18
+Author: Christoph Reiter <reiter.christoph@gmail.com>
+Date:   Fri Mar 23 07:07:26 2018 +0100
+
+    setup.py: always define PY_SSIZE_T_CLEAN. Fixes #185
+
+ gi/pyglib-python-compat.h | 6 ++++++
+ setup.py                  | 5 +++--
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+commit 997f6d95f3a1d8ce8376eb10e3f2d76d3b5e29d3
+Author: Christoph Reiter <reiter.christoph@gmail.com>
+Date:   Mon Mar 19 13:52:21 2018 +0100
+
+    properties: fix a crash when setting a str value containing
+    surrogates. Fixes #169
+
+    In Python 3 decoding unicode fails if it contains surrogates. Handle
+    that case.
+    This ususally happens with filenames where undecodable bytes get
+    converted to surrogates.
+
+ gi/pygi-value.c          |  4 ++++
+ gi/pygobject-object.c    |  4 ++--
+ tests/test_properties.py | 12 +++++++++++-
+ 3 files changed, 17 insertions(+), 3 deletions(-)
+
+commit c9cfde92d7a1eb558c66dc9e8e1959816fcbf0cc
+Author: Christoph Reiter <reiter.christoph@gmail.com>
+Date:   Sun Mar 18 07:33:19 2018 +0100
+
+    gtk overrides: Fix return type Gtk.TreePath with depth == 0. Fixes
+    #143
+
+    compare() also errors out with depth == 0, but str() shouldn't fail
+    as it's important for debugging.
+
+ gi/overrides/Gtk.py         | 2 +-
+ tests/test_overrides_gtk.py | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+commit c6d57734cf97b7eb7b11b21a9096d70dd1465865
+Author: Christoph Reiter <reiter.christoph@gmail.com>
+Date:   Sun Mar 18 21:57:07 2018 +0100
+
+    setup.py: build the test extension in a separate build dir. Fixes #181
+
+    The install command just copies the whole build tree as is when
+    installing
+    which installs the test extension when tests are build before install.
+
+    To avoid that set the build base of the extension to a a subdirectory
+    of the build base of the main build base.
+
+ setup.py | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+commit 923bef11d037e82ae0d91cb495a09d09ab93e3ca
+Author: Christoph Reiter <reiter.christoph@gmail.com>
+Date:   Sun Mar 18 22:28:34 2018 +0100
+
+    setup.py: forward force flag to the test extension build
+
+    backport from master
+
+ setup.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+commit 43758746432d5cd59409cd54eb242c8799e249c3
+Author: Christoph Reiter <reiter.christoph@gmail.com>
+Date:   Sat Mar 17 19:09:19 2018 +0100
+
+    version bump
+
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 commit ca6918747214484a429c039caed02dd858c307fe
 Author: Christoph Reiter <reiter.christoph@gmail.com>
 Date:   Sat Mar 17 18:46:05 2018 +0100
