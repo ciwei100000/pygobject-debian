@@ -82,6 +82,9 @@ override_dh_strip-arch:
 # trigger ldconfig.
 override_dh_makeshlibs:
 
+override_dh_installchangelogs:
+	dh_installchangelogs -XChangeLog
+
 override_dh_clean:
 	rm -rf debian/install-*
 	find \( -name '*.pyc' -o -name '*.pyo' -o -name '*.la' \) -print -delete; \
