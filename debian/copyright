@@ -7,17 +7,17 @@ Source: https://download.gnome.org/sources/pygobject/
 
 Files: *
 Copyright:
- Copyright (C) 1998-2003  James Henstridge
- Copyright (C) 2004       Johan Dahlin
- Copyright (C) 2005-2009 Johan Dahlin <johan@gnome.org>
- Copyright (C) 2005       Oracle
- Copyright (C) 2006  Johannes Hoelzl
- Copyright (C) 2007 Johan Dahlin
- Copyright (C) 2008  Gian Mario Tagliaretti
- Copyright (C) 2008  Johan Dahlin
- Copyright (C) 2009 Simon van der Linden <svdlinden@src.gnome.org>
- Copyright (C) 2010 Collabora Ltd.
- Copyright (c) 2011  Laszlo Pandy <lpandy@src.gnome.org>
+ 1998-2003 James Henstridge
+ 2004-2009 Johan Dahlin
+ 2005 Oracle
+ 2006 Johannes Hoelzl
+ 2008 Gian Mario Tagliaretti
+ 2009 Simon van der Linden
+ 2010 Collabora Ltd.
+ 2011 Laszlo Pandy
+ 2015 Dustin Spicuzza
+ 2018 Nikita Churaev
+ 2018 Christoph Reiter
 License: LGPL-2.1+
  This package is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
