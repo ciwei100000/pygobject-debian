@@ -1,5 +1,6 @@
-pygobject (3.28.3-1) UNRELEASED; urgency=medium
+pygobject (3.28.3-1) unstable; urgency=medium
 
+  * Team upload
   * New upstream release
   * Set Rules-Requires-Root to no
   * Don't install detailed upstream ChangeLog, only NEWS
@@ -10,7 +11,7 @@ pygobject (3.28.3-1) UNRELEASED; urgency=medium
   * Adjust override_dh_clean to avoid a Lintian false positive
   * d/tests/gitest.py: Don't fail on merged /usr systems
 
- -- Simon McVittie <smcv@debian.org>  Tue, 14 Aug 2018 10:14:00 +0100
+ -- Simon McVittie <smcv@debian.org>  Tue, 14 Aug 2018 10:57:50 +0100
 
 pygobject (3.28.2-1) unstable; urgency=medium
 
