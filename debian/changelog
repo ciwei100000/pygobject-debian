@@ -1,6 +1,7 @@
-pygobject (3.28.3-2) UNRELEASED; urgency=medium
+pygobject (3.29.2-1) UNRELEASED; urgency=medium
 
   * d/watch: Watch for development versions
+  * New upstream release
 
  -- Simon McVittie <smcv@debian.org>  Tue, 14 Aug 2018 11:32:47 +0100
 
