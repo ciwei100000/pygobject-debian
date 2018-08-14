@@ -14,6 +14,7 @@ intersphinx_mapping = {
     'gio': ('https://lazka.github.io/pgi-docs/Gio-2.0', None),
     'python2': ('https://docs.python.org/2.7', None),
     'python3': ('https://docs.python.org/3', None),
+    'cairo': ('https://pycairo.readthedocs.io/en/latest', None),
 }
 
 source_suffix = '.rst'
@@ -51,10 +52,10 @@ html_theme_options = {
 
 extlinks = {
     'bzbug': ('https://bugzilla.gnome.org/show_bug.cgi?id=%s', 'bz#'),
-    'issue': ('https://gitlab.gnome.org/GNOME/pygobject/issues/%s', 'issue#'),
-    'commit': ('https://gitlab.gnome.org/GNOME/pygobject/commit/%s', 'commit#'),
+    'issue': ('https://gitlab.gnome.org/GNOME/pygobject/issues/%s', '#'),
+    'commit': ('https://gitlab.gnome.org/GNOME/pygobject/commit/%s', ''),
     'mr': (
-        'https://gitlab.gnome.org/GNOME/pygobject/merge_requests/%s', 'mr#'),
+        'https://gitlab.gnome.org/GNOME/pygobject/merge_requests/%s', '!'),
     'user': ('https://gitlab.gnome.org/%s', ''),
 }
 

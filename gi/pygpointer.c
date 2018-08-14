@@ -18,16 +18,14 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <config.h>
 
-#include <pyglib.h>
+#include <Python.h>
 #include <glib-object.h>
 #include "pygpointer.h"
-#include "pygtype.h"
-
 #include "pygi-type.h"
+#include "pygi-type.h"
+#include "pygi-util.h"
 
 
 GQuark pygpointer_class_key;
@@ -44,9 +42,9 @@ static PyObject*
 pyg_pointer_richcompare(PyObject *self, PyObject *other, int op)
 {
     if (Py_TYPE(self) == Py_TYPE(other))
-        return _pyglib_generic_ptr_richcompare (pyg_pointer_get_ptr (self),
-                                                pyg_pointer_get_ptr (other),
-                                                op);
+        return pyg_ptr_richcompare (pyg_pointer_get_ptr (self),
+                                    pyg_pointer_get_ptr (other),
+                                    op);
     else {
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
@@ -117,6 +115,7 @@ pyg_register_pointer(PyObject *dict, const gchar *class_name,
     if (!type->tp_dealloc) type->tp_dealloc = (destructor)pyg_pointer_dealloc;
 
     Py_TYPE(type) = &PyType_Type;
+    g_assert (Py_TYPE (&PyGPointer_Type) != NULL);
     type->tp_base = &PyGPointer_Type;
 
     if (PyType_Ready(type) < 0) {
@@ -182,8 +181,11 @@ pyg_pointer_new(GType pointer_type, gpointer pointer)
     return (PyObject *)self;
 }
 
-void
-pygobject_pointer_register_types(PyObject *d)
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
+pygi_pointer_register_types(PyObject *d)
 {
     pygpointer_class_key     = g_quark_from_static_string("PyGPointer::class");
 
@@ -194,5 +196,7 @@ pygobject_pointer_register_types(PyObject *d)
     PyGPointer_Type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
     PyGPointer_Type.tp_init = (initproc)pyg_pointer_init;
     PyGPointer_Type.tp_free = (freefunc)pyg_pointer_free;
-    PYGOBJECT_REGISTER_GTYPE(d, PyGPointer_Type, "GPointer", G_TYPE_POINTER); 
+    PYGOBJECT_REGISTER_GTYPE(d, PyGPointer_Type, "GPointer", G_TYPE_POINTER);
+
+    return 0;
 }

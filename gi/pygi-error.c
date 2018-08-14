@@ -20,14 +20,15 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pyglib.h"
+#include <Python.h>
 #include "pygi-error.h"
-#include "pygtype.h"
-#include <pyglib-python-compat.h>
+#include "pygi-type.h"
+#include "pygi-python-compat.h"
+#include "pygi-util.h"
+#include "pygi-basictype.h"
 
 
 PyObject *PyGError = NULL;
-static PyObject *exception_table = NULL;
 
 /**
  * pygi_error_marshal_to_py:
@@ -54,13 +55,6 @@ pygi_error_marshal_to_py (GError **error)
     state = PyGILState_Ensure();
 
     exc_type = PyGError;
-    if (exception_table != NULL)
-    {
-        PyObject *item;
-        item = PyDict_GetItem(exception_table, PYGLIB_PyLong_FromLong((*error)->domain));
-        if (item != NULL)
-            exc_type = item;
-    }
 
     if ((*error)->domain) {
         domain = g_quark_to_string ((*error)->domain);
@@ -121,6 +115,9 @@ pygi_error_check (GError **error)
 gboolean
 pygi_error_marshal_from_py (PyObject *pyerr, GError **error)
 {
+    gint code;
+    gchar *message = NULL;
+    gchar *domain = NULL;
     gboolean res = FALSE;
     PyObject *py_message = NULL,
              *py_domain = NULL,
@@ -128,38 +125,49 @@ pygi_error_marshal_from_py (PyObject *pyerr, GError **error)
 
     if (PyObject_IsInstance (pyerr, PyGError) != 1) {
         PyErr_Format (PyExc_TypeError, "Must be GLib.Error, not %s",
-                      pyerr->ob_type->tp_name);
+                      Py_TYPE (pyerr)->tp_name);
         return FALSE;
     }
 
     py_message = PyObject_GetAttrString (pyerr, "message");
-    if (!py_message || !PYGLIB_PyUnicode_Check (py_message)) {
+    if (!py_message) {
         PyErr_SetString (PyExc_ValueError,
                          "GLib.Error instances must have a 'message' string attribute");
         goto cleanup;
     }
 
+    if (!pygi_utf8_from_py (py_message, &message))
+        goto cleanup;
+
     py_domain = PyObject_GetAttrString (pyerr, "domain");
-    if (!py_domain || !PYGLIB_PyUnicode_Check (py_domain)) {
+    if (!py_domain) {
         PyErr_SetString (PyExc_ValueError,
                          "GLib.Error instances must have a 'domain' string attribute");
         goto cleanup;
     }
 
+    if (!pygi_utf8_from_py (py_domain, &domain))
+        goto cleanup;
+
     py_code = PyObject_GetAttrString (pyerr, "code");
-    if (!py_code || !PYGLIB_PyLong_Check (py_code)) {
+    if (!py_code) {
         PyErr_SetString (PyExc_ValueError,
                          "GLib.Error instances must have a 'code' int attribute");
         goto cleanup;
     }
 
+    if (!pygi_gint_from_py (py_code, &code))
+        goto cleanup;
+
     res = TRUE;
     g_set_error_literal (error,
-                         g_quark_from_string (PYGLIB_PyUnicode_AsString (py_domain)),
-                         PYGLIB_PyLong_AsLong (py_code),
-                         PYGLIB_PyUnicode_AsString (py_message));
+                         g_quark_from_string (domain),
+                         code,
+                         message);
 
 cleanup:
+    g_free (message);
+    g_free (domain);
     Py_XDECREF (py_message);
     Py_XDECREF (py_code);
     Py_XDECREF (py_domain);
@@ -209,35 +217,6 @@ pygi_gerror_exception_check (GError **error)
     Py_DECREF(value);
     return res;
 
-}
-
-/**
- * pygi_register_exception_for_domain:
- * @name: name of the exception
- * @error_domain: error domain
- *
- * Registers a new GLib.Error exception subclass called #name for
- * a specific #domain. This exception will be raised when a GError
- * of the same domain is passed in to pygi_error_check().
- *
- * Returns: the new exception
- */
-PyObject *
-pygi_register_exception_for_domain (gchar *name,
-                                    gint error_domain)
-{
-    PyObject *exception;
-
-    exception = PyErr_NewException(name, PyGError, NULL);
-
-    if (exception_table == NULL)
-        exception_table = PyDict_New();
-
-    PyDict_SetItem(exception_table,
-                   PYGLIB_PyLong_FromLong(error_domain),
-                   exception);
-
-    return exception;
 }
 
 static gboolean
@@ -329,11 +308,9 @@ pygi_arg_gerror_new_from_info (GITypeInfo   *type_info,
                                PyGIDirection direction)
 {
     gboolean res = FALSE;
-    PyGIArgCache *arg_cache = NULL;
+    PyGIArgCache *arg_cache;
 
     arg_cache = pygi_arg_cache_alloc ();
-    if (arg_cache == NULL)
-        return NULL;
 
     res = pygi_arg_gerror_setup_from_info (arg_cache,
                                            type_info,
@@ -373,19 +350,27 @@ pygerror_to_gvalue (GValue *value, PyObject *pyerror)
     return -1;
 }
 
-void
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
 pygi_error_register_types (PyObject *module)
 {
-    PyObject *error_module = PYGLIB_PyImport_ImportModule ("gi._error");
+    PyObject *error_module = pygi_import_module ("gi._error");
     if (!error_module) {
-        return;
+        return -1;
     }
 
     /* Stash a reference to the Python implemented gi._error.GError. */
     PyGError = PyObject_GetAttrString (error_module, "GError");
+    Py_DECREF (error_module);
+    if (PyGError == NULL)
+        return -1;
 
     pyg_register_gtype_custom (G_TYPE_ERROR,
                                pygerror_from_gvalue,
                                pygerror_to_gvalue);
+
+    return 0;
 }
 

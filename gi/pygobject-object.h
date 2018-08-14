@@ -3,7 +3,7 @@
 
 #include <Python.h>
 #include <glib-object.h>
-#include "pyglib-python-compat.h"
+#include "pygi-python-compat.h"
 #include "pygobject-internal.h"
 
 /* Data that belongs to the GObject instance, not the Python wrapper */
@@ -47,9 +47,10 @@ PyObject *    pygobject_new_full         (GObject *obj, gboolean steal, gpointer
 void          pygobject_sink             (GObject *obj);
 PyTypeObject *pygobject_lookup_class     (GType gtype);
 void          pygobject_watch_closure    (PyObject *self, GClosure *closure);
-void          pygobject_object_register_types(PyObject *d);
+int           pyi_object_register_types  (PyObject *d);
 void          pygobject_ref_float(PyGObject *self);
 void          pygobject_ref_sink(PyGObject *self);
+PyObject *    pyg_object_new             (PyGObject *self, PyObject *args, PyObject *kwargs);
 
 GClosure *    gclosure_from_pyfunc(PyGObject *object, PyObject *func);
 

@@ -38,15 +38,12 @@ gboolean      pygi_error_marshal_from_py    (PyObject  *pyerr,
 
 gboolean      pygi_gerror_exception_check   (GError **error);
 
-PyObject*     pygi_register_exception_for_domain (gchar *name,
-                                                  gint   error_domain);
-
 PyGIArgCache* pygi_arg_gerror_new_from_info (GITypeInfo    *type_info,
                                              GIArgInfo     *arg_info,   /* may be null */
                                              GITransfer     transfer,
                                              PyGIDirection  direction);
 
-void          pygi_error_register_types     (PyObject *module);
+int           pygi_error_register_types     (PyObject *module);
 
 G_END_DECLS
 

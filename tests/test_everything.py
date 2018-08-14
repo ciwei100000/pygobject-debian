@@ -10,11 +10,17 @@ import ctypes
 import warnings
 import sys
 import os
+import re
+import platform
+import gc
+
+import pytest
 
 from gi.repository import Regress as Everything
 from gi.repository import GObject
 from gi.repository import GLib
 from gi.repository import Gio
+from gi._compat import PY3, PY2
 
 try:
     from gi.repository import Gtk
@@ -22,19 +28,11 @@ try:
 except:
     Gtk = None
 
-from .compathelper import PY3
 from .helper import capture_exceptions
 
 
-if sys.version_info < (3, 0):
-    UNICHAR = "\xe2\x99\xa5"
-    PY2_UNICODE_UNICHAR = unicode(UNICHAR, 'UTF-8')
-else:
-    UNICHAR = "♥"
-
-
 const_str = b'const \xe2\x99\xa5 utf8'
-if sys.version_info >= (3, 0):
+if PY3:
     const_str = const_str.decode('UTF-8')
 noconst_str = 'non' + const_str
 
@@ -76,76 +74,214 @@ class TestEverything(unittest.TestCase):
                          GLib.MININT8)
         self.assertRaises(OverflowError, Everything.test_int8, GLib.MAXINT8 + 1)
 
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXINT8 + 1, GLib.MININT8, GLib.MAXINT8)):
+            Everything.test_int8(GLib.MAXINT8 + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MININT8, GLib.MAXINT8)):
+            Everything.test_int8(GLib.MAXUINT64 * 2)
+
+    def test_uint8(self):
         self.assertEqual(Everything.test_uint8(GLib.MAXUINT8),
                          GLib.MAXUINT8)
         self.assertEqual(Everything.test_uint8(0), 0)
         self.assertRaises(OverflowError, Everything.test_uint8, -1)
         self.assertRaises(OverflowError, Everything.test_uint8, GLib.MAXUINT8 + 1)
 
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT8 + 1, GLib.MAXUINT8)):
+            Everything.test_uint8(GLib.MAXUINT8 + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MAXUINT8)):
+            Everything.test_uint8(GLib.MAXUINT64 * 2)
+
     def test_int16(self):
         self.assertEqual(Everything.test_int16(GLib.MAXINT16),
                          GLib.MAXINT16)
         self.assertEqual(Everything.test_int16(GLib.MININT16),
                          GLib.MININT16)
-        self.assertRaises(OverflowError, Everything.test_int16, GLib.MAXINT16 + 1)
 
+        with pytest.raises(
+                OverflowError,
+                match="32768 not in range -32768 to 32767"):
+            Everything.test_int16(GLib.MAXINT16 + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="36893488147419103230 not in range -32768 to 32767"):
+            Everything.test_int16(GLib.MAXUINT64 * 2)
+
+    def test_uint16(self):
         self.assertEqual(Everything.test_uint16(GLib.MAXUINT16),
                          GLib.MAXUINT16)
         self.assertEqual(Everything.test_uint16(0), 0)
         self.assertRaises(OverflowError, Everything.test_uint16, -1)
-        self.assertRaises(OverflowError, Everything.test_uint16, GLib.MAXUINT16 + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT16 + 1, GLib.MAXUINT16)):
+            Everything.test_uint16(GLib.MAXUINT16 + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MAXUINT16)):
+            Everything.test_uint16(GLib.MAXUINT64 * 2)
 
     def test_int32(self):
         self.assertEqual(Everything.test_int32(GLib.MAXINT32),
                          GLib.MAXINT32)
         self.assertEqual(Everything.test_int32(GLib.MININT32),
                          GLib.MININT32)
-        self.assertRaises(OverflowError, Everything.test_int32, GLib.MAXINT32 + 1)
 
+        with pytest.raises(
+                OverflowError,
+                match="2147483648 not in range -2147483648 to 2147483647"):
+            Everything.test_int32(GLib.MAXINT32 + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range -2147483648 to 2147483647" % (
+                    GLib.MAXINT64 + 1,)):
+            Everything.test_int32(GLib.MAXINT64 + 1)
+
+    def test_uint32(self):
         self.assertEqual(Everything.test_uint32(GLib.MAXUINT32),
                          GLib.MAXUINT32)
         self.assertEqual(Everything.test_uint32(0), 0)
         self.assertRaises(OverflowError, Everything.test_uint32, -1)
-        self.assertRaises(OverflowError, Everything.test_uint32, GLib.MAXUINT32 + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT32 + 1, GLib.MAXUINT32)):
+            Everything.test_uint32(GLib.MAXUINT32 + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MAXUINT32)):
+            Everything.test_uint32(GLib.MAXUINT64 * 2)
 
     def test_int64(self):
         self.assertEqual(Everything.test_int64(GLib.MAXINT64),
                          GLib.MAXINT64)
         self.assertEqual(Everything.test_int64(GLib.MININT64),
                          GLib.MININT64)
-        self.assertRaises(OverflowError, Everything.test_int64, GLib.MAXINT64 + 1)
 
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXINT64 + 1, GLib.MININT64, GLib.MAXINT64)):
+            Everything.test_int64(GLib.MAXINT64 + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MININT64, GLib.MAXINT64)):
+            Everything.test_int64(GLib.MAXUINT64 * 2)
+
+    def test_uint64(self):
         self.assertEqual(Everything.test_uint64(GLib.MAXUINT64),
                          GLib.MAXUINT64)
         self.assertEqual(Everything.test_uint64(0), 0)
         self.assertRaises(OverflowError, Everything.test_uint64, -1)
         self.assertRaises(OverflowError, Everything.test_uint64, GLib.MAXUINT64 + 1)
 
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT64 + 1, GLib.MAXUINT64)):
+            Everything.test_uint64(GLib.MAXUINT64 + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MAXUINT64)):
+            Everything.test_uint64(GLib.MAXUINT64 * 2)
+
     def test_int(self):
         self.assertEqual(Everything.test_int(GLib.MAXINT),
                          GLib.MAXINT)
         self.assertEqual(Everything.test_int(GLib.MININT),
                          GLib.MININT)
-        self.assertRaises(OverflowError, Everything.test_int, GLib.MAXINT + 1)
 
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXINT + 1, GLib.MININT, GLib.MAXINT)):
+            Everything.test_int(GLib.MAXINT + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MININT, GLib.MAXINT)):
+            Everything.test_int(GLib.MAXUINT64 * 2)
+
+    def test_uint(self):
         self.assertEqual(Everything.test_uint(GLib.MAXUINT),
                          GLib.MAXUINT)
         self.assertEqual(Everything.test_uint(0), 0)
         self.assertRaises(OverflowError, Everything.test_uint, -1)
-        self.assertRaises(OverflowError, Everything.test_uint, GLib.MAXUINT + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT + 1, GLib.MAXUINT)):
+            Everything.test_uint(GLib.MAXUINT + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MAXUINT)):
+            Everything.test_uint(GLib.MAXUINT64 * 2)
 
     def test_short(self):
         self.assertEqual(Everything.test_short(GLib.MAXSHORT),
                          GLib.MAXSHORT)
         self.assertEqual(Everything.test_short(GLib.MINSHORT),
                          GLib.MINSHORT)
-        self.assertRaises(OverflowError, Everything.test_short, GLib.MAXSHORT + 1)
 
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXSHORT + 1, GLib.MINSHORT, GLib.MAXSHORT)):
+            Everything.test_short(GLib.MAXSHORT + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MINSHORT, GLib.MAXSHORT)):
+            Everything.test_short(GLib.MAXUINT64 * 2)
+
+    def test_ushort(self):
         self.assertEqual(Everything.test_ushort(GLib.MAXUSHORT),
                          GLib.MAXUSHORT)
         self.assertEqual(Everything.test_ushort(0), 0)
         self.assertRaises(OverflowError, Everything.test_ushort, -1)
-        self.assertRaises(OverflowError, Everything.test_ushort, GLib.MAXUSHORT + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUSHORT + 1, GLib.MAXUSHORT)):
+            Everything.test_ushort(GLib.MAXUSHORT + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MAXUSHORT)):
+            Everything.test_ushort(GLib.MAXUINT64 * 2)
 
     def test_long(self):
         self.assertEqual(Everything.test_long(GLib.MAXLONG),
@@ -154,24 +290,73 @@ class TestEverything(unittest.TestCase):
                          GLib.MINLONG)
         self.assertRaises(OverflowError, Everything.test_long, GLib.MAXLONG + 1)
 
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXLONG + 1, GLib.MINLONG, GLib.MAXLONG)):
+            Everything.test_long(GLib.MAXLONG + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MINLONG, GLib.MAXLONG)):
+            Everything.test_long(GLib.MAXUINT64 * 2)
+
+    def test_ulong(self):
         self.assertEqual(Everything.test_ulong(GLib.MAXULONG),
                          GLib.MAXULONG)
         self.assertEqual(Everything.test_ulong(0), 0)
         self.assertRaises(OverflowError, Everything.test_ulong, -1)
-        self.assertRaises(OverflowError, Everything.test_ulong, GLib.MAXULONG + 1)
 
-    def test_size(self):
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXULONG + 1, GLib.MAXULONG)):
+            Everything.test_ulong(GLib.MAXULONG + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MAXULONG)):
+            Everything.test_ulong(GLib.MAXUINT64 * 2)
+
+    def test_ssize(self):
         self.assertEqual(Everything.test_ssize(GLib.MAXSSIZE),
                          GLib.MAXSSIZE)
         self.assertEqual(Everything.test_ssize(GLib.MINSSIZE),
                          GLib.MINSSIZE)
         self.assertRaises(OverflowError, Everything.test_ssize, GLib.MAXSSIZE + 1)
 
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXSSIZE + 1, GLib.MINSSIZE, GLib.MAXSSIZE)):
+            Everything.test_ssize(GLib.MAXSSIZE + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range %s to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MINSSIZE, GLib.MAXSSIZE)):
+            Everything.test_ssize(GLib.MAXUINT64 * 2)
+
+    def test_size(self):
         self.assertEqual(Everything.test_size(GLib.MAXSIZE),
                          GLib.MAXSIZE)
         self.assertEqual(Everything.test_size(0), 0)
         self.assertRaises(OverflowError, Everything.test_size, -1)
         self.assertRaises(OverflowError, Everything.test_size, GLib.MAXSIZE + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXSIZE + 1, GLib.MAXSIZE)):
+            Everything.test_size(GLib.MAXSIZE + 1)
+
+        with pytest.raises(
+                OverflowError,
+                match="%s not in range 0 to %s" % (
+                    GLib.MAXUINT64 * 2, GLib.MAXSIZE)):
+            Everything.test_size(GLib.MAXUINT64 * 2)
 
     def test_timet(self):
         self.assertEqual(Everything.test_timet(42), 42)
@@ -180,9 +365,11 @@ class TestEverything(unittest.TestCase):
     def test_unichar(self):
         self.assertEqual("c", Everything.test_unichar("c"))
 
-        if sys.version_info < (3, 0):
-            self.assertEqual(UNICHAR, Everything.test_unichar(PY2_UNICODE_UNICHAR))
-        self.assertEqual(UNICHAR, Everything.test_unichar(UNICHAR))
+        if PY2:
+            self.assertEqual(b"\xe2\x99\xa5", Everything.test_unichar(u"♥"))
+            self.assertEqual(b"\xe2\x99\xa5", Everything.test_unichar(b"\xe2\x99\xa5"))
+        else:
+            self.assertEqual(u"♥", Everything.test_unichar(u"♥"))
         self.assertRaises(TypeError, Everything.test_unichar, "")
         self.assertRaises(TypeError, Everything.test_unichar, "morethanonechar")
 
@@ -192,6 +379,12 @@ class TestEverything(unittest.TestCase):
         self.assertEqual(Everything.test_float(GLib.MINFLOAT),
                          GLib.MINFLOAT)
         self.assertRaises(OverflowError, Everything.test_float, GLib.MAXFLOAT * 2)
+
+        with pytest.raises(
+                OverflowError,
+                match=re.escape("%s not in range %s to %s" % (
+                    GLib.MAXFLOAT * 2, -GLib.MAXFLOAT, GLib.MAXFLOAT))):
+            Everything.test_float(GLib.MAXFLOAT * 2)
 
     def test_double(self):
         self.assertEqual(Everything.test_double(GLib.MAXDOUBLE),
@@ -402,7 +595,7 @@ class TestEverything(unittest.TestCase):
         self.assertEqual(Everything.test_array_int_inout([]), [])
 
     def test_array_gint8_in(self):
-        if sys.version_info >= (3, 0):
+        if PY3:
             self.assertEqual(Everything.test_array_gint8_in(b'\x01\x03\x05'), 9)
         self.assertEqual(Everything.test_array_gint8_in([1, 3, 5, -50]), -41)
 
@@ -542,6 +735,7 @@ class TestEverything(unittest.TestCase):
         Everything.test_ghash_gvalue_in(data)
         data = None
 
+    @unittest.skipIf(platform.python_implementation() == "PyPy", "CPython only")
     def test_struct_gpointer(self):
         glist = GLib.List()
         raw = RawGList.from_wrapped(glist)
@@ -685,14 +879,17 @@ class TestCallbacks(unittest.TestCase):
             TestCallbacks.called = True
             return 44
 
-        ud_refcount = sys.getrefcount(ud)
-        callback_refcount = sys.getrefcount(callback)
+        if hasattr(sys, "getrefcount"):
+            ud_refcount = sys.getrefcount(ud)
+            callback_refcount = sys.getrefcount(callback)
 
         self.assertEqual(Everything.test_callback_async(callback, ud), None)
         # Callback should not have run and the ref count is increased by 1
         self.assertEqual(TestCallbacks.called, False)
-        self.assertEqual(sys.getrefcount(callback), callback_refcount + 1)
-        self.assertEqual(sys.getrefcount(ud), ud_refcount + 1)
+
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(callback), callback_refcount + 1)
+            self.assertEqual(sys.getrefcount(ud), ud_refcount + 1)
 
         # test_callback_thaw_async will run the callback previously supplied.
         # references should be auto decremented after this call.
@@ -700,8 +897,9 @@ class TestCallbacks(unittest.TestCase):
         self.assertTrue(TestCallbacks.called)
 
         # Make sure refcounts are returned to normal
-        self.assertEqual(sys.getrefcount(callback), callback_refcount)
-        self.assertEqual(sys.getrefcount(ud), ud_refcount)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(callback), callback_refcount)
+            self.assertEqual(sys.getrefcount(ud), ud_refcount)
 
     def test_callback_scope_call_multi(self):
         # This tests a callback that gets called multiple times from a
@@ -712,12 +910,15 @@ class TestCallbacks(unittest.TestCase):
             TestCallbacks.called += 1
             return TestCallbacks.called
 
-        refcount = sys.getrefcount(callback)
+        if hasattr(sys, "getrefcount"):
+            refcount = sys.getrefcount(callback)
         result = Everything.test_multi_callback(callback)
         # first callback should give 1, second 2, and the function sums them up
         self.assertEqual(result, 3)
         self.assertEqual(TestCallbacks.called, 2)
-        self.assertEqual(sys.getrefcount(callback), refcount)
+
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(callback), refcount)
 
     def test_callback_scope_call_array(self):
         # This tests a callback that gets called multiple times from a
@@ -730,13 +931,16 @@ class TestCallbacks(unittest.TestCase):
             TestCallbacks.callargs.append((one, two))
             return len(TestCallbacks.callargs)
 
-        refcount = sys.getrefcount(callback)
+        if hasattr(sys, "getrefcount"):
+            refcount = sys.getrefcount(callback)
         result = Everything.test_array_callback(callback)
         # first callback should give 1, second 2, and the function sums them up
         self.assertEqual(result, 3)
         self.assertEqual(TestCallbacks.callargs,
                          [([-1, 0, 1, 2], ['one', 'two', 'three'])] * 2)
-        self.assertEqual(sys.getrefcount(callback), refcount)
+
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(callback), refcount)
 
     @unittest.skipUnless(hasattr(Everything, 'test_array_inout_callback'),
                          'Requires newer version of GI')
@@ -749,13 +953,15 @@ class TestCallbacks(unittest.TestCase):
             TestCallbacks.callargs.append(ints)
             return ints[1:], len(ints[1:])
 
-        refcount = sys.getrefcount(callback)
+        if hasattr(sys, "getrefcount"):
+            refcount = sys.getrefcount(callback)
         result = Everything.test_array_inout_callback(callback)
         self.assertEqual(TestCallbacks.callargs,
                          [[-2, -1, 0, 1, 2], [-1, 0, 1, 2]])
         # first callback should give 4, second 3
         self.assertEqual(result, 3)
-        self.assertEqual(sys.getrefcount(callback), refcount)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(callback), refcount)
 
     def test_callback_userdata(self):
         TestCallbacks.called = 0
@@ -887,8 +1093,9 @@ class TestCallbacks(unittest.TestCase):
             TestCallbacks.called += 1
             return 33
 
-        value_refcount = sys.getrefcount(ud)
-        callback_refcount = sys.getrefcount(callback)
+        if hasattr(sys, "getrefcount"):
+            value_refcount = sys.getrefcount(ud)
+            callback_refcount = sys.getrefcount(callback)
 
         # Callback is immediately called.
         for i in range(100):
@@ -896,14 +1103,16 @@ class TestCallbacks(unittest.TestCase):
             self.assertEqual(res, 33)
 
         self.assertEqual(TestCallbacks.called, 100)
-        self.assertEqual(sys.getrefcount(callback), callback_refcount + 100)
-        self.assertEqual(sys.getrefcount(ud), value_refcount + 100)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(callback), callback_refcount + 100)
+            self.assertEqual(sys.getrefcount(ud), value_refcount + 100)
 
         # thaw will call the callback again, this time resources should be freed
         self.assertEqual(Everything.test_callback_thaw_notifications(), 33 * 100)
         self.assertEqual(TestCallbacks.called, 200)
-        self.assertEqual(sys.getrefcount(callback), callback_refcount)
-        self.assertEqual(sys.getrefcount(ud), value_refcount)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(callback), callback_refcount)
+            self.assertEqual(sys.getrefcount(ud), value_refcount)
 
     def test_callback_scope_notified_with_destroy_no_user_data(self):
         TestCallbacks.called = 0
@@ -913,7 +1122,8 @@ class TestCallbacks(unittest.TestCase):
             TestCallbacks.called += 1
             return 34
 
-        callback_refcount = sys.getrefcount(callback)
+        if hasattr(sys, "getrefcount"):
+            callback_refcount = sys.getrefcount(callback)
 
         # Run with warning as exception
         with warnings.catch_warnings(record=True) as w:
@@ -923,7 +1133,8 @@ class TestCallbacks(unittest.TestCase):
                               callback)
 
         self.assertEqual(TestCallbacks.called, 0)
-        self.assertEqual(sys.getrefcount(callback), callback_refcount)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(callback), callback_refcount)
 
         # Run with warning as warning
         with warnings.catch_warnings(record=True) as w:
@@ -938,13 +1149,15 @@ class TestCallbacks(unittest.TestCase):
 
         self.assertEqual(res, 34)
         self.assertEqual(TestCallbacks.called, 1)
-        self.assertEqual(sys.getrefcount(callback), callback_refcount + 1)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(callback), callback_refcount + 1)
 
         # thaw will call the callback again,
         # refcount will not go down without user_data parameter
         self.assertEqual(Everything.test_callback_thaw_notifications(), 34)
         self.assertEqual(TestCallbacks.called, 2)
-        self.assertEqual(sys.getrefcount(callback), callback_refcount + 1)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(callback), callback_refcount + 1)
 
     def test_callback_in_methods(self):
         object_ = Everything.TestObj()
@@ -1118,7 +1331,7 @@ class TestBoxed(unittest.TestCase):
         with warnings.catch_warnings(record=True) as warn:
             warnings.simplefilter('always')
             boxed = Everything.TestBoxedB(42, 47)
-            self.assertTrue(issubclass(warn[0].category, TypeError))
+            self.assertTrue(issubclass(warn[0].category, DeprecationWarning))
 
         self.assertEqual(boxed.some_int8, 0)
         self.assertEqual(boxed.some_long, 0)
@@ -1141,6 +1354,8 @@ class TestBoxed(unittest.TestCase):
         # - another owned by @obj
         self.assertEqual(obj.refcount, 2)
         del wrapper
+        gc.collect()
+        gc.collect()
         self.assertEqual(obj.refcount, 1)
 
     def test_boxed_c_wrapper_copy(self):
@@ -1155,10 +1370,16 @@ class TestBoxed(unittest.TestCase):
         # - another owned by @obj
         self.assertEqual(obj.refcount, 3)
         del wrapper
+        gc.collect()
+        gc.collect()
         self.assertEqual(obj.refcount, 2)
         del wrapper_copy
+        gc.collect()
+        gc.collect()
         self.assertEqual(obj.refcount, 1)
         del obj
+        gc.collect()
+        gc.collect()
 
     def test_array_fixed_boxed_none_out(self):
         arr = Everything.test_array_fixed_boxed_none_out()

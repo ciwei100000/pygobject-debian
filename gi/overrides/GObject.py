@@ -21,7 +21,6 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
 # USA
 
-import sys
 import warnings
 from collections import namedtuple
 
@@ -30,6 +29,7 @@ import gi.module
 from gi.overrides import override, deprecated_attr
 from gi.repository import GLib
 from gi import PyGIDeprecationWarning
+from gi._compat import PY2, text_type
 
 from gi import _propertyhelper as propertyhelper
 from gi import _signalhelper as signalhelper
@@ -199,7 +199,7 @@ __all__ += ['GBoxed', 'GEnum', 'GFlags', 'GInterface', 'GObject',
             'Warning']
 
 
-features = _gi.features
+features = {'generic-c-marshaller': True}
 list_properties = _gi.list_properties
 new = _gi.new
 pygobject_version = _gi.pygobject_version
@@ -218,8 +218,9 @@ class Value(GObjectModule.Value):
                 self.set_value(py_value)
 
     def __del__(self):
-        if self._free_on_dealloc and self.g_type != TYPE_INVALID:
-            self.unset()
+        if self._is_valid:
+            if self._free_on_dealloc and self.g_type != TYPE_INVALID:
+                self.unset()
 
         # We must call base class __del__() after unset.
         super(Value, self).__del__()
@@ -263,8 +264,8 @@ class Value(GObjectModule.Value):
         elif gtype == TYPE_STRING:
             if isinstance(py_value, str):
                 py_value = str(py_value)
-            elif sys.version_info < (3, 0):
-                if isinstance(py_value, unicode):
+            elif PY2:
+                if isinstance(py_value, text_type):
                     py_value = py_value.encode('UTF-8')
                 else:
                     raise ValueError("Expected string or unicode but got %s%s" %

@@ -22,9 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <config.h>
 
 #include "pygobject-internal.h"
 #include "pygi-foreign.h"
@@ -207,10 +205,15 @@ pygi_require_foreign (PyObject *self, PyObject *args, PyObject *kwargs)
     Py_RETURN_NONE;
 }
 
-void
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
 pygi_foreign_init (void)
 {
     if (foreign_structs == NULL) {
         init_foreign_structs ();
     }
+
+    return 0;
 }

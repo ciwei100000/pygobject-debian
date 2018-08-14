@@ -20,7 +20,6 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <pyglib.h>
 #include "pygi-invoke.h"
 #include "pygi-marshal-cleanup.h"
 #include "pygi-error.h"
@@ -335,7 +334,7 @@ _caller_alloc (PyGIArgCache *arg_cache, GIArgument *arg)
         arg->v_pointer = NULL;
         if (g_type_is_a (iface_cache->g_type, G_TYPE_BOXED)) {
             arg->v_pointer =
-                _pygi_boxed_alloc (iface_cache->interface_info, NULL);
+                pygi_boxed_alloc (iface_cache->interface_info, NULL);
         } else if (iface_cache->g_type == G_TYPE_VALUE) {
             arg->v_pointer = g_slice_new0 (GValue);
         } else if (iface_cache->is_foreign) {
@@ -357,7 +356,7 @@ _caller_alloc (PyGIArgCache *arg_cache, GIArgument *arg)
     } else if (arg_cache->type_tag == GI_TYPE_TAG_ARRAY) {
         PyGIArgGArray *array_cache = (PyGIArgGArray *)arg_cache;
 
-        arg->v_pointer = g_array_new (TRUE, TRUE, array_cache->item_size);
+        arg->v_pointer = g_array_new (TRUE, TRUE, (guint)array_cache->item_size);
     } else {
         return FALSE;
     }

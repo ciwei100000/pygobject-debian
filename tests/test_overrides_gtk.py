@@ -8,6 +8,7 @@ import contextlib
 import unittest
 import time
 import sys
+import gc
 import warnings
 
 from .helper import ignore_gi_deprecation_warnings, capture_glib_warnings
@@ -26,6 +27,14 @@ except ImportError:
     PyGTKDeprecationWarning = None
     GdkPixbuf = None
     Gdk = None
+
+
+def gtkver():
+    if Gtk is None:
+        return (0, 0, 0)
+    return (Gtk.get_major_version(),
+            Gtk.get_minor_version(),
+            Gtk.get_micro_version())
 
 
 @contextlib.contextmanager
@@ -58,6 +67,53 @@ def realized(widget):
 
     while Gtk.events_pending():
         Gtk.main_iteration()
+
+
+@unittest.skipUnless(Gtk, 'Gtk not available')
+def test_freeze_child_notif():
+
+    events = []
+
+    def on_notify(widget, spec):
+        events.append(spec.name)
+
+    b = Gtk.Box()
+    c = Gtk.Button()
+    c.connect("child-notify", on_notify)
+    c.freeze_child_notify()
+    b.pack_start(c, True, True, 0)
+    b.child_set_property(c, "expand", False)
+    b.child_set_property(c, "expand", True)
+    c.thaw_child_notify()
+    assert events.count("expand") == 1
+    del events[:]
+
+    with c.freeze_child_notify():
+        b.child_set_property(c, "expand", True)
+        b.child_set_property(c, "expand", False)
+
+    assert events.count("expand") == 1
+
+
+@unittest.skipUnless(Gtk, 'Gtk not available')
+def test_wrapper_toggle_refs():
+    class MyButton(Gtk.Button):
+        def __init__(self, height):
+            Gtk.Button.__init__(self)
+            self._height = height
+
+        def do_get_preferred_height(self):
+            return (self._height, self._height)
+
+    height = 142
+    w = Gtk.Window()
+    b = MyButton(height)
+    w.add(b)
+    b.show_all()
+    del b
+    gc.collect()
+    gc.collect()
+    assert w.get_preferred_size().minimum_size.height == height
 
 
 @unittest.skipUnless(Gtk, 'Gtk not available')
@@ -1360,6 +1416,223 @@ class TestTreeModel(unittest.TestCase):
         list_store.set(tree_iter, (0, 1), (20, True))
         self.assertEqual(signals, ['row-inserted', 'row-changed'])
 
+    def test_list_store_insert_before(self):
+        store = Gtk.ListStore(object)
+        signals = []
+
+        def on_row_inserted(store, tree_path, tree_iter, signal_list):
+            signal_list.append('row-inserted')
+
+        def on_row_changed(store, tree_path, tree_iter, signal_list):
+            signal_list.append('row-changed')
+
+        store.connect('row-inserted', on_row_inserted, signals)
+        store.connect('row-changed', on_row_changed, signals)
+
+        iter_ = store.append([0])
+        assert store.get_value(iter_, 0) == 0
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # append empty
+        iter_ = store.insert_before(None)
+        assert store.get_path(iter_).get_indices() == [1]
+        assert store.get_value(iter_, 0) is None
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # insert empty
+        iter_ = store.insert_before(iter_)
+        assert store.get_path(iter_).get_indices() == [1]
+        assert store.get_value(iter_, 0) is None
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # append non-empty
+        iter_ = store.insert_before(None, [1234])
+        assert store.get_path(iter_).get_indices() == [3]
+        assert store.get_value(iter_, 0) == 1234
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # insert non-empty
+        iter_ = store.insert_before(iter_, [4321])
+        assert store.get_path(iter_).get_indices() == [3]
+        assert store.get_value(iter_, 0) == 4321
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        assert [r[0] for r in store] == [0, None, None, 4321, 1234]
+
+    def test_list_store_insert_after(self):
+        store = Gtk.ListStore(object)
+        signals = []
+
+        def on_row_inserted(store, tree_path, tree_iter, signal_list):
+            signal_list.append('row-inserted')
+
+        def on_row_changed(store, tree_path, tree_iter, signal_list):
+            signal_list.append('row-changed')
+
+        store.connect('row-inserted', on_row_inserted, signals)
+        store.connect('row-changed', on_row_changed, signals)
+
+        iter_ = store.append([0])
+        assert store.get_value(iter_, 0) == 0
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # prepend empty
+        iter_ = store.insert_after(None)
+        assert store.get_path(iter_).get_indices() == [0]
+        assert store.get_value(iter_, 0) is None
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # insert empty
+        iter_ = store.insert_after(iter_)
+        assert store.get_path(iter_).get_indices() == [1]
+        assert store.get_value(iter_, 0) is None
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # prepend non-empty
+        iter_ = store.insert_after(None, [1234])
+        assert store.get_path(iter_).get_indices() == [0]
+        assert store.get_value(iter_, 0) == 1234
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # insert non-empty
+        iter_ = store.insert_after(iter_, [4321])
+        assert store.get_path(iter_).get_indices() == [1]
+        assert store.get_value(iter_, 0) == 4321
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        assert [r[0] for r in store] == [1234, 4321, None, None, 0]
+
+    def test_tree_store_insert_before(self):
+        store = Gtk.TreeStore(object)
+        signals = []
+
+        def on_row_inserted(store, tree_path, tree_iter, signal_list):
+            signal_list.append('row-inserted')
+
+        def on_row_changed(store, tree_path, tree_iter, signal_list):
+            signal_list.append('row-changed')
+
+        store.connect('row-inserted', on_row_inserted, signals)
+        store.connect('row-changed', on_row_changed, signals)
+
+        parent = store.append(None, [-1])
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        iter_ = store.append(parent, [0])
+        assert store.get_path(iter_).get_indices() == [0, 0]
+        assert store.get_value(iter_, 0) == 0
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # append empty
+        iter_ = store.insert_before(parent, None)
+        assert store.get_path(iter_).get_indices() == [0, 1]
+        assert store.get_value(iter_, 0) is None
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # insert empty
+        iter_ = store.insert_before(parent, iter_)
+        assert store.get_path(iter_).get_indices() == [0, 1]
+        assert store.get_value(iter_, 0) is None
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # append non-empty
+        iter_ = store.insert_before(parent, None, [1234])
+        assert store.get_path(iter_).get_indices() == [0, 3]
+        assert store.get_value(iter_, 0) == 1234
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # insert non-empty
+        iter_ = store.insert_before(parent, iter_, [4321])
+        assert store.get_path(iter_).get_indices() == [0, 3]
+        assert store.get_value(iter_, 0) == 4321
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        def func(model, path, iter_, rows):
+            rows.append((path.get_indices(), model[iter_][:]))
+
+        rows = []
+        store.foreach(func, rows)
+        assert rows == [
+            ([0], [-1]), ([0, 0], [0]), ([0, 1], [None]), ([0, 2], [None]),
+            ([0, 3], [4321]), ([0, 4], [1234])]
+
+    def test_tree_store_insert_after(self):
+        store = Gtk.TreeStore(object)
+        signals = []
+
+        def on_row_inserted(store, tree_path, tree_iter, signal_list):
+            signal_list.append('row-inserted')
+
+        def on_row_changed(store, tree_path, tree_iter, signal_list):
+            signal_list.append('row-changed')
+
+        store.connect('row-inserted', on_row_inserted, signals)
+        store.connect('row-changed', on_row_changed, signals)
+
+        parent = store.append(None, [-1])
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        iter_ = store.append(parent, [0])
+        assert store.get_path(iter_).get_indices() == [0, 0]
+        assert store.get_value(iter_, 0) == 0
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # append empty
+        iter_ = store.insert_after(parent, None)
+        assert store.get_path(iter_).get_indices() == [0, 0]
+        assert store.get_value(iter_, 0) is None
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # insert empty
+        iter_ = store.insert_after(parent, iter_)
+        assert store.get_path(iter_).get_indices() == [0, 1]
+        assert store.get_value(iter_, 0) is None
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # append non-empty
+        iter_ = store.insert_after(parent, None, [1234])
+        assert store.get_path(iter_).get_indices() == [0, 0]
+        assert store.get_value(iter_, 0) == 1234
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        # insert non-empty
+        iter_ = store.insert_after(parent, iter_, [4321])
+        assert store.get_path(iter_).get_indices() == [0, 1]
+        assert store.get_value(iter_, 0) == 4321
+        assert signals == ['row-inserted']
+        del signals[:]
+
+        def func(model, path, iter_, rows):
+            rows.append((path.get_indices(), model[iter_][:]))
+
+        rows = []
+        store.foreach(func, rows)
+
+        assert rows == [
+            ([0], [-1]), ([0, 0], [1234]), ([0, 1], [4321]),
+            ([0, 2], [None]), ([0, 3], [None]), ([0, 4], [0])]
+
     def test_tree_path(self):
         p1 = Gtk.TreePath()
         p2 = Gtk.TreePath.new_first()
@@ -1992,6 +2265,7 @@ class TestTextBuffer(unittest.TestCase):
         self.assertEqual(buffer.get_property('text'),
                          'first line\nsecond line\n')
 
+    @unittest.skipIf(gtkver() < (3, 20, 0), "broken with older gtk")
     def test_backward_find_char(self):
         buffer = Gtk.TextBuffer()
         buffer.set_text('abc')

@@ -25,18 +25,20 @@ import warnings
 
 from gi.repository import GObject
 from .._ossighelper import wakeup_on_signal, register_sigint_fallback
+from .._gtktemplate import Template
 from ..overrides import override, strip_boolean_result, deprecated_init
 from ..module import get_introspection_module
+from .._compat import string_types
 from gi import PyGIDeprecationWarning
 
-if sys.version_info >= (3, 0):
-    _basestring = str
-else:
-    _basestring = basestring
 
 Gtk = get_introspection_module('Gtk')
 
 __all__ = []
+
+
+Template = Template
+__all__.append('Template')
 
 if Gtk._version == '2.0':
     warn_msg = "You have imported the Gtk 2.0 module.  Because Gtk 2.0 \
@@ -116,9 +118,24 @@ def _builder_connect_callback(builder, gobj, signal_name, handler_name, connect_
             gobj.connect(signal_name, handler, *args)
 
 
+class _FreezeNotifyManager(object):
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.obj.thaw_child_notify()
+
+
 class Widget(Gtk.Widget):
 
     translate_coordinates = strip_boolean_result(Gtk.Widget.translate_coordinates)
+
+    def freeze_child_notify(self):
+        super(Widget, self).freeze_child_notify()
+        return _FreezeNotifyManager(self)
 
     def drag_dest_set_target_list(self, target_list):
         if (target_list is not None) and (not isinstance(target_list, Gtk.TargetList)):
@@ -388,7 +405,7 @@ if Gtk._version in ("2.0", "3.0"):
 
     class UIManager(Gtk.UIManager):
         def add_ui_from_string(self, buffer):
-            if not isinstance(buffer, _basestring):
+            if not isinstance(buffer, string_types):
                 raise TypeError('buffer must be a string')
 
             length = len(buffer.encode('UTF-8'))
@@ -457,7 +474,7 @@ class Builder(Gtk.Builder):
         self.connect_signals_full(_builder_connect_callback, obj_or_map)
 
     def add_from_string(self, buffer):
-        if not isinstance(buffer, _basestring):
+        if not isinstance(buffer, string_types):
             raise TypeError('buffer must be a string')
 
         length = len(buffer)
@@ -465,7 +482,7 @@ class Builder(Gtk.Builder):
         return Gtk.Builder.add_from_string(self, buffer, length)
 
     def add_objects_from_string(self, buffer, object_ids):
-        if not isinstance(buffer, _basestring):
+        if not isinstance(buffer, string_types):
             raise TypeError('buffer must be a string')
 
         length = len(buffer)
@@ -634,17 +651,17 @@ if Gtk._version in ("2.0", "3.0"):
     __all__.append('FontSelectionDialog')
 
 
-class RecentChooserDialog(Gtk.RecentChooserDialog):
-    # Note, the "manager" keyword must work across the entire 3.x series because
-    # "recent_manager" is not backwards compatible with PyGObject versions prior to 3.10.
-    __init__ = deprecated_init(Gtk.RecentChooserDialog.__init__,
-                               arg_names=('title', 'parent', 'recent_manager', 'buttons'),
-                               deprecated_aliases={'recent_manager': 'manager'},
-                               category=PyGTKDeprecationWarning)
+if Gtk._version in ("2.0", "3.0"):
+    class RecentChooserDialog(Gtk.RecentChooserDialog):
+        # Note, the "manager" keyword must work across the entire 3.x series because
+        # "recent_manager" is not backwards compatible with PyGObject versions prior to 3.10.
+        __init__ = deprecated_init(Gtk.RecentChooserDialog.__init__,
+                                   arg_names=('title', 'parent', 'recent_manager', 'buttons'),
+                                   deprecated_aliases={'recent_manager': 'manager'},
+                                   category=PyGTKDeprecationWarning)
 
-
-RecentChooserDialog = override(RecentChooserDialog)
-__all__.append('RecentChooserDialog')
+    RecentChooserDialog = override(RecentChooserDialog)
+    __all__.append('RecentChooserDialog')
 
 
 class IconView(Gtk.IconView):
@@ -731,7 +748,7 @@ class TextBuffer(Gtk.TextBuffer):
         Gtk.TextBuffer.set_text(self, text, length)
 
     def insert(self, iter, text, length=-1):
-        if not isinstance(text, _basestring):
+        if not isinstance(text, string_types):
             raise TypeError('text must be a string, not %s' % type(text))
 
         Gtk.TextBuffer.insert(self, iter, text, length)
@@ -760,7 +777,7 @@ class TextBuffer(Gtk.TextBuffer):
         self.insert_with_tags(iter, text, *tag_objs)
 
     def insert_at_cursor(self, text, length=-1):
-        if not isinstance(text, _basestring):
+        if not isinstance(text, string_types):
             raise TypeError('text must be a string, not %s' % type(text))
 
         Gtk.TextBuffer.insert_at_cursor(self, text, length)
@@ -986,27 +1003,25 @@ class ListStore(Gtk.ListStore, TreeModel, TreeSortable):
     def insert(self, position, row=None):
         return self._do_insert(position, row)
 
-    # FIXME: sends two signals; check if this can use an atomic
-    # insert_with_valuesv()
-
     def insert_before(self, sibling, row=None):
-        treeiter = Gtk.ListStore.insert_before(self, sibling)
-
         if row is not None:
-            self.set_row(treeiter, row)
+            if sibling is None:
+                position = -1
+            else:
+                position = self.get_path(sibling).get_indices()[-1]
+            return self._do_insert(position, row)
 
-        return treeiter
-
-    # FIXME: sends two signals; check if this can use an atomic
-    # insert_with_valuesv()
+        return Gtk.ListStore.insert_before(self, sibling)
 
     def insert_after(self, sibling, row=None):
-        treeiter = Gtk.ListStore.insert_after(self, sibling)
-
         if row is not None:
-            self.set_row(treeiter, row)
+            if sibling is None:
+                position = 0
+            else:
+                position = self.get_path(sibling).get_indices()[-1] + 1
+            return self._do_insert(position, row)
 
-        return treeiter
+        return Gtk.ListStore.insert_after(self, sibling)
 
     def set_value(self, treeiter, column, value):
         value = self._convert_value(column, value)
@@ -1179,7 +1194,7 @@ class TreePath(Gtk.TreePath):
     def __new__(cls, path=0):
         if isinstance(path, int):
             path = str(path)
-        elif not isinstance(path, _basestring):
+        elif not isinstance(path, string_types):
             path = ":".join(str(val) for val in path)
 
         if len(path) == 0:
@@ -1250,27 +1265,25 @@ class TreeStore(Gtk.TreeStore, TreeModel, TreeSortable):
     def insert(self, parent, position, row=None):
         return self._do_insert(parent, position, row)
 
-    # FIXME: sends two signals; check if this can use an atomic
-    # insert_with_valuesv()
-
     def insert_before(self, parent, sibling, row=None):
-        treeiter = Gtk.TreeStore.insert_before(self, parent, sibling)
-
         if row is not None:
-            self.set_row(treeiter, row)
+            if sibling is None:
+                position = -1
+            else:
+                position = self.get_path(sibling).get_indices()[-1]
+            return self._do_insert(parent, position, row)
 
-        return treeiter
-
-    # FIXME: sends two signals; check if this can use an atomic
-    # insert_with_valuesv()
+        return Gtk.TreeStore.insert_before(self, parent, sibling)
 
     def insert_after(self, parent, sibling, row=None):
-        treeiter = Gtk.TreeStore.insert_after(self, parent, sibling)
-
         if row is not None:
-            self.set_row(treeiter, row)
+            if sibling is None:
+                position = 0
+            else:
+                position = self.get_path(sibling).get_indices()[-1] + 1
+            return self._do_insert(parent, position, row)
 
-        return treeiter
+        return Gtk.TreeStore.insert_after(self, parent, sibling)
 
     def set_value(self, treeiter, column, value):
         value = self._convert_value(column, value)

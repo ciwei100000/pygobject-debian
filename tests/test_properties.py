@@ -31,8 +31,8 @@ from gi.repository import GIMarshallingTests
 from gi.repository import Regress
 from gi import _propertyhelper as propertyhelper
 
-from .compathelper import _long, PY3
-from .helper import capture_glib_warnings, capture_output
+from gi._compat import long_, PY3, PY2
+from .helper import capture_glib_warnings
 
 
 class PropertyObject(GObject.GObject):
@@ -207,12 +207,12 @@ class TestPropertyObject(unittest.TestCase):
     def test_uint64(self):
         obj = new(PropertyObject)
         self.assertEqual(obj.props.uint64, 0)
-        obj.props.uint64 = _long(1)
-        self.assertEqual(obj.props.uint64, _long(1))
+        obj.props.uint64 = long_(1)
+        self.assertEqual(obj.props.uint64, long_(1))
         obj.props.uint64 = 1
-        self.assertEqual(obj.props.uint64, _long(1))
+        self.assertEqual(obj.props.uint64, long_(1))
 
-        self.assertRaises((TypeError, OverflowError), obj.set_property, "uint64", _long(-1))
+        self.assertRaises((TypeError, OverflowError), obj.set_property, "uint64", long_(-1))
         self.assertRaises((TypeError, OverflowError), obj.set_property, "uint64", -1)
 
     def test_uint64_default_value(self):
@@ -220,7 +220,7 @@ class TestPropertyObject(unittest.TestCase):
             class TimeControl(GObject.GObject):
                 __gproperties__ = {
                     'time': (TYPE_UINT64, 'Time', 'Time',
-                             _long(0), (1 << 64) - 1, _long(0),
+                             long_(0), (1 << 64) - 1, long_(0),
                              ParamFlags.READABLE)
                     }
         except OverflowError:
@@ -254,6 +254,10 @@ class TestPropertyObject(unittest.TestCase):
                           default=object())
         self.assertRaises(TypeError, GObject.Property, type=Gio.SocketType,
                           default=1)
+
+    def test_repr(self):
+        prop = GObject.Property(type=int)
+        assert repr(prop) == "<GObject Property (uninitialized) (gint)>"
 
     def test_flags(self):
         obj = new(PropertyObject)
@@ -510,7 +514,7 @@ class TestProperty(unittest.TestCase):
             str = GObject.Property(type=str)
             int = GObject.Property(type=int)
             float = GObject.Property(type=float)
-            long = GObject.Property(type=_long)
+            long = GObject.Property(type=long_)
 
         self.assertTrue(hasattr(C.props, 'str'))
         self.assertTrue(hasattr(C.props, 'int'))
@@ -530,9 +534,9 @@ class TestProperty(unittest.TestCase):
         o.float = 3.14
         self.assertEqual(o.float, 3.14)
 
-        self.assertEqual(o.long, _long(0))
-        o.long = _long(100)
-        self.assertEqual(o.long, _long(100))
+        self.assertEqual(o.long, long_(0))
+        o.long = long_(100)
+        self.assertEqual(o.long, long_(100))
 
     def test_custom_getter(self):
         class C(GObject.GObject):
@@ -544,7 +548,6 @@ class TestProperty(unittest.TestCase):
         self.assertEqual(o.prop, 'value')
         self.assertRaises(TypeError, setattr, o, 'prop', 'xxx')
 
-    @unittest.expectedFailure  # https://bugzilla.gnome.org/show_bug.cgi?id=575652
     def test_getter_exception(self):
         class C(GObject.Object):
             @GObject.Property(type=int)
@@ -553,16 +556,14 @@ class TestProperty(unittest.TestCase):
 
         o = C()
 
-        # silence exception printed to stderr
-        with capture_output():
-            with self.assertRaisesRegex(ValueError, 'something bad happend'):
-                o.prop
+        with self.assertRaisesRegex(ValueError, 'something bad happend'):
+            o.prop
 
-            with self.assertRaisesRegex(ValueError, 'something bad happend'):
-                o.get_property('prop')
+        with self.assertRaisesRegex(ValueError, 'something bad happend'):
+            o.get_property('prop')
 
-            with self.assertRaisesRegex(ValueError, 'something bad happend'):
-                o.props.prop
+        with self.assertRaisesRegex(ValueError, 'something bad happend'):
+            o.props.prop
 
     def test_custom_setter(self):
         class C(GObject.GObject):
@@ -830,7 +831,7 @@ class TestProperty(unittest.TestCase):
         GObject.Property(type=GObject.TYPE_DOUBLE, minimum=-1)
 
     # Bug 644039
-
+    @unittest.skipUnless(hasattr(sys, "getrefcount"), "no sys.getrefcount")
     def test_reference_count(self):
         # We can check directly if an object gets finalized, so we will
         # observe it indirectly through the refcount of a member object.
@@ -870,8 +871,8 @@ class TestProperty(unittest.TestCase):
     def test_python_to_glib_type_mapping(self):
         tester = GObject.Property()
         self.assertEqual(tester._type_from_python(int), GObject.TYPE_INT)
-        if sys.version_info < (3, 0):
-            self.assertEqual(tester._type_from_python(long), GObject.TYPE_LONG)
+        if PY2:
+            self.assertEqual(tester._type_from_python(long_), GObject.TYPE_LONG)
         self.assertEqual(tester._type_from_python(bool), GObject.TYPE_BOOLEAN)
         self.assertEqual(tester._type_from_python(float), GObject.TYPE_DOUBLE)
         self.assertEqual(tester._type_from_python(str), GObject.TYPE_STRING)
@@ -1020,6 +1021,26 @@ class CPropertiesTestBase(object):
         obj = GIMarshallingTests.PropertiesObject(some_char=-42)
         self.assertEqual(self.get_prop(obj, 'some-char'), -42)
 
+        with pytest.raises(OverflowError):
+            self.set_prop(obj, 'some-char', GLib.MAXINT8 + 1)
+        with pytest.raises(OverflowError):
+            self.set_prop(obj, 'some-char', GLib.MININT8 - 1)
+
+        self.set_prop(obj, 'some-char', b"\x44")
+        assert self.get_prop(obj, 'some-char') == 0x44
+
+        self.set_prop(obj, 'some-char', b"\xff")
+        assert self.get_prop(obj, 'some-char') == -1
+
+        obj = GIMarshallingTests.PropertiesObject(some_char=u"\x7f")
+        assert self.get_prop(obj, 'some-char') == 0x7f
+
+        with pytest.raises(TypeError):
+            GIMarshallingTests.PropertiesObject(some_char=u"€")
+
+        with pytest.raises(TypeError):
+            GIMarshallingTests.PropertiesObject(some_char=u"\ud83d")
+
     def test_uchar(self):
         self.assertEqual(self.get_prop(self.obj, 'some-uchar'), 0)
         self.set_prop(self.obj, 'some-uchar', GLib.MAXUINT8)
@@ -1027,6 +1048,26 @@ class CPropertiesTestBase(object):
 
         obj = GIMarshallingTests.PropertiesObject(some_uchar=42)
         self.assertEqual(self.get_prop(obj, 'some-uchar'), 42)
+
+        with pytest.raises(OverflowError):
+            self.set_prop(obj, 'some-uchar', GLib.MAXUINT8 + 1)
+        with pytest.raises(OverflowError):
+            self.set_prop(obj, 'some-uchar', -1)
+
+        self.set_prop(obj, 'some-uchar', b"\x57")
+        assert self.get_prop(obj, 'some-uchar') == 0x57
+
+        self.set_prop(obj, 'some-uchar', b"\xff")
+        assert self.get_prop(obj, 'some-uchar') == 255
+
+        obj = GIMarshallingTests.PropertiesObject(some_uchar=u"\x7f")
+        assert self.get_prop(obj, 'some-uchar') == 127
+
+        with pytest.raises(TypeError):
+            GIMarshallingTests.PropertiesObject(some_uchar=u"\x80")
+
+        with pytest.raises(TypeError):
+            GIMarshallingTests.PropertiesObject(some_uchar=u"\ud83d")
 
     def test_int(self):
         self.assertEqual(self.get_prop(self.obj, 'some_int'), 0)

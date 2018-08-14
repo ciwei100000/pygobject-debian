@@ -18,32 +18,29 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <config.h>
 
-#include <pyglib.h>
 #include "pygobject-object.h"
 #include "pyginterface.h"
 #include "pygparamspec.h"
-#include "pygtype.h"
+#include "pygi-type.h"
 #include "pygboxed.h"
-#include "gobjectmodule.h"
+#include "gimodule.h"
 
+#include "pygi-util.h"
 #include "pygi-value.h"
 #include "pygi-type.h"
 #include "pygi-property.h"
 #include "pygi-signal-closure.h"
+#include "pygi-basictype.h"
 
 extern PyObject *PyGIDeprecationWarning;
 
 static void pygobject_dealloc(PyGObject *self);
 static int  pygobject_traverse(PyGObject *self, visitproc visit, void *arg);
-static int  pygobject_clear(PyGObject *self);
 static PyObject * pyg_type_get_bases(GType gtype);
 static inline int pygobject_clear(PyGObject *self);
 static PyObject * pygobject_weak_ref_new(GObject *obj, PyObject *callback, PyObject *user_data);
-static inline PyGObjectData * pyg_object_peek_inst_data(GObject *obj);
 static void pygobject_inherit_slots(PyTypeObject *type, PyObject *bases,
 				    gboolean check_for_present);
 static void pygobject_find_slot_for(PyTypeObject *type, PyObject *bases, int slot_offset,
@@ -55,6 +52,11 @@ GQuark pygobject_class_init_key;
 GQuark pygobject_wrapper_key;
 GQuark pygobject_has_updated_constructor_key;
 GQuark pygobject_instance_data_key;
+
+/* PyPy doesn't support tp_dictoffset, so we have to work around it */
+#ifndef PYPY_VERSION
+#define PYGI_OBJECT_USE_CUSTOM_DICT
+#endif
 
 GClosure *
 gclosure_from_pyfunc(PyGObject *object, PyObject *func)
@@ -106,12 +108,11 @@ pygobject_data_free(PyGObjectData *data)
      * free the memory. */
     PyGILState_STATE state;
     PyThreadState *_save = NULL;
-    gboolean state_saved = FALSE;
-
+    gboolean state_saved;
     GSList *closures, *tmp;
 
-    if (Py_IsInitialized()) {
-	state_saved = TRUE;
+    state_saved = Py_IsInitialized();
+    if (state_saved) {
 	state = PyGILState_Ensure();
 	Py_DECREF(data->type);
 	/* We cannot use Py_BEGIN_ALLOW_THREADS here because this is inside
@@ -623,18 +624,49 @@ pyg_toggle_notify (gpointer data, GObject *object, gboolean is_last_ref)
     PyGILState_Release(state);
 }
 
+static inline gboolean
+pygobject_toggle_ref_is_required (PyGObject *self)
+{
+#ifdef PYGI_OBJECT_USE_CUSTOM_DICT
+    return self->inst_dict != NULL;
+#else
+    PyObject *dict;
+    gboolean result;
+    dict = PyObject_GetAttrString ((PyObject *)self, "__dict__");
+    if (!dict) {
+        PyErr_Clear ();
+        return FALSE;
+    }
+    result = PyDict_Size (dict) != 0;
+    Py_DECREF (dict);
+    return result;
+#endif
+}
+
+static inline gboolean
+pygobject_toggle_ref_is_active (PyGObject *self)
+{
+    return self->private_flags.flags & PYGOBJECT_USING_TOGGLE_REF;
+}
+
   /* Called when the inst_dict is first created; switches the 
      reference counting strategy to start using toggle ref to keep the
      wrapper alive while the GObject lives.  In contrast, while
      inst_dict was NULL the python wrapper is allowed to die at
      will and is recreated on demand. */
 static inline void
-pygobject_switch_to_toggle_ref(PyGObject *self)
+pygobject_toggle_ref_ensure (PyGObject *self)
 {
-    g_assert(self->obj->ref_count >= 1);
+    if (pygobject_toggle_ref_is_active (self))
+        return;
 
-    if (self->private_flags.flags & PYGOBJECT_USING_TOGGLE_REF)
-        return; /* already using toggle ref */
+    if (!pygobject_toggle_ref_is_required (self))
+        return;
+
+    if (self->obj == NULL)
+        return;
+
+    g_assert(self->obj->ref_count >= 1);
     self->private_flags.flags |= PYGOBJECT_USING_TOGGLE_REF;
       /* Note that add_toggle_ref will never immediately call back into 
          pyg_toggle_notify */
@@ -690,8 +722,8 @@ pygobject_register_wrapper(PyObject *self)
     g_assert(gself->obj->ref_count >= 1);
       /* save wrapper pointer so we can access it later */
     g_object_set_qdata_full(gself->obj, pygobject_wrapper_key, gself, NULL);
-    if (gself->inst_dict)
-        pygobject_switch_to_toggle_ref(gself);
+
+    pygobject_toggle_ref_ensure (gself);
 }
 
 static PyObject *
@@ -861,11 +893,11 @@ static void
 pygobject_find_slot_for(PyTypeObject *type, PyObject *bases, int slot_offset,
 			gboolean check_for_present)
 {
-#define TYPE_SLOT(type)  (* (void **) (((char *) (type)) + slot_offset))
+#define TYPE_SLOT(type)  (* (void **)  (void *) (((char *) (type)) + slot_offset))
 
     void *found_slot = NULL;
-    int num_bases = PyTuple_Size(bases);
-    int i;
+    Py_ssize_t num_bases = PyTuple_Size(bases);
+    Py_ssize_t i;
 
     if (check_for_present && TYPE_SLOT(type) != NULL) {
 	/* We are requested to check if there is any custom slot value
@@ -1069,6 +1101,7 @@ pygobject_watch_closure(PyObject *self, GClosure *closure)
 
     gself = (PyGObject *)self;
     data = pygobject_get_inst_data(gself);
+    g_return_if_fail(data != NULL);
     g_return_if_fail(g_slist_find(data->closures, closure) == NULL);
     data->closures = g_slist_prepend(data->closures, closure);
     g_closure_add_invalidate_notifier(closure, data, pygobject_unwatch_closure);
@@ -1089,7 +1122,9 @@ pygobject_dealloc(PyGObject *self)
      * object. */
     PyObject_GC_UnTrack((PyObject *)self);
 
-    PyObject_ClearWeakRefs((PyObject *)self);
+    if (self->weakreflist != NULL)
+        PyObject_ClearWeakRefs((PyObject *)self);
+
       /* this forces inst_data->type to be updated, which could prove
        * important if a new wrapper has to be created and it is of a
        * unregistered type */
@@ -1120,9 +1155,9 @@ pygobject_richcompare(PyObject *self, PyObject *other, int op)
         return Py_NotImplemented;
     }
 
-    return _pyglib_generic_ptr_richcompare(((PyGObject*)self)->obj,
-                                           ((PyGObject*)other)->obj,
-                                           op);
+    return pyg_ptr_richcompare(((PyGObject*)self)->obj,
+                               ((PyGObject*)other)->obj,
+                               op);
 }
 
 static PYGLIB_Py_hash_t
@@ -1198,7 +1233,7 @@ pygobject_clear(PyGObject *self)
 {
     if (self->obj) {
         g_object_set_qdata_full(self->obj, pygobject_wrapper_key, NULL, NULL);
-        if (self->inst_dict) {
+        if (pygobject_toggle_ref_is_active (self)) {
             g_object_remove_toggle_ref(self->obj, pyg_toggle_notify, NULL);
             self->private_flags.flags &= ~PYGOBJECT_USING_TOGGLE_REF;
         } else {
@@ -1341,7 +1376,7 @@ pygobject_get_property (PyGObject *self, PyObject *args)
 static PyObject *
 pygobject_get_properties(PyGObject *self, PyObject *args)
 {
-    int len, i;
+    Py_ssize_t len, i;
     PyObject *tuple;
 
     if ((len = PyTuple_Size(args)) < 1) {
@@ -1668,7 +1703,7 @@ connect_helper(PyGObject *self, gchar *name, PyObject *callback, PyObject *extra
     pygobject_watch_closure((PyObject *)self, closure);
     handlerid = g_signal_connect_closure_by_id(self->obj, sigid, detail,
 					       closure, after);
-    return PyLong_FromUnsignedLong(handlerid);
+    return pygi_gulong_to_py (handlerid);
 }
 
 static PyObject *
@@ -1676,7 +1711,7 @@ pygobject_connect(PyGObject *self, PyObject *args)
 {
     PyObject *first, *callback, *extra_args, *ret;
     gchar *name;
-    guint len;
+    Py_ssize_t len;
 
     len = PyTuple_Size(args);
     if (len < 2) {
@@ -1888,7 +1923,9 @@ pygobject_emit(PyGObject *self, PyObject *args)
     if (query.return_type != G_TYPE_NONE)
 	g_value_init(&ret, query.return_type & ~G_SIGNAL_TYPE_STATIC_SCOPE);
     
+    Py_BEGIN_ALLOW_THREADS;
     g_signal_emitv(params, signal_id, detail, &ret);
+    Py_END_ALLOW_THREADS;
 
     for (i = 0; i < query.n_params + 1; i++)
 	g_value_unset(&params[i]);
@@ -1990,7 +2027,7 @@ pygobject_chain_from_overridden(PyGObject *self, PyObject *args)
 static PyObject *
 pygobject_weak_ref(PyGObject *self, PyObject *args)
 {
-    int len;
+    Py_ssize_t len;
     PyObject *callback = NULL, *user_data = NULL;
     PyObject *retval;
 
@@ -2055,7 +2092,7 @@ pygobject_disconnect_by_func(PyGObject *self, PyObject *args)
 						  0, 0,
 						  closure,
 						  NULL, NULL);
-    return PYGLIB_PyLong_FromLong(retval);
+    return pygi_guint_to_py (retval);
 }
 
 static PyObject *
@@ -2089,7 +2126,7 @@ pygobject_handler_block_by_func(PyGObject *self, PyObject *args)
 					     0, 0,
 					     closure,
 					     NULL, NULL);
-    return PYGLIB_PyLong_FromLong(retval);
+    return pygi_guint_to_py (retval);
 }
 
 static PyObject *
@@ -2123,7 +2160,7 @@ pygobject_handler_unblock_by_func(PyGObject *self, PyObject *args)
 					       0, 0,
 					       closure,
 					       NULL, NULL);
-    return PYGLIB_PyLong_FromLong(retval);
+    return pygi_guint_to_py (retval);
 }
 
 
@@ -2148,20 +2185,18 @@ static PyMethodDef pygobject_methods[] = {
     { NULL, NULL, 0 }
 };
 
-
+#ifdef PYGI_OBJECT_USE_CUSTOM_DICT
 static PyObject *
 pygobject_get_dict(PyGObject *self, void *closure)
 {
     if (self->inst_dict == NULL) {
-	self->inst_dict = PyDict_New();
-	if (self->inst_dict == NULL)
-	    return NULL;
-        if (G_LIKELY(self->obj))
-            pygobject_switch_to_toggle_ref(self);
+        self->inst_dict = PyDict_New();
+        pygobject_toggle_ref_ensure (self);
     }
     Py_INCREF(self->inst_dict);
     return self->inst_dict;
 }
+#endif
 
 static PyObject *
 pygobject_get_refcount(PyGObject *self, void *closure)
@@ -2170,32 +2205,28 @@ pygobject_get_refcount(PyGObject *self, void *closure)
         PyErr_Format(PyExc_TypeError, "GObject instance is not yet created");
         return NULL;
     }
-    return PYGLIB_PyLong_FromLong(self->obj->ref_count);
+    return pygi_guint_to_py (self->obj->ref_count);
 }
 
 static PyObject *
 pygobject_get_pointer(PyGObject *self, void *closure)
 {
-    return PYGLIB_CPointer_WrapPointer (self->obj, NULL);
+    return PyCapsule_New (self->obj, NULL, NULL);
 }
 
 static int
 pygobject_setattro(PyObject *self, PyObject *name, PyObject *value)
 {
     int res;
-    PyGObject *gself = (PyGObject *) self;
-    PyObject *inst_dict_before = gself->inst_dict;
-      /* call parent type's setattro */
     res = PyGObject_Type.tp_base->tp_setattro(self, name, value);
-    if (inst_dict_before == NULL && gself->inst_dict != NULL) {
-        if (G_LIKELY(gself->obj))
-            pygobject_switch_to_toggle_ref(gself);
-    }
+    pygobject_toggle_ref_ensure ((PyGObject *) self);
     return res;
 }
 
 static PyGetSetDef pygobject_getsets[] = {
+#ifdef PYGI_OBJECT_USE_CUSTOM_DICT
     { "__dict__", (getter)pygobject_get_dict, (setter)0 },
+#endif
     { "__grefcount__", (getter)pygobject_get_refcount, (setter)0, },
     { "__gpointer__", (getter)pygobject_get_pointer, (setter)0, },
     { NULL, 0, 0 }
@@ -2355,8 +2386,11 @@ pyobject_free(gpointer boxed)
     PyGILState_Release(state);
 }
 
-void
-pygobject_object_register_types(PyObject *d)
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
+pyi_object_register_types(PyObject *d)
 {
     PyObject *o, *descr;
 
@@ -2385,7 +2419,9 @@ pygobject_object_register_types(PyObject *d)
     PyGObject_Type.tp_weaklistoffset = offsetof(PyGObject, weakreflist);
     PyGObject_Type.tp_methods = pygobject_methods;
     PyGObject_Type.tp_getset = pygobject_getsets;
+#ifdef PYGI_OBJECT_USE_CUSTOM_DICT
     PyGObject_Type.tp_dictoffset = offsetof(PyGObject, inst_dict);
+#endif
     PyGObject_Type.tp_init = (initproc)pygobject_init;
     PyGObject_Type.tp_free = (freefunc)pygobject_free;
     PyGObject_Type.tp_alloc = PyType_GenericAlloc;
@@ -2407,13 +2443,13 @@ pygobject_object_register_types(PyObject *d)
     PyGProps_Type.tp_iter = (getiterfunc)pygobject_props_get_iter;
     PyGProps_Type.tp_methods = pygobject_props_methods;
     if (PyType_Ready(&PyGProps_Type) < 0)
-        return;
+        return -1;
 
     /* GPropsDescr */
     PyGPropsDescr_Type.tp_flags = Py_TPFLAGS_DEFAULT;
     PyGPropsDescr_Type.tp_descr_get = pyg_props_descr_descr_get;
     if (PyType_Ready(&PyGPropsDescr_Type) < 0)
-        return;
+        return -1;
     descr = PyObject_New(PyObject, &PyGPropsDescr_Type);
     PyDict_SetItemString(PyGObject_Type.tp_dict, "props", descr);
     PyDict_SetItemString(PyGObject_Type.tp_dict, "__module__",
@@ -2426,7 +2462,7 @@ pygobject_object_register_types(PyObject *d)
     PyGPropsIter_Type.tp_doc = "GObject properties iterator";
     PyGPropsIter_Type.tp_iternext = (iternextfunc)pygobject_props_iter_next;
     if (PyType_Ready(&PyGPropsIter_Type) < 0)
-        return;
+        return -1;
 
     PyGObjectWeakRef_Type.tp_dealloc = (destructor)pygobject_weak_ref_dealloc;
     PyGObjectWeakRef_Type.tp_call = (ternaryfunc)pygobject_weak_ref_call;
@@ -2436,6 +2472,65 @@ pygobject_object_register_types(PyObject *d)
     PyGObjectWeakRef_Type.tp_clear = (inquiry)pygobject_weak_ref_clear;
     PyGObjectWeakRef_Type.tp_methods = pygobject_weak_ref_methods;
     if (PyType_Ready(&PyGObjectWeakRef_Type) < 0)
-        return;
+        return -1;
     PyDict_SetItemString(d, "GObjectWeakRef", (PyObject *) &PyGObjectWeakRef_Type);
+
+    return 0;
+}
+
+PyObject *
+pyg_object_new (PyGObject *self, PyObject *args, PyObject *kwargs)
+{
+    PyObject *pytype;
+    GType type;
+    GObject *obj = NULL;
+    GObjectClass *class;
+    guint n_params = 0, i;
+    GParameter *params = NULL;
+
+    if (!PyArg_ParseTuple (args, "O:gobject.new", &pytype)) {
+	return NULL;
+    }
+
+    if ((type = pyg_type_from_object (pytype)) == 0)
+	return NULL;
+
+    if (G_TYPE_IS_ABSTRACT(type)) {
+	PyErr_Format(PyExc_TypeError, "cannot create instance of abstract "
+		     "(non-instantiable) type `%s'", g_type_name(type));
+	return NULL;
+    }
+
+    if ((class = g_type_class_ref (type)) == NULL) {
+	PyErr_SetString(PyExc_TypeError,
+			"could not get a reference to type class");
+	return NULL;
+    }
+
+    if (!pygobject_prepare_construct_properties (class, kwargs, &n_params, &params))
+        goto cleanup;
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    obj = g_object_newv(type, n_params, params);
+G_GNUC_END_IGNORE_DEPRECATIONS
+
+    if (!obj)
+	PyErr_SetString (PyExc_RuntimeError, "could not create object");
+
+ cleanup:
+    for (i = 0; i < n_params; i++) {
+	g_free((gchar *) params[i].name);
+	g_value_unset(&params[i].value);
+    }
+    g_free(params);
+    g_type_class_unref(class);
+
+    if (obj) {
+        pygobject_sink (obj);
+	self = (PyGObject *) pygobject_new((GObject *)obj);
+        g_object_unref(obj);
+    } else
+        self = NULL;
+
+    return (PyObject *) self;
 }

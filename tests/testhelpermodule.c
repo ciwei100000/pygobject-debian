@@ -5,7 +5,7 @@
 #include "test-unknown.h"
 #include "test-floating.h"
 
-#include <pyglib-python-compat.h>
+#include "pygi-python-compat.h"
 
 static PyObject * _wrap_TestInterface__do_iface_method(PyObject *cls,
 						       PyObject *args,
@@ -29,8 +29,8 @@ test_type_get_type(void)
 	type_info = (GTypeInfo *)g_new0(GTypeInfo, 1);
 	
         g_type_query(parent_type, &query);
-        type_info->class_size = query.class_size;
-        type_info->instance_size = query.instance_size;
+        type_info->class_size = (guint16)query.class_size;
+        type_info->instance_size = (guint16)query.instance_size;
 	
         gtype = g_type_register_static(parent_type,
 				       "TestType", type_info, 0);
@@ -505,6 +505,15 @@ _wrap_test_value(PyObject *self, PyObject *args)
 }
 
 static PyObject *
+_wrap_test_state_ensure_release(PyObject *self, PyObject *args)
+{
+    int state = pyg_gil_state_ensure ();
+    pyg_gil_state_release (state);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
 _wrap_test_value_array(PyObject *self, PyObject *args)
 {
   GValue tvalue = {0,}, *value = &tvalue;
@@ -523,6 +532,56 @@ _wrap_test_value_array(PyObject *self, PyObject *args)
   }
   
   return pyg_value_as_pyobject(value, FALSE);
+}
+
+
+static PyObject *
+_wrap_value_array_get_nth_type(PyObject *self, PyObject *args)
+{
+  guint n;
+  GType type;
+  GValue *nth;
+  GValueArray *arr;
+  PyObject *obj;
+
+  if (!PyArg_ParseTuple(args, "OI", &obj, &n))
+    return NULL;
+
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+
+  if (pyg_boxed_check(obj, G_TYPE_VALUE) &&
+      G_VALUE_HOLDS(pyg_boxed_get(obj, GValue), G_TYPE_VALUE_ARRAY)) {
+    arr = g_value_get_boxed(pyg_boxed_get(obj, GValue));
+  } else if (pyg_boxed_check(obj, G_TYPE_VALUE_ARRAY)) {
+    arr = pyg_boxed_get(obj, GValueArray);
+  } else {
+    PyErr_SetString(PyExc_TypeError, "First argument is not GValueArray");
+    return NULL;
+  }
+
+  if (n >= arr->n_values) {
+    PyErr_SetString(PyExc_TypeError, "Index is out of bounds");
+    return NULL;
+  }
+  nth = g_value_array_get_nth(arr, n);
+  type = G_VALUE_TYPE(nth);
+
+  G_GNUC_END_IGNORE_DEPRECATIONS
+
+  return pyg_type_wrapper_new(type);
+}
+
+static PyObject *
+_wrap_constant_strip_prefix(PyObject *self, PyObject *args)
+{
+    const char *name, *strip_prefix;
+    const gchar *result;
+
+    if (!PyArg_ParseTuple (args, "ss", &name, &strip_prefix))
+        return NULL;
+
+    result = pyg_constant_strip_prefix (name, strip_prefix);
+    return PYGLIB_PyUnicode_FromString (result);
 }
 
 static PyObject *
@@ -596,14 +655,55 @@ _wrap_test_floating_and_sunk_get_instance_list (PyObject *self)
     return py_list;
 }
 
+
+static PyObject *
+_wrap_test_parse_constructor_args (PyObject *self, PyObject *args)
+{
+    char *arg_names[] = {"label", NULL};
+    char *prop_names[] = {"label", NULL};
+    GParameter params[1] = {{0}};
+    PyObject *parsed_args[1];
+    guint nparams = 0;
+
+    if (!PyArg_ParseTuple(args, "O", &(parsed_args[0])))
+        return NULL;
+
+    if (!pyg_parse_constructor_args (
+            TYPE_TEST, arg_names, prop_names, params, &nparams, parsed_args)) {
+        return NULL;
+    }
+
+    return PYGLIB_PyLong_FromLong (nparams);
+}
+
+static PyObject *
+_wrap_test_to_unichar_conv (PyObject * self, PyObject *args)
+{
+    PyObject *obj;
+    gunichar result;
+
+    if (!PyArg_ParseTuple(args, "O", &obj))
+      return NULL;
+
+    if (!pyg_pyobj_to_unichar_conv (obj, &result))
+        return NULL;
+
+    return PYGLIB_PyLong_FromLong (result);
+}
+
 static PyMethodDef testhelper_functions[] = {
+    { "test_parse_constructor_args", (PyCFunction)_wrap_test_parse_constructor_args, METH_VARARGS },
     { "get_test_thread", (PyCFunction)_wrap_get_test_thread, METH_NOARGS },
+    { "test_to_unichar_conv", (PyCFunction)_wrap_test_to_unichar_conv, METH_VARARGS },
     { "get_unknown", (PyCFunction)_wrap_get_unknown, METH_NOARGS },
     { "create_test_type", (PyCFunction)_wrap_create_test_type, METH_NOARGS },
+    { "test_state_ensure_release", (PyCFunction)_wrap_test_state_ensure_release, METH_NOARGS },
     { "test_g_object_new", (PyCFunction)_wrap_test_g_object_new, METH_NOARGS },
     { "connectcallbacks", (PyCFunction)_wrap_connectcallbacks, METH_VARARGS },
     { "test_value", (PyCFunction)_wrap_test_value, METH_VARARGS },      
     { "test_value_array", (PyCFunction)_wrap_test_value_array, METH_VARARGS },
+    { "value_array_get_nth_type", (PyCFunction)_wrap_value_array_get_nth_type, METH_VARARGS },
+    { "constant_strip_prefix", (PyCFunction)_wrap_constant_strip_prefix, METH_VARARGS },
     { "test_gerror_exception", (PyCFunction)_wrap_test_gerror_exception, METH_VARARGS },
     { "owned_by_library_get_instance_list", (PyCFunction)_wrap_test_owned_by_library_get_instance_list, METH_NOARGS },
     { "floating_and_sunk_get_instance_list", (PyCFunction)_wrap_test_floating_and_sunk_get_instance_list, METH_NOARGS },

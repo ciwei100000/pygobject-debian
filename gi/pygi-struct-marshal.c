@@ -20,8 +20,8 @@
 
 #include <Python.h>
 #include <glib.h>
-#include <pyglib-python-compat.h>
 
+#include "pygi-python-compat.h"
 #include "pygi-struct-marshal.h"
 #include "pygi-struct.h"
 #include "pygi-foreign.h"
@@ -31,7 +31,7 @@
 #include "pygi-info.h"
 #include "pygpointer.h"
 #include "pygboxed.h"
-#include "pygtype.h"
+#include "pygi-type.h"
 
 /*
  * _is_union_member - check to see if the py_arg is actually a member of the
@@ -66,7 +66,7 @@ _is_union_member (GIInterfaceInfo *interface_info, PyObject *py_arg) {
             PyObject *py_type;
 
             field_iface_info = g_type_info_get_interface (field_type_info);
-            py_type = _pygi_type_import_by_gi_info ((GIBaseInfo *) field_iface_info);
+            py_type = pygi_type_import_by_gi_info ((GIBaseInfo *) field_iface_info);
 
             if (py_type != NULL && PyObject_IsInstance (py_arg, py_type)) {
                 is_member = TRUE;
@@ -106,7 +106,7 @@ pygi_arg_gvalue_from_py_marshal (PyObject *py_arg,
     GValue *value;
     GType object_type;
 
-    object_type = pyg_type_from_object_strict ( (PyObject *) py_arg->ob_type, FALSE);
+    object_type = pyg_type_from_object_strict ( (PyObject *) Py_TYPE (py_arg), FALSE);
     if (object_type == G_TYPE_INVALID) {
         PyErr_SetString (PyExc_RuntimeError, "unable to retrieve object's GType");
         return FALSE;
@@ -145,7 +145,7 @@ pygi_arg_gvalue_from_py_cleanup (PyGIInvokeState *state,
     /* Note py_arg can be NULL for hash table which is a bug. */
     if (was_processed && py_arg != NULL) {
         GType py_object_type =
-            pyg_type_from_object_strict ( (PyObject *) py_arg->ob_type, FALSE);
+            pyg_type_from_object_strict ( (PyObject *) Py_TYPE (py_arg), FALSE);
 
         /* When a GValue was not passed, it means the marshalers created a new
          * one to pass in, clean this up.
@@ -172,7 +172,7 @@ pygi_arg_gclosure_from_py_marshal (PyObject   *py_arg,
     if ( !(PyCallable_Check(py_arg) ||
            g_type_is_a (object_gtype, G_TYPE_CLOSURE))) {
         PyErr_Format (PyExc_TypeError, "Must be callable, not %s",
-                      py_arg->ob_type->tp_name);
+                      Py_TYPE (py_arg)->tp_name);
         return FALSE;
     }
 
@@ -314,7 +314,7 @@ type_error:
                       type_name,
                       module ? PYGLIB_PyUnicode_AsString(module) : "",
                       module ? "." : "",
-                      py_arg->ob_type->tp_name);
+                      Py_TYPE (py_arg)->tp_name);
         if (module)
             Py_DECREF (module);
         g_free (type_name);
@@ -387,11 +387,11 @@ pygi_arg_struct_to_py_marshaller (GIArgument *arg,
                                                               arg->v_pointer);
     } else if (g_type_is_a (g_type, G_TYPE_BOXED)) {
         if (py_type) {
-            py_obj = _pygi_boxed_new ((PyTypeObject *) py_type,
-                                      arg->v_pointer,
-                                      transfer == GI_TRANSFER_EVERYTHING || is_allocated,
-                                      is_allocated ?
-                                              g_struct_info_get_size(interface_info) : 0);
+            py_obj = pygi_boxed_new ((PyTypeObject *) py_type,
+                                     arg->v_pointer,
+                                     transfer == GI_TRANSFER_EVERYTHING || is_allocated,
+                                     is_allocated ?
+                                            g_struct_info_get_size(interface_info) : 0);
         }
     } else if (g_type_is_a (g_type, G_TYPE_POINTER)) {
         if (py_type == NULL ||
@@ -399,9 +399,9 @@ pygi_arg_struct_to_py_marshaller (GIArgument *arg,
             g_warn_if_fail (transfer == GI_TRANSFER_NOTHING);
             py_obj = pyg_pointer_new (g_type, arg->v_pointer);
         } else {
-            py_obj = _pygi_struct_new ( (PyTypeObject *) py_type,
-                                       arg->v_pointer,
-                                       transfer == GI_TRANSFER_EVERYTHING);
+            py_obj = pygi_struct_new ( (PyTypeObject *) py_type,
+                                      arg->v_pointer,
+                                      transfer == GI_TRANSFER_EVERYTHING);
         }
     } else if (g_type_is_a (g_type, G_TYPE_VARIANT)) {
         /* Note: sink the variant (add a ref) only if we are not transfered ownership.
@@ -411,15 +411,15 @@ pygi_arg_struct_to_py_marshaller (GIArgument *arg,
             if (transfer == GI_TRANSFER_NOTHING) {
                 g_variant_ref_sink (arg->v_pointer);
             }
-            py_obj = _pygi_struct_new ((PyTypeObject *) py_type,
-                                       arg->v_pointer,
-                                       FALSE);
+            py_obj = pygi_struct_new ((PyTypeObject *) py_type,
+                                      arg->v_pointer,
+                                      FALSE);
         }
     } else if (g_type == G_TYPE_NONE) {
         if (py_type) {
-            py_obj = _pygi_struct_new ((PyTypeObject *) py_type,
-                                       arg->v_pointer,
-                                       transfer == GI_TRANSFER_EVERYTHING || is_allocated);
+            py_obj = pygi_struct_new ((PyTypeObject *) py_type,
+                                      arg->v_pointer,
+                                      transfer == GI_TRANSFER_EVERYTHING || is_allocated);
         }
     } else {
         PyErr_Format (PyExc_NotImplementedError,
@@ -442,7 +442,7 @@ pygi_arg_struct_to_py_marshal (GIArgument *arg,
     PyObject *ret = pygi_arg_struct_to_py_marshaller (arg, interface_info, g_type, py_type, transfer, is_allocated, is_foreign);
 
     if (ret && PyObject_IsInstance (ret, (PyObject *) &PyGIBoxed_Type) && transfer == GI_TRANSFER_NOTHING)
-        _pygi_boxed_copy_in_place ((PyGIBoxed *) ret);
+        pygi_boxed_copy_in_place ((PyGIBoxed *) ret);
 
     return ret;
 };
@@ -492,7 +492,7 @@ arg_boxed_to_py_cleanup (PyGIInvokeState *state,
                            gboolean         was_processed)
 {
     if (arg_cache->transfer == GI_TRANSFER_NOTHING)
-        _pygi_boxed_copy_in_place ((PyGIBoxed *) cleanup_data);
+        pygi_boxed_copy_in_place ((PyGIBoxed *) cleanup_data);
 }
 
 static gboolean

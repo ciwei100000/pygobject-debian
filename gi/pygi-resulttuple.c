@@ -17,12 +17,21 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <Python.h>
+#include <glib.h>
 #include "pygi-resulttuple.h"
-#include "pyglib.h"
+#include "pygi-python-compat.h"
 
 static char repr_format_key[] = "__repr_format";
 static char tuple_indices_key[] = "__tuple_indices";
 
+#define PYGI_USE_FREELIST
+
+#ifdef PYPY_VERSION
+#undef PYGI_USE_FREELIST
+#endif
+
+#ifdef PYGI_USE_FREELIST
 /* A free list similar to the one used for the CPython tuple. Difference
  * is that zero length tuples aren't cached (as we don't need them)
  * and that the freelist is smaller as we don't free it with the cyclic GC
@@ -32,6 +41,7 @@ static char tuple_indices_key[] = "__tuple_indices";
 #define PyGIResultTuple_MAXFREELIST 100
 static PyObject *free_list[PyGIResultTuple_MAXSAVESIZE];
 static int numfree[PyGIResultTuple_MAXSAVESIZE];
+#endif
 
 PYGLIB_DEFINE_TYPE ("gi._gi.ResultTuple", PyGIResultTuple_Type, PyTupleObject)
 
@@ -115,7 +125,7 @@ resulttuple_dir(PyObject *self)
     Py_DECREF (mapping_attr);
     if (mapping == NULL)
         goto error;
-    items = PyObject_Dir ((PyObject*)self->ob_type);
+    items = PyObject_Dir ((PyObject*)Py_TYPE (self));
     if (items == NULL)
         goto error;
     mapping_values = PyDict_Keys (mapping);
@@ -264,6 +274,7 @@ pygi_resulttuple_new_type(PyObject *tuple_names) {
  */
 PyObject *
 pygi_resulttuple_new(PyTypeObject *subclass, Py_ssize_t len) {
+#ifdef PYGI_USE_FREELIST
     PyObject *self;
     Py_ssize_t i;
 
@@ -285,6 +296,7 @@ pygi_resulttuple_new(PyTypeObject *subclass, Py_ssize_t len) {
             return self;
         }
     }
+#endif
 
     /* For zero length tuples and in case the free list is empty, alloc
      * as usual.
@@ -292,6 +304,7 @@ pygi_resulttuple_new(PyTypeObject *subclass, Py_ssize_t len) {
     return subclass->tp_alloc (subclass, len);
 }
 
+#ifdef PYGI_USE_FREELIST
 static void resulttuple_dealloc(PyObject *self) {
     Py_ssize_t i, len;
 
@@ -320,6 +333,7 @@ static void resulttuple_dealloc(PyObject *self) {
 done:
     Py_TRASHCAN_SAFE_END (self)
 }
+#endif
 
 /**
  * pygi_resulttuple_register_types:
@@ -336,14 +350,16 @@ int pygi_resulttuple_register_types(PyObject *module) {
     PyGIResultTuple_Type.tp_repr = (reprfunc)resulttuple_repr;
     PyGIResultTuple_Type.tp_getattro = (getattrofunc)resulttuple_getattro;
     PyGIResultTuple_Type.tp_methods = resulttuple_methods;
+#ifdef PYGI_USE_FREELIST
     PyGIResultTuple_Type.tp_dealloc = (destructor)resulttuple_dealloc;
+#endif
 
-    if (PyType_Ready (&PyGIResultTuple_Type))
+    if (PyType_Ready (&PyGIResultTuple_Type) < 0)
         return -1;
 
     Py_INCREF (&PyGIResultTuple_Type);
     if (PyModule_AddObject (module, "ResultTuple",
-                            (PyObject *)&PyGIResultTuple_Type)) {
+                            (PyObject *)&PyGIResultTuple_Type) < 0) {
         Py_DECREF (&PyGIResultTuple_Type);
         return -1;
     }

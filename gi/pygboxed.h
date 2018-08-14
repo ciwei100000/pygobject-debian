@@ -24,13 +24,11 @@ extern GQuark pygboxed_type_key;
 
 extern PyTypeObject PyGBoxed_Type;
 
-void       pyg_register_boxed (PyObject *dict, const gchar *class_name,
-                               GType boxed_type, PyTypeObject *type);
-PyObject * pyg_boxed_new      (GType boxed_type, gpointer boxed,
-                               gboolean copy_boxed, gboolean own_ref);
+void       pygi_register_gboxed (PyObject *dict, const gchar *class_name,
+                                 GType boxed_type, PyTypeObject *type);
+PyObject * pygi_gboxed_new      (GType boxed_type, gpointer boxed,
+                                 gboolean copy_boxed, gboolean own_ref);
 
-const gchar * pyg_constant_strip_prefix(const gchar *name, const gchar *strip_prefix);
-
-void pygobject_boxed_register_types(PyObject *d);
+int pygi_gboxed_register_types(PyObject *d);
 
 #endif /* __PYGOBJECT_BOXED_H__ */

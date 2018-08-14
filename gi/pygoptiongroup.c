@@ -18,13 +18,11 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <config.h>
 
-#include <pyglib.h>
 #include "pygoptiongroup.h"
 #include "pygi-error.h"
+#include "pygi-util.h"
 
 PYGLIB_DEFINE_TYPE("gi._gi.OptionGroup", PyGOptionGroup_Type, PyGOptionGroup)
 
@@ -271,9 +269,9 @@ pyg_option_group_richcompare(PyObject *self, PyObject *other, int op)
 {
     if (Py_TYPE(self) == Py_TYPE(other) && 
           Py_TYPE(self) == &PyGOptionGroup_Type) {
-        return _pyglib_generic_ptr_richcompare(((PyGOptionGroup*)self)->group,
-                                               ((PyGOptionGroup*)other)->group,
-                                               op);
+        return pyg_ptr_richcompare(((PyGOptionGroup*)self)->group,
+                                   ((PyGOptionGroup*)other)->group,
+                                   op);
     } else {
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
@@ -286,8 +284,11 @@ static PyMethodDef pyg_option_group_methods[] = {
     { NULL, NULL, 0 },
 };
 
-void
-pyglib_option_group_register_types(PyObject *d)
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
+pygi_option_group_register_types(PyObject *d)
 {
     PyGOptionGroup_Type.tp_dealloc = (destructor)pyg_option_group_dealloc;
     PyGOptionGroup_Type.tp_richcompare = pyg_option_group_richcompare;
@@ -295,4 +296,6 @@ pyglib_option_group_register_types(PyObject *d)
     PyGOptionGroup_Type.tp_methods = pyg_option_group_methods;
     PyGOptionGroup_Type.tp_init = (initproc)pyg_option_group_init;
     PYGLIB_REGISTER_TYPE(d, PyGOptionGroup_Type, "OptionGroup");
+
+    return 0;
 }
