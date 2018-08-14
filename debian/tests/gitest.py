@@ -17,4 +17,5 @@ class TestGI(unittest.TestCase):
 
         self.assertIn(GLib.find_program_in_path('bash'), ('/bin/bash', '/usr/bin/bash'))
 
+
 unittest.main(testRunner=unittest.TextTestRunner(stream=sys.stdout, verbosity=2))
