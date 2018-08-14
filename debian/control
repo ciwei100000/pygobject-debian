@@ -40,8 +40,6 @@ Build-Depends: at-spi2-core,
                xsltproc,
                xvfb <!nocheck>
 Rules-Requires-Root: no
-X-Python-Version: >= 2.7
-X-Python3-Version: >= 3.4
 Standards-Version: 4.2.0
 Vcs-Browser: https://salsa.debian.org/gnome-team/pygobject
 Vcs-Git: https://salsa.debian.org/gnome-team/pygobject.git

@@ -6,6 +6,7 @@ pygobject (3.28.3-1) UNRELEASED; urgency=medium
   * Standards-Version: 4.2.0
   * d/copyright: Remove trailing whitespace
   * Sort (build-)dependencies with wrap-and-sort -a
+  * Remove X-Python(3)-Version fields that are satisfied by oldstable
 
  -- Simon McVittie <smcv@debian.org>  Tue, 14 Aug 2018 10:14:00 +0100
 
