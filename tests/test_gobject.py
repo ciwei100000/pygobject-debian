@@ -7,12 +7,14 @@ import gc
 import unittest
 import warnings
 
-from gi.repository import GObject, GLib
+import pytest
+
+from gi.repository import GObject, GLib, Gio
 from gi import PyGIDeprecationWarning
 from gi.module import get_introspection_module
 from gi import _gi
 
-from . import testhelper
+import testhelper
 
 
 class TestGObjectAPI(unittest.TestCase):
@@ -244,19 +246,23 @@ class TestPythonReferenceCounting(unittest.TestCase):
 
     def test_new_instance_has_two_refs(self):
         obj = GObject.GObject()
-        self.assertEqual(sys.getrefcount(obj), 2)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(obj), 2)
 
     def test_new_instance_has_two_refs_using_gobject_new(self):
         obj = GObject.new(GObject.GObject)
-        self.assertEqual(sys.getrefcount(obj), 2)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(obj), 2)
 
     def test_new_subclass_instance_has_two_refs(self):
         obj = A()
-        self.assertEqual(sys.getrefcount(obj), 2)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(obj), 2)
 
     def test_new_subclass_instance_has_two_refs_using_gobject_new(self):
         obj = GObject.new(A)
-        self.assertEqual(sys.getrefcount(obj), 2)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(obj), 2)
 
 
 class TestContextManagers(unittest.TestCase):
@@ -281,14 +287,16 @@ class TestContextManagers(unittest.TestCase):
         self.assertEqual(self.tracking, [1, 2])
         self.assertEqual(self.obj.__grefcount__, 1)
 
-        pyref_count = sys.getrefcount(self.obj)
+        if hasattr(sys, "getrefcount"):
+            pyref_count = sys.getrefcount(self.obj)
 
         # Using the context manager the tracking list should not be affected.
         # The GObject reference count should stay the same and the python
         # object ref-count should go up.
         with self.obj.freeze_notify():
             self.assertEqual(self.obj.__grefcount__, 1)
-            self.assertEqual(sys.getrefcount(self.obj), pyref_count + 1)
+            if hasattr(sys, "getrefcount"):
+                self.assertEqual(sys.getrefcount(self.obj), pyref_count + 1)
             self.obj.props.prop = 3
             self.assertEqual(self.obj.props.prop, 3)
             self.assertEqual(self.tracking, [1, 2])
@@ -300,7 +308,8 @@ class TestContextManagers(unittest.TestCase):
         self.assertEqual(self.obj.props.prop, 3)
         self.assertEqual(self.tracking, [1, 2, 3])
         self.assertEqual(self.obj.__grefcount__, 1)
-        self.assertEqual(sys.getrefcount(self.obj), pyref_count)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(self.obj), pyref_count)
 
     def test_handler_block_context(self):
         # Verify prop tracking list
@@ -311,14 +320,16 @@ class TestContextManagers(unittest.TestCase):
         self.assertEqual(self.tracking, [1, 2])
         self.assertEqual(self.obj.__grefcount__, 1)
 
-        pyref_count = sys.getrefcount(self.obj)
+        if hasattr(sys, "getrefcount"):
+            pyref_count = sys.getrefcount(self.obj)
 
         # Using the context manager the tracking list should not be affected.
         # The GObject reference count should stay the same and the python
         # object ref-count should go up.
         with self.obj.handler_block(self.handler):
             self.assertEqual(self.obj.__grefcount__, 1)
-            self.assertEqual(sys.getrefcount(self.obj), pyref_count + 1)
+            if hasattr(sys, "getrefcount"):
+                self.assertEqual(sys.getrefcount(self.obj), pyref_count + 1)
             self.obj.props.prop = 3
             self.assertEqual(self.obj.props.prop, 3)
             self.assertEqual(self.tracking, [1, 2])
@@ -330,7 +341,8 @@ class TestContextManagers(unittest.TestCase):
         self.assertEqual(self.obj.props.prop, 3)
         self.assertEqual(self.tracking, [1, 2])
         self.assertEqual(self.obj.__grefcount__, 1)
-        self.assertEqual(sys.getrefcount(self.obj), pyref_count)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(self.obj), pyref_count)
 
     def test_freeze_notify_context_nested(self):
         self.assertEqual(self.tracking, [])
@@ -513,17 +525,19 @@ class TestPropertyBindings(unittest.TestCase):
             self.assertEqual(user_data, test_data)
             return value // 2
 
-        test_data_ref_count = sys.getrefcount(test_data)
-        transform_to_ref_count = sys.getrefcount(transform_to)
-        transform_from_ref_count = sys.getrefcount(transform_from)
+        if hasattr(sys, "getrefcount"):
+            test_data_ref_count = sys.getrefcount(test_data)
+            transform_to_ref_count = sys.getrefcount(transform_to)
+            transform_from_ref_count = sys.getrefcount(transform_from)
 
         # bidirectional bindings
         binding = self.source.bind_property('int_prop', self.target, 'int_prop',
                                             GObject.BindingFlags.BIDIRECTIONAL,
                                             transform_to, transform_from, test_data)
         binding = binding  # PyFlakes
-        binding_ref_count = sys.getrefcount(binding)
-        binding_gref_count = binding.__grefcount__
+        if hasattr(sys, "getrefcount"):
+            binding_ref_count = sys.getrefcount(binding)
+            binding_gref_count = binding.__grefcount__
 
         self.source.int_prop = 1
         self.assertEqual(self.source.int_prop, 1)
@@ -533,13 +547,15 @@ class TestPropertyBindings(unittest.TestCase):
         self.assertEqual(self.source.int_prop, 2)
         self.assertEqual(self.target.int_prop, 4)
 
-        self.assertEqual(sys.getrefcount(binding), binding_ref_count)
-        self.assertEqual(binding.__grefcount__, binding_gref_count)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(binding), binding_ref_count)
+            self.assertEqual(binding.__grefcount__, binding_gref_count)
 
         # test_data ref count increases by 2, once for each callback.
-        self.assertEqual(sys.getrefcount(test_data), test_data_ref_count + 2)
-        self.assertEqual(sys.getrefcount(transform_to), transform_to_ref_count + 1)
-        self.assertEqual(sys.getrefcount(transform_from), transform_from_ref_count + 1)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(test_data), test_data_ref_count + 2)
+            self.assertEqual(sys.getrefcount(transform_to), transform_to_ref_count + 1)
+            self.assertEqual(sys.getrefcount(transform_from), transform_from_ref_count + 1)
 
         # Unbind should clear out the binding and its transforms
         binding.unbind()
@@ -550,9 +566,10 @@ class TestPropertyBindings(unittest.TestCase):
         self.assertEqual(self.target.int_prop, 3)
         self.assertEqual(self.source.int_prop, 5)
 
-        self.assertEqual(sys.getrefcount(test_data), test_data_ref_count)
-        self.assertEqual(sys.getrefcount(transform_to), transform_to_ref_count)
-        self.assertEqual(sys.getrefcount(transform_from), transform_from_ref_count)
+        if hasattr(sys, "getrefcount"):
+            self.assertEqual(sys.getrefcount(test_data), test_data_ref_count)
+            self.assertEqual(sys.getrefcount(transform_to), transform_to_ref_count)
+            self.assertEqual(sys.getrefcount(transform_from), transform_from_ref_count)
 
     def test_explicit_unbind_clears_connection(self):
         self.assertEqual(self.source.int_prop, 0)
@@ -632,6 +649,12 @@ class TestGValue(unittest.TestCase):
         value.set_value(42.0)
         self.assertEqual(value.get_value(), 42)
 
+    def test_multi_del(self):
+        value = GObject.Value(str, 'foo_bar')
+        value.__del__()
+        value.__del__()
+        del value
+
     def test_string(self):
         value = GObject.Value(str, 'foo_bar')
         self.assertEqual(value.g_type, GObject.TYPE_STRING)
@@ -681,6 +704,24 @@ class TestGValue(unittest.TestCase):
         value.set_value([32, 'foo_bar', 0.3])
         self.assertEqual(value.get_value(), [32, 'foo_bar', 0.3])
 
+    def test_value_array_from_gvalue_list(self):
+        value = GObject.Value(GObject.ValueArray, [
+            GObject.Value(GObject.TYPE_UINT, 0xffffffff),
+            GObject.Value(GObject.TYPE_STRING, 'foo_bar')])
+        self.assertEqual(value.g_type, GObject.type_from_name('GValueArray'))
+        self.assertEqual(value.get_value(), [0xffffffff, 'foo_bar'])
+        self.assertEqual(testhelper.value_array_get_nth_type(value, 0), GObject.TYPE_UINT)
+        self.assertEqual(testhelper.value_array_get_nth_type(value, 1), GObject.TYPE_STRING)
+
+    def test_value_array_append_gvalue(self):
+        arr = GObject.ValueArray.new(0)
+        arr.append(GObject.Value(GObject.TYPE_UINT, 0xffffffff))
+        arr.append(GObject.Value(GObject.TYPE_STRING, 'foo_bar'))
+        self.assertEqual(arr.get_nth(0), 0xffffffff)
+        self.assertEqual(arr.get_nth(1), 'foo_bar')
+        self.assertEqual(testhelper.value_array_get_nth_type(arr, 0), GObject.TYPE_UINT)
+        self.assertEqual(testhelper.value_array_get_nth_type(arr, 1), GObject.TYPE_STRING)
+
     def test_gerror_boxing(self):
         error = GLib.Error('test message', domain='mydomain', code=42)
         value = GObject.Value(GLib.Error, error)
@@ -696,3 +737,43 @@ class TestGValue(unittest.TestCase):
         value = GObject.Value(GLib.Error)
         self.assertEqual(value.g_type, GObject.type_from_name('GError'))
         self.assertEqual(value.get_value(), None)
+
+
+def test_list_properties():
+
+    def find_param(l, name):
+        for param in l:
+            if param.name == name:
+                return param
+        return
+
+    list_props = GObject.list_properties
+
+    props = list_props(Gio.Action)
+    param = find_param(props, "enabled")
+    assert param
+    assert param.value_type == GObject.TYPE_BOOLEAN
+    assert list_props("GAction") == list_props(Gio.Action)
+    assert list_props(Gio.Action.__gtype__) == list_props(Gio.Action)
+
+    props = list_props(Gio.SimpleAction)
+    assert find_param(props, "enabled")
+
+    def names(l):
+        return [p.name for p in l]
+
+    assert (set(names(list_props(Gio.Action))) <=
+            set(names(list_props(Gio.SimpleAction))))
+
+    props = list_props(Gio.FileIcon)
+    param = find_param(props, "file")
+    assert param
+    assert param.value_type == Gio.File.__gtype__
+
+    assert list_props("GFileIcon") == list_props(Gio.FileIcon)
+    assert list_props(Gio.FileIcon.__gtype__) == list_props(Gio.FileIcon)
+    assert list_props(Gio.FileIcon()) == list_props(Gio.FileIcon)
+
+    for obj in [Gio.ActionEntry, Gio.DBusError, 0, object()]:
+        with pytest.raises(TypeError):
+            list_props(obj)

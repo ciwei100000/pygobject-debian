@@ -12,9 +12,9 @@ import time
 from gi.repository import GObject, GLib, Regress, Gio
 from gi import _signalhelper as signalhelper
 from gi.module import repository as repo
+from gi._compat import PY3, long_
 
-from . import testhelper
-from .compathelper import _long
+import testhelper
 from .helper import capture_glib_warnings, capture_gi_deprecation_warnings
 
 
@@ -523,7 +523,7 @@ class CM(GObject.GObject):
         test2=(GObject.SignalFlags.RUN_LAST, None, (str,)),
         test3=(GObject.SignalFlags.RUN_LAST, int, (GObject.TYPE_DOUBLE,)),
         test4=(GObject.SignalFlags.RUN_FIRST, None,
-               (bool, _long, GObject.TYPE_FLOAT, GObject.TYPE_DOUBLE, int,
+               (bool, long_, GObject.TYPE_FLOAT, GObject.TYPE_DOUBLE, int,
                 GObject.TYPE_UINT, GObject.TYPE_ULONG)),
         test_float=(GObject.SignalFlags.RUN_LAST, GObject.TYPE_FLOAT, (GObject.TYPE_FLOAT,)),
         test_double=(GObject.SignalFlags.RUN_LAST, GObject.TYPE_DOUBLE, (GObject.TYPE_DOUBLE,)),
@@ -555,7 +555,7 @@ class _TestCMarshaller:
         self.assertEqual(rv, 20)
 
     def test_test4(self):
-        self.obj.emit("test4", True, _long(10), 3.14, 1.78, 20, _long(30), _long(31))
+        self.obj.emit("test4", True, long_(10), 3.14, 1.78, 20, long_(30), long_(31))
 
     def test_float(self):
         rv = self.obj.emit("test-float", 1.234)
@@ -658,13 +658,9 @@ class _TestCMarshaller:
                          "hello")
 
 
-if 'generic-c-marshaller' in GObject.features:
-    class TestCMarshaller(_TestCMarshaller, unittest.TestCase):
-        pass
-else:
-    print()
-    print('** WARNING: LIBFFI disabled, not testing')
-    print()
+class TestCMarshaller(_TestCMarshaller, unittest.TestCase):
+    pass
+
 
 # Test for 374653
 
@@ -696,6 +692,10 @@ class TestSignalDecorator(unittest.TestCase):
         def pulled(self):
             self.value -= 1
 
+        @GObject.Signal(flags=GObject.SignalFlags.DETAILED)
+        def detailed(self):
+            self.value -= 1
+
         stomped = GObject.Signal('stomped', arg_types=(int,), doc='this will stomp')
         unnamed = GObject.Signal()
 
@@ -716,6 +716,26 @@ class TestSignalDecorator(unittest.TestCase):
 
     def onUnnamed(self, obj):
         self.unnamedCalled = True
+
+    def test_disconnect(self):
+        decorated = self.Decorated()
+        id_ = decorated.pushed.connect(lambda *args: None)
+        decorated.pushed.disconnect(id_)
+
+    def test_signal_repr(self):
+        decorated = self.Decorated()
+        assert repr(decorated.pushed) == 'BoundSignal("pushed")'
+
+    def test_signal_call(self):
+        decorated = self.Decorated()
+        assert decorated.value == 0
+        decorated.pushed()
+        assert decorated.value == 1
+
+    def test_connect_detailed(self):
+        decorated = self.Decorated()
+        id_ = decorated.detailed.connect_detailed(lambda *args: None, "foo")
+        decorated.pushed.disconnect(id_)
 
     def test_get_signal_args(self):
         self.assertEqual(self.Decorated.pushed.get_signal_args(),
@@ -1009,8 +1029,7 @@ class AnnotatedSignalClass(GObject.GObject):
 """
 
 
-@unittest.skipUnless(sys.version_info >= (3, 0),
-                     'Argument annotations require Python 3')
+@unittest.skipUnless(PY3, 'Argument annotations require Python 3')
 class TestPython3Signals(unittest.TestCase):
     AnnotatedClass = None
 
@@ -1398,6 +1417,7 @@ class _RefCountTestBase(object):
     class PyData(object):
         pass
 
+    @unittest.skipUnless(hasattr(sys, "getrefcount"), "no sys.getrefcount")
     def test_callback_ref_count_del(self):
         def callback(obj, value):
             return value // 2
@@ -1419,6 +1439,7 @@ class _RefCountTestBase(object):
         del obj
         self.assertIsNone(callback_ref())
 
+    @unittest.skipUnless(hasattr(sys, "getrefcount"), "no sys.getrefcount")
     def test_callback_ref_count_disconnect(self):
         def callback(obj, value):
             return value // 2
@@ -1440,6 +1461,7 @@ class _RefCountTestBase(object):
         obj.disconnect(handler_id)
         self.assertIsNone(callback_ref())
 
+    @unittest.skipUnless(hasattr(sys, "getrefcount"), "no sys.getrefcount")
     def test_callback_ref_count_disconnect_by_func(self):
         def callback(obj, value):
             return value // 2
@@ -1461,6 +1483,7 @@ class _RefCountTestBase(object):
         obj.disconnect_by_func(callback_ref())
         self.assertIsNone(callback_ref())
 
+    @unittest.skipUnless(hasattr(sys, "getrefcount"), "no sys.getrefcount")
     def test_user_data_ref_count(self):
         def callback(obj, value, data):
             return value // 2
@@ -1483,6 +1506,7 @@ class _RefCountTestBase(object):
         del obj
         self.assertIsNone(data_ref())
 
+    @unittest.skipUnless(hasattr(sys, "getrefcount"), "no sys.getrefcount")
     @unittest.expectedFailure  # https://bugzilla.gnome.org/show_bug.cgi?id=688064
     def test_object_ref_count(self):
         # connect_object() should only weakly reference the object passed in

@@ -20,6 +20,8 @@
 #ifndef __PYGOBJECT_ENUM_H__ 
 #define __PYGOBJECT_ENUM_H__
 
+#include "pygi-python-compat.h"
+
 extern GQuark pygenum_class_key;
 
 #define PyGEnum_Check(x) (PyObject_IsInstance((PyObject *)x, (PyObject *)&PyGEnum_Type) && g_type_is_a(((PyGFlags*)x)->gtype, G_TYPE_ENUM))
@@ -42,6 +44,6 @@ PyObject * pyg_enum_from_gtype (GType        gtype,
 
 gint pyg_enum_get_value  (GType enum_type, PyObject *obj, gint *val);
 
-void pygobject_enum_register_types(PyObject *d);
+int pygi_enum_register_types(PyObject *d);
 
 #endif /* __PYGOBJECT_ENUM_H__ */

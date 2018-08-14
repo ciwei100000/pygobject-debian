@@ -18,15 +18,49 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <config.h>
 
-#include <pyglib.h>
 #include "pygoptioncontext.h"
 #include "pygi-error.h"
+#include "pygi-util.h"
+#include "pygi-basictype.h"
 
 PYGLIB_DEFINE_TYPE("gi._gi.OptionContext", PyGOptionContext_Type, PyGOptionContext)
+
+/**
+ * pyg_option_group_transfer_group:
+ * @group: a GOptionGroup wrapper
+ *
+ * This is used to transfer the GOptionGroup to a GOptionContext. After this
+ * is called, the calle must handle the release of the GOptionGroup.
+ *
+ * When #NULL is returned, the GOptionGroup was already transfered.
+ *
+ * Returns: Either #NULL or the wrapped GOptionGroup.
+ */
+static GOptionGroup *
+pyglib_option_group_transfer_group(PyObject *obj)
+{
+    PyGOptionGroup *self = (PyGOptionGroup*)obj;
+
+    if (self->is_in_context)
+	return NULL;
+
+    self->is_in_context = TRUE;
+    
+    /* Here we increase the reference count of the PyGOptionGroup, because now
+     * the GOptionContext holds an reference to us (it is the userdata passed
+     * to g_option_group_new().
+     *
+     * The GOptionGroup is freed with the GOptionContext.
+     *
+     * We set it here because if we would do this in the init method we would
+     * hold two references and the PyGOptionGroup would never be freed.
+     */
+    Py_INCREF(self);
+
+    return self->group;
+}
 
 /**
  * pyg_option_context_new:
@@ -127,7 +161,7 @@ pyg_option_context_parse(PyGOptionContext *self,
     original = g_strdupv(argv_content);
 
     g_assert(argv_length <= G_MAXINT);
-    argv_length_int = argv_length;
+    argv_length_int = (gint)argv_length;
     Py_BEGIN_ALLOW_THREADS;
     result = g_option_context_parse(self->context, &argv_length_int, &argv_content,
                                     &error);
@@ -176,7 +210,7 @@ pyg_option_context_set_help_enabled(PyGOptionContext *self,
 static PyObject *
 pyg_option_context_get_help_enabled(PyGOptionContext *self)
 {
-    return PyBool_FromLong(g_option_context_get_help_enabled(self->context));
+    return pygi_gboolean_to_py (g_option_context_get_help_enabled(self->context));
 }
 
 static PyObject *
@@ -203,7 +237,7 @@ pyg_option_context_set_ignore_unknown_options(PyGOptionContext *self,
 static PyObject *
 pyg_option_context_get_ignore_unknown_options(PyGOptionContext *self)
 {
-    return PyBool_FromLong(
+    return pygi_gboolean_to_py (
         g_option_context_get_ignore_unknown_options(self->context));
 }
 
@@ -295,9 +329,9 @@ static PyObject*
 pyg_option_context_richcompare(PyObject *self, PyObject *other, int op)
 {
     if (Py_TYPE(self) == Py_TYPE(other) && Py_TYPE(self) == &PyGOptionContext_Type)
-        return _pyglib_generic_ptr_richcompare(((PyGOptionContext*)self)->context,
-                                               ((PyGOptionContext*)other)->context,
-                                               op);
+        return pyg_ptr_richcompare(((PyGOptionContext*)self)->context,
+                                   ((PyGOptionContext*)other)->context,
+                                   op);
     else {
        Py_INCREF(Py_NotImplemented);
        return Py_NotImplemented;
@@ -307,7 +341,7 @@ pyg_option_context_richcompare(PyObject *self, PyObject *other, int op)
 static PyObject *
 pyg_option_get_context(PyGOptionContext *self)
 {
-    return PYGLIB_CPointer_WrapPointer(self->context, "goption.context");
+    return PyCapsule_New (self->context, "goption.context", NULL);
 }
 
 static PyMethodDef pyg_option_context_methods[] = {
@@ -323,8 +357,11 @@ static PyMethodDef pyg_option_context_methods[] = {
     { NULL, NULL, 0 },
 };
 
-void
-pyglib_option_context_register_types(PyObject *d)
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
+pygi_option_context_register_types(PyObject *d)
 {
     PyGOptionContext_Type.tp_dealloc = (destructor)pyg_option_context_dealloc;
     PyGOptionContext_Type.tp_richcompare = pyg_option_context_richcompare;
@@ -332,4 +369,6 @@ pyglib_option_context_register_types(PyObject *d)
     PyGOptionContext_Type.tp_methods = pyg_option_context_methods;
     PyGOptionContext_Type.tp_init = (initproc)pyg_option_context_init;
     PYGLIB_REGISTER_TYPE(d, PyGOptionContext_Type, "OptionContext");
+
+    return 0;
 }

@@ -18,16 +18,14 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <config.h>
 
 #include <Python.h>
 #include <glib-object.h>
-#include "pyglib.h"
 
+#include "pygi-python-compat.h"
 #include "pyginterface.h"
-#include "pygtype.h"
+#include "pygi-type.h"
 
 GQuark pyginterface_type_key;
 GQuark pyginterface_info_key;
@@ -72,6 +70,7 @@ pyg_register_interface(PyObject *dict, const gchar *class_name,
     PyObject *o;
 
     Py_TYPE(type) = &PyType_Type;
+    g_assert (Py_TYPE (&PyGInterface_Type) != NULL);
     type->tp_base = &PyGInterface_Type;
 
     if (PyType_Ready(type) < 0) {
@@ -103,8 +102,11 @@ pyg_lookup_interface_info(GType gtype)
     return g_type_get_qdata(gtype, pyginterface_info_key);
 }
 
-void
-pygobject_interface_register_types(PyObject *d)
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
+pygi_interface_register_types(PyObject *d)
 {
   pyginterface_type_key = g_quark_from_static_string("PyGInterface::type");
   pyginterface_info_key = g_quark_from_static_string("PyGInterface::info");
@@ -119,5 +121,6 @@ pygobject_interface_register_types(PyObject *d)
 		       pyg_object_descr_doc_get());
   PyDict_SetItemString(PyGInterface_Type.tp_dict, "__gdoc__",
 		       pyg_object_descr_doc_get());
-  
+
+  return 0;
 }

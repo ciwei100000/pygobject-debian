@@ -33,6 +33,7 @@ typedef struct _PyGICallbackCache
     gssize destroy_notify_index;
     GIScopeType scope;
     GIInterfaceInfo *interface_info;
+    PyGIClosureCache *closure_cache;
 } PyGICallbackCache;
 
 /* This maintains a list of closures which can be free'd whenever
@@ -51,31 +52,31 @@ _pygi_closure_assign_pyobj_to_retval (gpointer retval,
 
     switch (arg_cache->type_tag) {
         case GI_TYPE_TAG_BOOLEAN:
-           *((ffi_sarg *) retval) = arg->v_boolean;
+           *((gboolean *) retval) = arg->v_boolean;
            break;
         case GI_TYPE_TAG_INT8:
-           *((ffi_sarg *) retval) = arg->v_int8;
+           *((gint8 *) retval) = arg->v_int8;
            break;
         case GI_TYPE_TAG_UINT8:
-           *((ffi_arg *) retval) = arg->v_uint8;
+           *((guint8 *) retval) = arg->v_uint8;
            break;
         case GI_TYPE_TAG_INT16:
-           *((ffi_sarg *) retval) = arg->v_int16;
+           *((gint16 *) retval) = arg->v_int16;
            break;
         case GI_TYPE_TAG_UINT16:
-           *((ffi_arg *) retval) = arg->v_uint16;
+           *((guint16 *) retval) = arg->v_uint16;
            break;
         case GI_TYPE_TAG_INT32:
-           *((ffi_sarg *) retval) = arg->v_int32;
+           *((gint32 *) retval) = arg->v_int32;
            break;
         case GI_TYPE_TAG_UINT32:
-           *((ffi_arg *) retval) = arg->v_uint32;
+           *((guint32 *) retval) = arg->v_uint32;
            break;
         case GI_TYPE_TAG_INT64:
-           *((ffi_sarg *) retval) = arg->v_int64;
+           *((gint64 *) retval) = arg->v_int64;
            break;
         case GI_TYPE_TAG_UINT64:
-           *((ffi_arg *) retval) = arg->v_uint64;
+           *((guint64 *) retval) = arg->v_uint64;
            break;
         case GI_TYPE_TAG_FLOAT:
            *((gfloat *) retval) = arg->v_float;
@@ -84,10 +85,10 @@ _pygi_closure_assign_pyobj_to_retval (gpointer retval,
            *((gdouble *) retval) = arg->v_double;
            break;
         case GI_TYPE_TAG_GTYPE:
-           *((ffi_arg *) retval) = arg->v_size;
+           *((gsize *) retval) = arg->v_size;
            break;
         case GI_TYPE_TAG_UNICHAR:
-            *((ffi_arg *) retval) = arg->v_uint32;
+            *((guint32 *) retval) = arg->v_uint32;
             break;
         case GI_TYPE_TAG_INTERFACE:
             {
@@ -97,20 +98,20 @@ _pygi_closure_assign_pyobj_to_retval (gpointer retval,
 
                 switch (g_base_info_get_type (interface_info)) {
                 case GI_INFO_TYPE_ENUM:
-                    *(ffi_sarg *) retval = arg->v_int;
+                    *(gint *) retval = arg->v_int;
                     break;
                 case GI_INFO_TYPE_FLAGS:
-                    *(ffi_arg *) retval = arg->v_uint;
+                    *(guint *) retval = arg->v_uint;
                     break;
                 default:
-                    *(ffi_arg *) retval = (ffi_arg) arg->v_pointer;
+                    *(gpointer *) retval = arg->v_pointer;
                     break;
                 }
 
                 break;
             }
         default:
-            *(ffi_arg *) retval = (ffi_arg) arg->v_pointer;
+            *(gpointer *) retval = arg->v_pointer;
             break;
       }
 }
@@ -566,12 +567,8 @@ _pygi_closure_handle (ffi_cif *cif,
       may be executing python code */
     py_state = PyGILState_Ensure ();
 
-    if (closure->cache == NULL) {
-        closure->cache = pygi_closure_cache_new ((GICallableInfo *) closure->info);
-
-        if (closure->cache == NULL)
-            goto end;
-    }
+    if (closure->cache == NULL)
+        goto end;
 
     state.user_data = closure->user_data;
 
@@ -641,8 +638,7 @@ void _pygi_invoke_closure_free (gpointer data)
     if (invoke_closure->info)
         g_base_info_unref ( (GIBaseInfo*) invoke_closure->info);
 
-    if (invoke_closure->cache != NULL)
-        pygi_callable_cache_free ((PyGICallableCache *) invoke_closure->cache);
+    invoke_closure->cache = NULL;
 
     _pygi_invoke_closure_clear_py_data(invoke_closure);
 
@@ -652,6 +648,7 @@ void _pygi_invoke_closure_free (gpointer data)
 
 PyGICClosure*
 _pygi_make_native_closure (GICallableInfo* info,
+                           PyGIClosureCache *cache,
                            GIScopeType scope,
                            PyObject *py_function,
                            gpointer py_user_data)
@@ -668,6 +665,7 @@ _pygi_make_native_closure (GICallableInfo* info,
     closure->info = (GICallableInfo *) g_base_info_ref ( (GIBaseInfo *) info);
     closure->function = py_function;
     closure->user_data = py_user_data;
+    closure->cache = cache;
 
     Py_INCREF (py_function);
     Py_XINCREF (closure->user_data);
@@ -711,7 +709,7 @@ _pygi_marshal_from_py_interface_callback (PyGIInvokeState   *state,
     callback_cache = (PyGICallbackCache *)arg_cache;
 
     if (callback_cache->user_data_index > 0) {
-        user_data_cache = _pygi_callable_cache_get_arg (callable_cache, callback_cache->user_data_index);
+        user_data_cache = _pygi_callable_cache_get_arg (callable_cache, (guint)callback_cache->user_data_index);
         if (user_data_cache->py_arg_index < state->n_py_in_args) {
             /* py_user_data is a borrowed reference. */
             py_user_data = PyTuple_GetItem (state->py_in_args, user_data_cache->py_arg_index);
@@ -743,14 +741,16 @@ _pygi_marshal_from_py_interface_callback (PyGIInvokeState   *state,
     if (!PyCallable_Check (py_arg)) {
         PyErr_Format (PyExc_TypeError,
                       "Callback needs to be a function or method not %s",
-                      py_arg->ob_type->tp_name);
+                      Py_TYPE (py_arg)->tp_name);
 
         return FALSE;
     }
 
     callable_info = (GICallableInfo *)callback_cache->interface_info;
 
-    closure = _pygi_make_native_closure (callable_info, callback_cache->scope, py_arg, py_user_data);
+    closure = _pygi_make_native_closure (
+        callable_info, callback_cache->closure_cache, callback_cache->scope,
+        py_arg, py_user_data);
     arg->v_pointer = closure->closure;
 
     /* always decref the user data as _pygi_make_native_closure adds its own ref */
@@ -771,7 +771,7 @@ _pygi_marshal_from_py_interface_callback (PyGIInvokeState   *state,
      * later on in _pygi_destroy_notify_callback_closure.
      */
     if (callback_cache->destroy_notify_index > 0) {
-        destroy_cache = _pygi_callable_cache_get_arg (callable_cache, callback_cache->destroy_notify_index);
+        destroy_cache = _pygi_callable_cache_get_arg (callable_cache, (guint)callback_cache->destroy_notify_index);
     }
 
     if (destroy_cache) {
@@ -836,6 +836,11 @@ _callback_cache_free_func (PyGICallbackCache *cache)
         if (cache->interface_info != NULL)
             g_base_info_unref ( (GIBaseInfo *)cache->interface_info);
 
+        if (cache->closure_cache != NULL) {
+            pygi_callable_cache_free ((PyGICallableCache *) cache->closure_cache);
+            cache->closure_cache = NULL;
+        }
+
         g_slice_free (PyGICallbackCache, cache);
     }
 }
@@ -892,7 +897,7 @@ pygi_arg_callback_setup_from_info (PyGICallbackCache  *arg_cache,
         user_data_arg_cache->meta_type = PYGI_META_ARG_TYPE_CHILD_WITH_PYARG;
         user_data_arg_cache->direction = direction;
         user_data_arg_cache->has_default = TRUE; /* always allow user data with a NULL default. */
-        _pygi_callable_cache_set_arg (callable_cache, arg_cache->user_data_index,
+        _pygi_callable_cache_set_arg (callable_cache, (guint)arg_cache->user_data_index,
                                       user_data_arg_cache);
     }
 
@@ -900,7 +905,7 @@ pygi_arg_callback_setup_from_info (PyGICallbackCache  *arg_cache,
         PyGIArgCache *destroy_arg_cache = pygi_arg_cache_alloc ();
         destroy_arg_cache->meta_type = PYGI_META_ARG_TYPE_CHILD;
         destroy_arg_cache->direction = direction;
-        _pygi_callable_cache_set_arg (callable_cache, arg_cache->destroy_notify_index,
+        _pygi_callable_cache_set_arg (callable_cache, (guint)arg_cache->destroy_notify_index,
                                       destroy_arg_cache);
     }
 
@@ -909,6 +914,7 @@ pygi_arg_callback_setup_from_info (PyGICallbackCache  *arg_cache,
     arg_cache->interface_info = iface_info;
 
     if (direction & PYGI_DIRECTION_FROM_PYTHON) {
+        arg_cache->closure_cache = pygi_closure_cache_new (arg_cache->interface_info);
         cache->from_py_marshaller = _pygi_marshal_from_py_interface_callback;
         cache->from_py_cleanup = _pygi_marshal_cleanup_from_py_interface_callback;
     }

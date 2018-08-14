@@ -73,7 +73,7 @@ def gerror_new_literal(domain, message, code):
 
 # Monkey patch methods that rely on GLib introspection to be loaded at runtime.
 Error.__name__ = 'Error'
-Error.__module__ = 'GLib'
+Error.__module__ = 'gi.repository.GLib'
 Error.__gtype__ = GLib.Error.__gtype__
 Error.matches = gerror_matches
 Error.new_literal = staticmethod(gerror_new_literal)
@@ -514,7 +514,7 @@ __all__.append('MainContext')
 
 class Source(GLib.Source):
     def __new__(cls, *args, **kwargs):
-        # use our custom pyg_source_new() here as g_source_new() is not
+        # use our custom pygi_source_new() here as g_source_new() is not
         # bindable
         source = source_new()
         source.__class__ = cls
@@ -526,11 +526,12 @@ class Source(GLib.Source):
 
     def __del__(self):
         if hasattr(self, '__pygi_custom_source'):
-            self.unref()
+            self.destroy()
+        super(Source, self).__del__()
 
     def set_callback(self, fn, user_data=None):
         if hasattr(self, '__pygi_custom_source'):
-            # use our custom pyg_source_set_callback() if for a GSource object
+            # use our custom pygi_source_set_callback() if for a GSource object
             # with custom functions
             source_set_callback(self, fn, user_data)
         else:

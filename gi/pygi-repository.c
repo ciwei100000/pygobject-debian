@@ -21,8 +21,8 @@
 
 #include "pygi-repository.h"
 #include "pygi-info.h"
-
-#include <pyglib-python-compat.h>
+#include "pygi-basictype.h"
+#include "pygi-python-compat.h"
 
 PyObject *PyGIRepositoryError;
 
@@ -47,7 +47,7 @@ _wrap_g_irepository_enumerate_versions (PyGIRepository *self,
     ret = PyList_New(0);
     for (item = versions; item; item = item->next) {
         char *version = item->data;
-        PyObject *py_version = PYGLIB_PyUnicode_FromString (version);
+        PyObject *py_version = pygi_utf8_to_py (version);
         PyList_Append(ret, py_version);
         Py_DECREF(py_version);
         g_free (version);
@@ -122,8 +122,8 @@ _wrap_g_irepository_is_registered (PyGIRepository *self,
         return NULL;
     }
 
-    return PyBool_FromLong (g_irepository_is_registered (self->repository,
-                                                         namespace_, version));
+    return pygi_gboolean_to_py (g_irepository_is_registered (self->repository,
+                                                             namespace_, version));
 }
 
 static PyObject *
@@ -181,7 +181,7 @@ _wrap_g_irepository_get_infos (PyGIRepository *self,
     const char *namespace_;
     gssize n_infos;
     PyObject *infos;
-    gssize i;
+    gint i;
 
     if (!PyArg_ParseTupleAndKeywords (args, kwargs, "s:Repository.get_infos",
                                       kwlist, &namespace_)) {
@@ -238,7 +238,7 @@ _wrap_g_irepository_get_typelib_path (PyGIRepository *self,
         return NULL;
     }
 
-    return PYGLIB_PyBytes_FromString (typelib_path);
+    return pygi_filename_to_py (typelib_path);
 }
 
 static PyObject *
@@ -261,7 +261,7 @@ _wrap_g_irepository_get_version (PyGIRepository *self,
         return NULL;
     }
 
-    return PYGLIB_PyUnicode_FromString (version);
+    return pygi_utf8_to_py (version);
 }
 
 static PyObject *
@@ -275,7 +275,7 @@ _wrap_g_irepository_get_loaded_namespaces (PyGIRepository *self)
 
     py_namespaces = PyList_New (0);
     for (i = 0; namespaces[i] != NULL; i++) {
-        PyObject *py_namespace = PYGLIB_PyUnicode_FromString (namespaces[i]);
+        PyObject *py_namespace = pygi_utf8_to_py (namespaces[i]);
         PyList_Append (py_namespaces, py_namespace);
         Py_DECREF(py_namespace);
         g_free (namespaces[i]);
@@ -310,7 +310,7 @@ _wrap_g_irepository_get_dependencies (PyGIRepository *self,
     }
 
     for (i = 0; namespaces[i] != NULL; i++) {
-        PyObject *py_namespace = PYGLIB_PyUnicode_FromString (namespaces[i]);
+        PyObject *py_namespace = pygi_utf8_to_py (namespaces[i]);
         PyList_Append (py_namespaces, py_namespace);
         Py_DECREF(py_namespace);
     }
@@ -343,7 +343,7 @@ _wrap_g_irepository_get_immediate_dependencies (PyGIRepository *self,
                                                            namespace_);
 
     for (i = 0; namespaces[i] != NULL; i++) {
-        PyObject *py_namespace = PYGLIB_PyUnicode_FromString (namespaces[i]);
+        PyObject *py_namespace = pygi_utf8_to_py (namespaces[i]);
         PyList_Append (py_namespaces, py_namespace);
         Py_DECREF (py_namespace);
     }
@@ -369,25 +369,35 @@ static PyMethodDef _PyGIRepository_methods[] = {
     { NULL, NULL, 0 }
 };
 
-void
-_pygi_repository_register_types (PyObject *m)
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
+pygi_repository_register_types (PyObject *m)
 {
     Py_TYPE(&PyGIRepository_Type) = &PyType_Type;
 
     PyGIRepository_Type.tp_flags = Py_TPFLAGS_DEFAULT;
     PyGIRepository_Type.tp_methods = _PyGIRepository_methods;
 
-    if (PyType_Ready (&PyGIRepository_Type)) {
-        return;
-    }
+    if (PyType_Ready (&PyGIRepository_Type) < 0)
+        return -1;
 
-    if (PyModule_AddObject (m, "Repository", (PyObject *) &PyGIRepository_Type)) {
-        return;
+    Py_INCREF ((PyObject *) &PyGIRepository_Type);
+    if (PyModule_AddObject (m, "Repository", (PyObject *) &PyGIRepository_Type) < 0) {
+        Py_DECREF ((PyObject *) &PyGIRepository_Type);
+        return -1;
     }
 
     PyGIRepositoryError = PyErr_NewException ("gi.RepositoryError", NULL, NULL);
-    if (PyModule_AddObject (m, "RepositoryError", PyGIRepositoryError)) {
-        return;
-    }
-}
+    if (PyGIRepositoryError == NULL)
+        return -1;
 
+    Py_INCREF (PyGIRepositoryError);
+    if (PyModule_AddObject (m, "RepositoryError", PyGIRepositoryError) < 0) {
+        Py_DECREF (PyGIRepositoryError);
+        return -1;
+    }
+
+    return 0;
+}

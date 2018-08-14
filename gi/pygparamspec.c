@@ -19,17 +19,17 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <config.h>
 
-#include <pyglib.h>
+#include <Python.h>
 #include <glib-object.h>
 
 #include "pygenum.h"
 #include "pygflags.h"
-#include "pygtype.h"
+#include "pygi-type.h"
 #include "pygparamspec.h"
+#include "pygi-util.h"
+#include "pygi-basictype.h"
 
 PYGLIB_DEFINE_TYPE("gobject.GParamSpec", PyGParamSpec_Type, PyGParamSpec);
 
@@ -37,9 +37,9 @@ static PyObject*
 pyg_param_spec_richcompare(PyObject *self, PyObject *other, int op)
 {
     if (Py_TYPE(self) == Py_TYPE(other) && Py_TYPE(self) == &PyGParamSpec_Type)
-        return _pyglib_generic_ptr_richcompare (pyg_param_spec_get (self),
-                                                pyg_param_spec_get (other),
-                                                op);
+        return pyg_ptr_richcompare (pyg_param_spec_get (self),
+                                    pyg_param_spec_get (other),
+                                    op);
     else {
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
@@ -127,7 +127,7 @@ pyg_param_spec_getattr(PyGParamSpec *self, const gchar *attr)
     } else if (!strcmp(attr, "blurb") || !strcmp(attr, "__doc__")) {
 	return Py_BuildValue("s", g_param_spec_get_blurb(pspec));
     } else if (!strcmp(attr, "flags")) {
-	return PYGLIB_PyLong_FromLong(pspec->flags);
+	return pygi_guint_to_py (pspec->flags);
     } else if (!strcmp(attr, "value_type")) {
 	return pyg_type_wrapper_new(pspec->value_type);
     } else if (!strcmp(attr, "owner_type")) {
@@ -139,70 +139,70 @@ pyg_param_spec_getattr(PyGParamSpec *self, const gchar *attr)
 	    return PYGLIB_PyUnicode_FromFormat(
 		"%c", G_PARAM_SPEC_CHAR(pspec)->default_value);
 	} else if (!strcmp(attr, "minimum")) {
-	    return PYGLIB_PyLong_FromLong(G_PARAM_SPEC_CHAR(pspec)->minimum);
+	    return pygi_gint8_to_py (G_PARAM_SPEC_CHAR(pspec)->minimum);
 	} else if (!strcmp(attr, "maximum")) {
-	    return PYGLIB_PyLong_FromLong(G_PARAM_SPEC_CHAR(pspec)->maximum);
+	    return pygi_gint8_to_py (G_PARAM_SPEC_CHAR(pspec)->maximum);
 	}
     } else if (G_IS_PARAM_SPEC_UCHAR(pspec)) {
 	if (!strcmp(attr, "default_value")) {
 	    return PYGLIB_PyUnicode_FromFormat(
 		"%c", G_PARAM_SPEC_UCHAR(pspec)->default_value);
 	} else if (!strcmp(attr, "minimum")) {
-	    return PYGLIB_PyLong_FromLong(G_PARAM_SPEC_UCHAR(pspec)->minimum);
+	    return pygi_guint8_to_py (G_PARAM_SPEC_UCHAR(pspec)->minimum);
 	} else if (!strcmp(attr, "maximum")) {
-	    return PYGLIB_PyLong_FromLong(G_PARAM_SPEC_UCHAR(pspec)->maximum);
+	    return pygi_guint8_to_py (G_PARAM_SPEC_UCHAR(pspec)->maximum);
 	}
     } else if (G_IS_PARAM_SPEC_BOOLEAN(pspec)) {
 	if (!strcmp(attr, "default_value")) {
-	    return PyBool_FromLong(G_PARAM_SPEC_BOOLEAN(pspec)->default_value);
+	    return pygi_gboolean_to_py (G_PARAM_SPEC_BOOLEAN(pspec)->default_value);
 	}
     } else if (G_IS_PARAM_SPEC_INT(pspec)) {
 	if (!strcmp(attr, "default_value")) {
-	    return PYGLIB_PyLong_FromLong(G_PARAM_SPEC_INT(pspec)->default_value);
+	    return pygi_gint_to_py (G_PARAM_SPEC_INT(pspec)->default_value);
 	} else if (!strcmp(attr, "minimum")) {
-	    return PYGLIB_PyLong_FromLong(G_PARAM_SPEC_INT(pspec)->minimum);
+	    return pygi_gint_to_py (G_PARAM_SPEC_INT(pspec)->minimum);
 	} else if (!strcmp(attr, "maximum")) {
-	    return PYGLIB_PyLong_FromLong(G_PARAM_SPEC_INT(pspec)->maximum);
+	    return pygi_gint_to_py (G_PARAM_SPEC_INT(pspec)->maximum);
 	}
     } else if (G_IS_PARAM_SPEC_UINT(pspec)) {
 	if (!strcmp(attr, "default_value")) {
-	    return PyLong_FromUnsignedLong(G_PARAM_SPEC_UINT(pspec)->default_value);
+	    return pygi_guint_to_py (G_PARAM_SPEC_UINT(pspec)->default_value);
 	} else if (!strcmp(attr, "minimum")) {
-	    return PyLong_FromUnsignedLong(G_PARAM_SPEC_UINT(pspec)->minimum);
+	    return pygi_guint_to_py (G_PARAM_SPEC_UINT(pspec)->minimum);
 	} else if (!strcmp(attr, "maximum")) {
-	    return PyLong_FromUnsignedLong(G_PARAM_SPEC_UINT(pspec)->maximum);
+	    return pygi_guint_to_py (G_PARAM_SPEC_UINT(pspec)->maximum);
 	}
     } else if (G_IS_PARAM_SPEC_LONG(pspec)) {
 	if (!strcmp(attr, "default_value")) {
-	    return PyLong_FromLong(G_PARAM_SPEC_LONG(pspec)->default_value);
+	    return pygi_glong_to_py (G_PARAM_SPEC_LONG(pspec)->default_value);
 	} else if (!strcmp(attr, "minimum")) {
-	    return PyLong_FromLong(G_PARAM_SPEC_LONG(pspec)->minimum);
+	    return pygi_glong_to_py (G_PARAM_SPEC_LONG(pspec)->minimum);
 	} else if (!strcmp(attr, "maximum")) {
-	    return PyLong_FromLong(G_PARAM_SPEC_LONG(pspec)->maximum);
+	    return pygi_glong_to_py (G_PARAM_SPEC_LONG(pspec)->maximum);
 	}
     } else if (G_IS_PARAM_SPEC_ULONG(pspec)) {
 	if (!strcmp(attr, "default_value")) {
-	    return PyLong_FromUnsignedLong(G_PARAM_SPEC_ULONG(pspec)->default_value);
+	    return pygi_gulong_to_py (G_PARAM_SPEC_ULONG(pspec)->default_value);
 	} else if (!strcmp(attr, "minimum")) {
-	    return PyLong_FromUnsignedLong(G_PARAM_SPEC_ULONG(pspec)->minimum);
+	    return pygi_gulong_to_py (G_PARAM_SPEC_ULONG(pspec)->minimum);
 	} else if (!strcmp(attr, "maximum")) {
-	    return PyLong_FromUnsignedLong(G_PARAM_SPEC_ULONG(pspec)->maximum);
+	    return pygi_gulong_to_py (G_PARAM_SPEC_ULONG(pspec)->maximum);
 	}
     } else if (G_IS_PARAM_SPEC_INT64(pspec)) {
 	if (!strcmp(attr, "default_value")) {
-	    return PyLong_FromLongLong(G_PARAM_SPEC_INT64(pspec)->default_value);
+	    return pygi_gint64_to_py (G_PARAM_SPEC_INT64(pspec)->default_value);
 	} else if (!strcmp(attr, "minimum")) {
-	    return PyLong_FromLongLong(G_PARAM_SPEC_INT64(pspec)->minimum);
+	    return pygi_gint64_to_py (G_PARAM_SPEC_INT64(pspec)->minimum);
 	} else if (!strcmp(attr, "maximum")) {
-	    return PyLong_FromLongLong(G_PARAM_SPEC_INT64(pspec)->maximum);
+	    return pygi_gint64_to_py (G_PARAM_SPEC_INT64(pspec)->maximum);
 	}
     } else if (G_IS_PARAM_SPEC_UINT64(pspec)) {
 	if (!strcmp(attr, "default_value")) {
-	    return PyLong_FromUnsignedLongLong(G_PARAM_SPEC_UINT64(pspec)->default_value);
+	    return pygi_guint64_to_py (G_PARAM_SPEC_UINT64(pspec)->default_value);
 	} else if (!strcmp(attr, "minimum")) {
-	    return PyLong_FromUnsignedLongLong(G_PARAM_SPEC_UINT64(pspec)->minimum);
+	    return pygi_guint64_to_py (G_PARAM_SPEC_UINT64(pspec)->minimum);
 	} else if (!strcmp(attr, "maximum")) {
-	    return PyLong_FromUnsignedLongLong(G_PARAM_SPEC_UINT64(pspec)->maximum);
+	    return pygi_guint64_to_py (G_PARAM_SPEC_UINT64(pspec)->maximum);
 	}
     } else if (G_IS_PARAM_SPEC_UNICHAR(pspec)) {
 	if (!strcmp(attr, "default_value")) {
@@ -225,24 +225,24 @@ pyg_param_spec_getattr(PyGParamSpec *self, const gchar *attr)
 	}
     } else if (G_IS_PARAM_SPEC_FLOAT(pspec)) {
 	if (!strcmp(attr, "default_value")) {
-	    return PyFloat_FromDouble(G_PARAM_SPEC_FLOAT(pspec)->default_value);
+	    return pygi_gfloat_to_py (G_PARAM_SPEC_FLOAT(pspec)->default_value);
 	} else if (!strcmp(attr, "minimum")) {
-	    return PyFloat_FromDouble(G_PARAM_SPEC_FLOAT(pspec)->minimum);
+	    return pygi_gfloat_to_py (G_PARAM_SPEC_FLOAT(pspec)->minimum);
 	} else if (!strcmp(attr, "maximum")) {
-	    return PyFloat_FromDouble(G_PARAM_SPEC_FLOAT(pspec)->maximum);
+	    return pygi_gfloat_to_py (G_PARAM_SPEC_FLOAT(pspec)->maximum);
 	} else if (!strcmp(attr, "epsilon")) {
-	    return PyFloat_FromDouble(G_PARAM_SPEC_FLOAT(pspec)->epsilon);
+	    return pygi_gfloat_to_py (G_PARAM_SPEC_FLOAT(pspec)->epsilon);
 	}
     } else if (G_IS_PARAM_SPEC_DOUBLE(pspec)) {
 	if (!strcmp(attr, "default_value")) {
-	    return PyFloat_FromDouble(
+	    return pygi_gdouble_to_py (
 		G_PARAM_SPEC_DOUBLE(pspec)->default_value);
 	} else if (!strcmp(attr, "minimum")) {
-	    return PyFloat_FromDouble(G_PARAM_SPEC_DOUBLE(pspec)->minimum);
+	    return pygi_gdouble_to_py (G_PARAM_SPEC_DOUBLE(pspec)->minimum);
 	} else if (!strcmp(attr, "maximum")) {
-	    return PyFloat_FromDouble(G_PARAM_SPEC_DOUBLE(pspec)->maximum);
+	    return pygi_gdouble_to_py (G_PARAM_SPEC_DOUBLE(pspec)->maximum);
 	} else if (!strcmp(attr, "epsilon")) {
-	    return PyFloat_FromDouble(G_PARAM_SPEC_DOUBLE(pspec)->epsilon);
+	    return pygi_gdouble_to_py (G_PARAM_SPEC_DOUBLE(pspec)->epsilon);
 	}
     } else if (G_IS_PARAM_SPEC_STRING(pspec)) {
 	if (!strcmp(attr, "default_value")) {
@@ -258,10 +258,10 @@ pyg_param_spec_getattr(PyGParamSpec *self, const gchar *attr)
 	    return Py_BuildValue(
 		"c", G_PARAM_SPEC_STRING(pspec)->substitutor);
 	} else if (!strcmp(attr, "null_fold_if_empty")) {
-	    return PyBool_FromLong(
+	    return pygi_gboolean_to_py (
 		G_PARAM_SPEC_STRING(pspec)->null_fold_if_empty);
 	} else if (!strcmp(attr, "ensure_non_null")) {
-	    return PyBool_FromLong(
+	    return pygi_gboolean_to_py (
 		G_PARAM_SPEC_STRING(pspec)->ensure_non_null);
 	}
     } else {
@@ -400,8 +400,11 @@ pyg_param_spec_new(GParamSpec *pspec)
     return (PyObject *)self;
 }
 
-void
-pygobject_paramspec_register_types(PyObject *d)
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
+pygi_paramspec_register_types(PyObject *d)
 {
     Py_TYPE(&PyGParamSpec_Type) = &PyType_Type;
     PyGParamSpec_Type.tp_dealloc = (destructor)pyg_param_spec_dealloc;
@@ -412,8 +415,9 @@ pygobject_paramspec_register_types(PyObject *d)
     PyGParamSpec_Type.tp_hash = (hashfunc)pyg_param_spec_hash;
     PyGParamSpec_Type.tp_methods = pyg_param_spec_methods;
 
-
     if (PyType_Ready(&PyGParamSpec_Type))
-	return;
+        return -1;
     PyDict_SetItemString(d, "GParamSpec", (PyObject *)&PyGParamSpec_Type);
+
+    return 0;
 }

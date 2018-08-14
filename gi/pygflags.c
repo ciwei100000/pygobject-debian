@@ -19,14 +19,11 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <config.h>
 
-#include <pyglib.h>
 #include "pygi-type.h"
 #include "pygi-util.h"
-#include "pygtype.h"
+#include "pygi-type.h"
 #include "pygflags.h"
 #include "pygboxed.h"
 
@@ -108,7 +105,7 @@ pyg_flags_repr(PyGFlags *self)
     char *tmp, *retval, *module_str, *namespace;
     PyObject *pyretval, *module;
 
-    tmp = generate_repr(self->gtype, PYGLIB_PyLong_AsUnsignedLong(self));
+    tmp = generate_repr(self->gtype, (guint)PYGLIB_PyLong_AsUnsignedLong(self));
 
     module = PyObject_GetAttrString ((PyObject *)self, "__module__");
     if (module == NULL)
@@ -282,7 +279,6 @@ pyg_flags_add (PyObject *   module,
     }
 
     ((PyTypeObject *)stub)->tp_flags &= ~Py_TPFLAGS_BASETYPE;
-    ((PyTypeObject *)stub)->tp_new = pyg_flags_new;
 
     if (module) {
         PyDict_SetItemString(((PyTypeObject *)stub)->tp_dict,
@@ -342,7 +338,7 @@ pyg_flags_and(PyGFlags *a, PyGFlags *b)
 						       (PyObject*)b);
 
 	return pyg_flags_from_gtype(a->gtype,
-				    PYGLIB_PyLong_AsUnsignedLong(a) & PYGLIB_PyLong_AsUnsignedLong(b));
+				    (guint)(PYGLIB_PyLong_AsUnsignedLong(a) & PYGLIB_PyLong_AsUnsignedLong(b)));
 }
 
 static PyObject *
@@ -352,7 +348,7 @@ pyg_flags_or(PyGFlags *a, PyGFlags *b)
 		return PYGLIB_PyLong_Type.tp_as_number->nb_or((PyObject*)a,
 						      (PyObject*)b);
 
-	return pyg_flags_from_gtype(a->gtype, PYGLIB_PyLong_AsUnsignedLong(a) | PYGLIB_PyLong_AsUnsignedLong(b));
+	return pyg_flags_from_gtype(a->gtype, (guint)(PYGLIB_PyLong_AsUnsignedLong(a) | PYGLIB_PyLong_AsUnsignedLong(b)));
 }
 
 static PyObject *
@@ -363,7 +359,7 @@ pyg_flags_xor(PyGFlags *a, PyGFlags *b)
 						       (PyObject*)b);
 
 	return pyg_flags_from_gtype(a->gtype,
-				    PYGLIB_PyLong_AsUnsignedLong(a) ^ PYGLIB_PyLong_AsUnsignedLong(b));
+				    (guint)(PYGLIB_PyLong_AsUnsignedLong(a) ^ PYGLIB_PyLong_AsUnsignedLong(b)));
 
 }
 
@@ -386,7 +382,7 @@ pyg_flags_get_first_value_name(PyGFlags *self, void *closure)
 
   flags_class = g_type_class_ref(self->gtype);
   g_assert(G_IS_FLAGS_CLASS(flags_class));
-  flags_value = g_flags_get_first_value(flags_class, PYGLIB_PyLong_AsUnsignedLong(self));
+  flags_value = g_flags_get_first_value(flags_class, (guint)PYGLIB_PyLong_AsUnsignedLong(self));
   if (flags_value)
       retval = PYGLIB_PyUnicode_FromString(flags_value->value_name);
   else {
@@ -408,7 +404,7 @@ pyg_flags_get_first_value_nick(PyGFlags *self, void *closure)
   flags_class = g_type_class_ref(self->gtype);
   g_assert(G_IS_FLAGS_CLASS(flags_class));
 
-  flags_value = g_flags_get_first_value(flags_class, PYGLIB_PyLong_AsUnsignedLong(self));
+  flags_value = g_flags_get_first_value(flags_class, (guint)PYGLIB_PyLong_AsUnsignedLong(self));
   if (flags_value)
       retval = PYGLIB_PyUnicode_FromString(flags_value->value_nick);
   else {
@@ -499,18 +495,17 @@ static PyNumberMethods pyg_flags_as_number = {
 	(binaryfunc)pyg_flags_or,		/* nb_or */
 };
 
-void
-pygobject_flags_register_types(PyObject *d)
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
+pygi_flags_register_types(PyObject *d)
 {
     pygflags_class_key = g_quark_from_static_string("PyGFlags::class");
 
     PyGFlags_Type.tp_base = &PYGLIB_PyLong_Type;
-#if PY_VERSION_HEX < 0x03000000
     PyGFlags_Type.tp_new = pyg_flags_new;
-#else
-    PyGFlags_Type.tp_new = PyLong_Type.tp_new;
-    PyGFlags_Type.tp_hash = PyLong_Type.tp_hash;    
-#endif
+    PyGFlags_Type.tp_hash = PYGLIB_PyLong_Type.tp_hash;
     PyGFlags_Type.tp_repr = (reprfunc)pyg_flags_repr;
     PyGFlags_Type.tp_as_number = &pyg_flags_as_number;
     PyGFlags_Type.tp_str = (reprfunc)pyg_flags_repr;
@@ -518,4 +513,6 @@ pygobject_flags_register_types(PyObject *d)
     PyGFlags_Type.tp_richcompare = (richcmpfunc)pyg_flags_richcompare;
     PyGFlags_Type.tp_getset = pyg_flags_getsets;
     PYGOBJECT_REGISTER_GTYPE(d, PyGFlags_Type, "GFlags", G_TYPE_FLAGS);
+
+    return 0;
 }

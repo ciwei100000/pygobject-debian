@@ -20,8 +20,8 @@
 
 #include <Python.h>
 #include <glib.h>
-#include <pyglib-python-compat.h>
 
+#include "pygi-python-compat.h"
 #include "pygi-object.h"
 #include "pygobject-object.h"
 #include "pygparamspec.h"
@@ -96,7 +96,7 @@ pygi_arg_gobject_out_arg_from_py (PyObject *py_arg, /*in*/
      * https://bugzilla.gnome.org/show_bug.cgi?id=693393
      */
     gobj = arg->v_pointer;
-    if (py_arg->ob_refcnt == 1 && gobj->ref_count == 1) {
+    if (Py_REFCNT (py_arg) == 1 && gobj->ref_count == 1) {
         /* If both object ref counts are only 1 at this point (the reference held
          * in a return tuple), we assume the GObject will be free'd before reaching
          * its target and become invalid. So instead of getting invalid object errors
@@ -163,7 +163,7 @@ _pygi_marshal_from_py_interface_object (PyGIInvokeState             *state,
                       ( (PyGIInterfaceCache *)arg_cache)->type_name,
                       module ? PYGLIB_PyUnicode_AsString(module) : "",
                       module ? "." : "",
-                      py_arg->ob_type->tp_name);
+                      Py_TYPE (py_arg)->tp_name);
         if (module)
             Py_DECREF (module);
         return FALSE;

@@ -224,8 +224,8 @@ pygi_signal_closure_marshal(GClosure *closure,
     list_item = pass_by_ref_structs;
     while (list_item) {
         PyObject *item = list_item->data;
-        if (item->ob_refcnt > 1) {
-            _pygi_boxed_copy_in_place ((PyGIBoxed *)item);
+        if (Py_REFCNT (item) > 1) {
+            pygi_boxed_copy_in_place ((PyGIBoxed *)item);
         }
         list_item = g_slist_next (list_item);
     }

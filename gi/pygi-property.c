@@ -25,7 +25,7 @@
 #include "pygi-value.h"
 #include "pygi-argument.h"
 #include "pygparamspec.h"
-#include "pygtype.h"
+#include "pygi-type.h"
 
 #include <girepository.h>
 
@@ -33,7 +33,7 @@ static GIPropertyInfo *
 lookup_property_from_object_info (GIObjectInfo *info, const gchar *attr_name)
 {
     gssize n_infos;
-    gssize i;
+    gint i;
 
     n_infos = g_object_info_get_n_properties (info);
     for (i = 0; i < n_infos; i++) {
@@ -57,7 +57,7 @@ lookup_property_from_interface_info (GIInterfaceInfo *info,
                                      const gchar *attr_name)
 {
     gssize n_infos;
-    gssize i;
+    gint i;
 
     n_infos = g_interface_info_get_n_properties (info);
     for (i = 0; i < n_infos; i++) {
@@ -107,16 +107,8 @@ pygi_call_do_get_property (PyObject *instance, GParamSpec *pspec)
 
     py_pspec = pyg_param_spec_new (pspec);
     retval = PyObject_CallMethod (instance, "do_get_property", "O", py_pspec);
-    if (retval == NULL) {
-        PyErr_Print();
-    }
-
     Py_DECREF (py_pspec);
-    if (retval) {
-        return retval;
-    }
-
-    Py_RETURN_NONE;
+    return retval;
 }
 
 PyObject *
@@ -126,6 +118,7 @@ pygi_get_property_value (PyGObject *instance, GParamSpec *pspec)
     GValue value = { 0, };
     PyObject *py_value = NULL;
     GType fundamental;
+    gboolean handled;
 
     if (!(pspec->flags & G_PARAM_READABLE)) {
         PyErr_Format(PyExc_TypeError, "property %s is not readable",
@@ -147,8 +140,8 @@ pygi_get_property_value (PyGObject *instance, GParamSpec *pspec)
 
 
     /* Fast path basic types which don't need GI type info. */
-    py_value = pygi_value_to_py_basic_type (&value, fundamental);
-    if (py_value) {
+    py_value = pygi_value_to_py_basic_type (&value, fundamental, &handled);
+    if (handled) {
         goto out;
     }
 

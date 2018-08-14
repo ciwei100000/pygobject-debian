@@ -20,8 +20,8 @@
 
 #include <Python.h>
 #include <glib.h>
-#include <pyglib-python-compat.h>
 
+#include "pygi-python-compat.h"
 #include "pygi-enum-marshal.h"
 #include "pygi-type.h"
 #include "pygenum.h"
@@ -34,28 +34,28 @@ gi_argument_from_c_long (GIArgument *arg_out,
 {
     switch (type_tag) {
       case GI_TYPE_TAG_INT8:
-          arg_out->v_int8 = c_long_in;
+          arg_out->v_int8 = (gint8)c_long_in;
           return TRUE;
       case GI_TYPE_TAG_UINT8:
-          arg_out->v_uint8 = c_long_in;
+          arg_out->v_uint8 = (guint8)c_long_in;
           return TRUE;
       case GI_TYPE_TAG_INT16:
-          arg_out->v_int16 = c_long_in;
+          arg_out->v_int16 = (gint16)c_long_in;
           return TRUE;
       case GI_TYPE_TAG_UINT16:
-          arg_out->v_uint16 = c_long_in;
+          arg_out->v_uint16 = (guint16)c_long_in;
           return TRUE;
       case GI_TYPE_TAG_INT32:
-          arg_out->v_int32 = c_long_in;
+          arg_out->v_int32 = (gint32)c_long_in;
           return TRUE;
       case GI_TYPE_TAG_UINT32:
-          arg_out->v_uint32 = c_long_in;
+          arg_out->v_uint32 = (guint32)c_long_in;
           return TRUE;
       case GI_TYPE_TAG_INT64:
-          arg_out->v_int64 = c_long_in;
+          arg_out->v_int64 = (gint64)c_long_in;
           return TRUE;
       case GI_TYPE_TAG_UINT64:
-          arg_out->v_uint64 = c_long_in;
+          arg_out->v_uint64 = (guint64)c_long_in;
           return TRUE;
       default:
           PyErr_Format (PyExc_TypeError,
@@ -91,10 +91,22 @@ gi_argument_to_c_long (GIArgument *arg_in,
           *c_long_out = arg_in->v_uint32;
           return TRUE;
       case GI_TYPE_TAG_INT64:
-          *c_long_out = arg_in->v_int64;
+          if (arg_in->v_int64 > G_MAXLONG || arg_in->v_int64 < G_MINLONG) {
+              PyErr_Format (PyExc_TypeError,
+                            "Unable to marshal %s to C long",
+                            g_type_tag_to_string(type_tag));
+              return FALSE;
+          }
+          *c_long_out = (glong)arg_in->v_int64;
           return TRUE;
       case GI_TYPE_TAG_UINT64:
-          *c_long_out = arg_in->v_uint64;
+          if (arg_in->v_uint64 > G_MAXLONG) {
+              PyErr_Format (PyExc_TypeError,
+                            "Unable to marshal %s to C long",
+                            g_type_tag_to_string(type_tag));
+              return FALSE;
+          }
+          *c_long_out = (glong)arg_in->v_uint64;
           return TRUE;
       default:
           PyErr_Format (PyExc_TypeError,
@@ -150,7 +162,7 @@ _pygi_marshal_from_py_interface_enum (PyGIInvokeState   *state,
         for (i = 0; i < g_enum_info_get_n_values (iface_cache->interface_info); i++) {
             GIValueInfo *value_info =
                 g_enum_info_get_value (iface_cache->interface_info, i);
-            glong enum_value = g_value_info_get_value (value_info);
+            gint64 enum_value = g_value_info_get_value (value_info);
             g_base_info_unref ( (GIBaseInfo *)value_info);
             if (c_long == enum_value) {
                 is_found = TRUE;
@@ -169,7 +181,7 @@ err:
     if (interface)
         g_base_info_unref (interface);
     PyErr_Format (PyExc_TypeError, "Expected a %s, but got %s",
-                  iface_cache->type_name, py_arg->ob_type->tp_name);
+                  iface_cache->type_name, Py_TYPE (py_arg)->tp_name);
     return FALSE;
 }
 
@@ -216,7 +228,7 @@ _pygi_marshal_from_py_interface_flags (PyGIInvokeState   *state,
 
 err:
     PyErr_Format (PyExc_TypeError, "Expected a %s, but got %s",
-                  iface_cache->type_name, py_arg->ob_type->tp_name);
+                  iface_cache->type_name, Py_TYPE (py_arg)->tp_name);
     return FALSE;
 
 }
@@ -244,7 +256,7 @@ _pygi_marshal_to_py_interface_enum (PyGIInvokeState   *state,
     if (iface_cache->g_type == G_TYPE_NONE) {
         py_obj = PyObject_CallFunction (iface_cache->py_type, "l", c_long);
     } else {
-        py_obj = pyg_enum_from_gtype (iface_cache->g_type, c_long);
+        py_obj = pyg_enum_from_gtype (iface_cache->g_type, (gint)c_long);
     }
     g_base_info_unref (interface);
     return py_obj;
@@ -275,7 +287,7 @@ _pygi_marshal_to_py_interface_flags (PyGIInvokeState   *state,
     if (iface_cache->g_type == G_TYPE_NONE) {
         /* An enum with a GType of None is an enum without GType */
 
-        PyObject *py_type = _pygi_type_import_by_gi_info (iface_cache->interface_info);
+        PyObject *py_type = pygi_type_import_by_gi_info (iface_cache->interface_info);
         PyObject *py_args = NULL;
 
         if (!py_type)
@@ -293,7 +305,7 @@ _pygi_marshal_to_py_interface_flags (PyGIInvokeState   *state,
         Py_DECREF (py_args);
         Py_DECREF (py_type);
     } else {
-        py_obj = pyg_flags_from_gtype (iface_cache->g_type, c_long);
+        py_obj = pyg_flags_from_gtype (iface_cache->g_type, (guint)c_long);
     }
 
     return py_obj;

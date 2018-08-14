@@ -5,6 +5,7 @@
 from __future__ import absolute_import
 
 import unittest
+import pytest
 
 import gi
 
@@ -37,6 +38,83 @@ class Test(unittest.TestCase):
         context = cairo.Context(surface)
         Regress.test_cairo_context_none_in(context)
 
+    def test_cairo_context_full_in(self):
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 10, 10)
+        context = cairo.Context(surface)
+        Regress.test_cairo_context_full_in(context)
+
+        with pytest.raises(TypeError):
+            Regress.test_cairo_context_full_in(object())
+
+    def test_cairo_context_none_return(self):
+        context = Regress.test_cairo_context_none_return()
+        self.assertTrue(isinstance(context, cairo.Context))
+
+    def test_cairo_path_full_return(self):
+        path = Regress.test_cairo_path_full_return()
+        assert isinstance(path, cairo.Path)
+
+    def test_cairo_path_none_in(self):
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 10, 10)
+        context = cairo.Context(surface)
+        path = context.copy_path()
+        Regress.test_cairo_path_none_in(path)
+        surface.finish()
+
+        with pytest.raises(TypeError):
+            Regress.test_cairo_path_none_in(object())
+
+    def test_cairo_path_full_in_full_return(self):
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 10, 10)
+        context = cairo.Context(surface)
+        context.move_to(10, 10)
+        context.curve_to(10, 10, 3, 4, 5, 6)
+        path = context.copy_path()
+        new_path = Regress.test_cairo_path_full_in_full_return(path)
+        assert list(path) == list(new_path)
+        surface.finish()
+
+    def test_cairo_font_options_full_return(self):
+        options = Regress.test_cairo_font_options_full_return()
+        assert isinstance(options, cairo.FontOptions)
+
+    def test_cairo_font_options_none_return(self):
+        options = Regress.test_cairo_font_options_none_return()
+        assert isinstance(options, cairo.FontOptions)
+
+    def test_cairo_font_options_full_in(self):
+        options = cairo.FontOptions()
+        Regress.test_cairo_font_options_full_in(options)
+
+        with pytest.raises(TypeError):
+            Regress.test_cairo_font_options_full_in(object())
+
+    def test_cairo_font_options_none_in(self):
+        options = cairo.FontOptions()
+        Regress.test_cairo_font_options_none_in(options)
+
+    def test_cairo_region_full_in(self):
+        region = cairo.Region()
+        Regress.test_cairo_region_full_in(region)
+
+        with pytest.raises(TypeError):
+            Regress.test_cairo_region_full_in(object())
+
+    def test_cairo_matrix_none_in(self):
+        matrix = cairo.Matrix()
+        Regress.test_cairo_matrix_none_in(matrix)
+
+        with pytest.raises(TypeError):
+            Regress.test_cairo_matrix_none_in(object())
+
+    def test_cairo_matrix_none_return(self):
+        matrix = Regress.test_cairo_matrix_none_return()
+        assert matrix == cairo.Matrix()
+
+    def test_cairo_matrix_out_caller_allocates(self):
+        matrix = Regress.test_cairo_matrix_out_caller_allocates()
+        assert matrix == cairo.Matrix()
+
     def test_cairo_surface(self):
         surface = Regress.test_cairo_surface_none_return()
         self.assertTrue(isinstance(surface, cairo.ImageSurface))
@@ -61,6 +139,13 @@ class Test(unittest.TestCase):
         self.assertEqual(surface.get_format(), cairo.FORMAT_ARGB32)
         self.assertEqual(surface.get_width(), 10)
         self.assertEqual(surface.get_height(), 10)
+
+    def test_cairo_surface_full_in(self):
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 10, 10)
+        Regress.test_cairo_surface_full_in(surface)
+
+        with pytest.raises(TypeError):
+            Regress.test_cairo_surface_full_in(object())
 
     def test_require_foreign(self):
         self.assertEqual(gi.require_foreign('cairo'), None)
@@ -138,6 +223,9 @@ class TestSignalMarshaling(unittest.TestCase):
         result = self.pass_object_through_signal(self.context, self.tester.sig_context)
         self.assertTrue(isinstance(result, cairo.Context))
 
+        with pytest.raises(TypeError):
+            self.pass_object_through_signal(object(), self.tester.sig_context)
+
     def test_surface(self):
         result = self.pass_object_through_signal(self.surface, self.tester.sig_surface)
         self.assertTrue(isinstance(result, cairo.Surface))
@@ -147,6 +235,9 @@ class TestSignalMarshaling(unittest.TestCase):
         result = self.pass_object_through_signal(font_face, self.tester.sig_font_face)
         self.assertTrue(isinstance(result, cairo.FontFace))
 
+        with pytest.raises(TypeError):
+            self.pass_object_through_signal(object(), self.tester.sig_font_face)
+
     def test_scaled_font(self):
         scaled_font = cairo.ScaledFont(self.context.get_font_face(),
                                        cairo.Matrix(),
@@ -155,8 +246,14 @@ class TestSignalMarshaling(unittest.TestCase):
         result = self.pass_object_through_signal(scaled_font, self.tester.sig_scaled_font)
         self.assertTrue(isinstance(result, cairo.ScaledFont))
 
+        with pytest.raises(TypeError):
+            result = self.pass_object_through_signal(object(), self.tester.sig_scaled_font)
+
     def test_pattern(self):
         pattern = cairo.SolidPattern(1, 1, 1, 1)
         result = self.pass_object_through_signal(pattern, self.tester.sig_pattern)
         self.assertTrue(isinstance(result, cairo.Pattern))
         self.assertTrue(isinstance(result, cairo.SolidPattern))
+
+        with pytest.raises(TypeError):
+            result = self.pass_object_through_signal(object(), self.tester.sig_pattern)

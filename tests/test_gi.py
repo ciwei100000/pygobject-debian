@@ -13,20 +13,23 @@ import os
 import gc
 import weakref
 import warnings
+import pickle
+import platform
 
 import gi
 import gi.overrides
 from gi import PyGIWarning
 from gi import PyGIDeprecationWarning
 from gi.repository import GObject, GLib, Gio
-
 from gi.repository import GIMarshallingTests
+from gi._compat import PY2, PY3
+import pytest
 
-from .compathelper import PY2, PY3
 from .helper import capture_exceptions, capture_output
 
 
 CONSTANT_UTF8 = "const ♥ utf8"
+CONSTANT_UCS4 = u"const ♥ utf8"
 
 
 class Number(object):
@@ -631,8 +634,13 @@ class TestGType(unittest.TestCase):
         def check_readonly(gtype):
             gtype.name = "foo"
 
-        self.assertRaises(AttributeError, check_readonly, GObject.TYPE_NONE)
-        self.assertRaises(AttributeError, check_readonly, GObject.TYPE_STRING)
+        errors = (AttributeError,)
+        if platform.python_implementation() == "PyPy":
+            # https://bitbucket.org/pypy/pypy/issues/2788
+            errors = (AttributeError, TypeError)
+
+        self.assertRaises(errors, check_readonly, GObject.TYPE_NONE)
+        self.assertRaises(errors, check_readonly, GObject.TYPE_STRING)
 
     def test_gtype_return(self):
         self.assertEqual(GObject.TYPE_NONE, GIMarshallingTests.gtype_return())
@@ -654,15 +662,33 @@ class TestGType(unittest.TestCase):
 
 class TestUtf8(unittest.TestCase):
 
+    def test_utf8_as_uint8array_in(self):
+        data = CONSTANT_UTF8
+        if not isinstance(data, bytes):
+            data = data.encode("utf-8")
+        GIMarshallingTests.utf8_as_uint8array_in(data)
+
     def test_utf8_none_return(self):
         self.assertEqual(CONSTANT_UTF8, GIMarshallingTests.utf8_none_return())
 
     def test_utf8_full_return(self):
         self.assertEqual(CONSTANT_UTF8, GIMarshallingTests.utf8_full_return())
 
+    def test_extra_utf8_full_return_invalid(self):
+        with pytest.raises(UnicodeDecodeError):
+            value = GIMarshallingTests.extra_utf8_full_return_invalid()
+            if PY2:
+                value.decode("utf-8")
+
+    def test_extra_utf8_full_out_invalid(self):
+        with pytest.raises(UnicodeDecodeError):
+            value = GIMarshallingTests.extra_utf8_full_out_invalid()
+            if PY2:
+                value.decode("utf-8")
+
     def test_utf8_none_in(self):
         GIMarshallingTests.utf8_none_in(CONSTANT_UTF8)
-        if sys.version_info < (3, 0):
+        if PY2:
             GIMarshallingTests.utf8_none_in(CONSTANT_UTF8.decode("utf-8"))
 
         self.assertRaises(TypeError, GIMarshallingTests.utf8_none_in, 42)
@@ -690,6 +716,9 @@ class TestFilename(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.workdir)
+
+    def tests_filename_list_return(self):
+        assert GIMarshallingTests.filename_list_return() == []
 
     @unittest.skipIf(os.name == "nt", "fixme")
     def test_filename_in(self):
@@ -897,6 +926,46 @@ class TestFilename(unittest.TestCase):
 
 
 class TestArray(unittest.TestCase):
+
+    @unittest.skipUnless(
+        hasattr(GIMarshallingTests, "array_bool_in"), "too old gi")
+    def test_array_bool_in(self):
+        GIMarshallingTests.array_bool_in([True, False, True, True])
+
+    @unittest.skipUnless(
+        hasattr(GIMarshallingTests, "array_bool_out"), "too old gi")
+    def test_array_bool_out(self):
+        assert GIMarshallingTests.array_bool_out() == [True, False, True, True]
+
+    @unittest.skipUnless(
+        hasattr(GIMarshallingTests, "array_int64_in"), "too old gi")
+    def test_array_int64_in(self):
+        GIMarshallingTests.array_int64_in([-1, 0, 1, 2])
+
+    @unittest.skipUnless(
+        hasattr(GIMarshallingTests, "array_uint64_in"), "too old gi")
+    def test_array_uint64_in(self):
+        GIMarshallingTests.array_uint64_in([GLib.MAXUINT64, 0, 1, 2])
+
+    @unittest.skipUnless(
+        hasattr(GIMarshallingTests, "array_unichar_in"), "too old gi")
+    def test_array_unichar_in(self):
+        GIMarshallingTests.array_unichar_in(list(CONSTANT_UCS4))
+        GIMarshallingTests.array_unichar_in(CONSTANT_UCS4)
+
+    @unittest.skipUnless(
+        hasattr(GIMarshallingTests, "array_unichar_out"), "too old gi")
+    def test_array_unichar_out(self):
+        if PY2:
+            result = [c.encode("utf-8") for c in list(CONSTANT_UCS4)]
+        else:
+            result = list(CONSTANT_UCS4)
+        assert GIMarshallingTests.array_unichar_out() == result
+
+    @unittest.skip("broken")
+    def test_array_zero_terminated_return_unichar(self):
+        assert GIMarshallingTests.array_zero_terminated_return_unichar() == \
+            list(CONSTANT_UCS4)
 
     def test_array_fixed_int_return(self):
         self.assertEqual([-1, 0, 1, 2], GIMarshallingTests.array_fixed_int_return())
@@ -1138,6 +1207,17 @@ class TestArrayGVariant(unittest.TestCase):
 
 
 class TestGArray(unittest.TestCase):
+
+    @unittest.skipUnless(
+        hasattr(GIMarshallingTests, "garray_bool_none_in"), "too old gi")
+    def test_garray_bool_none_in(self):
+        GIMarshallingTests.garray_bool_none_in([True, False, True, True])
+
+    @unittest.skipUnless(
+        hasattr(GIMarshallingTests, "garray_unichar_none_in"), "too old gi")
+    def test_garray_unichar_none_in(self):
+        GIMarshallingTests.garray_unichar_none_in(CONSTANT_UCS4)
+        GIMarshallingTests.garray_unichar_none_in(list(CONSTANT_UCS4))
 
     def test_garray_int_none_return(self):
         self.assertEqual([-1, 0, 1, 2], GIMarshallingTests.garray_int_none_return())
@@ -1396,6 +1476,26 @@ class TestGSList(unittest.TestCase):
 
 class TestGHashTable(unittest.TestCase):
 
+    @unittest.skip("broken")
+    def test_ghashtable_double_in(self):
+        GIMarshallingTests.ghashtable_double_in(
+            {"-1": -0.1, "0": 0.0, "1": 0.1, "2": 0.2})
+
+    @unittest.skip("broken")
+    def test_ghashtable_float_in(self):
+        GIMarshallingTests.ghashtable_float_in(
+            {"-1": -0.1, "0": 0.0, "1": 0.1, "2": 0.2})
+
+    @unittest.skip("broken")
+    def test_ghashtable_int64_in(self):
+        GIMarshallingTests.ghashtable_int64_in(
+            {"-1": GLib.MAXUINT32 + 1, "0": 0, "1": 1, "2": 2})
+
+    @unittest.skip("broken")
+    def test_ghashtable_uint64_in(self):
+        GIMarshallingTests.ghashtable_uint64_in(
+            {"-1": GLib.MAXUINT32 + 1, "0": 0, "1": 1, "2": 2})
+
     def test_ghashtable_int_none_return(self):
         self.assertEqual({-1: 1, 0: 0, 1: -1, 2: -2}, GIMarshallingTests.ghashtable_int_none_return())
 
@@ -1516,9 +1616,35 @@ class TestGValue(unittest.TestCase):
         self.assertRaises(OverflowError, GIMarshallingTests.gvalue_flat_array,
                           [GLib.MININT - 1, "42", True])
 
+        with pytest.raises(
+                OverflowError,
+                match='Item 0: %d not in range %d to %d' % (
+                    GLib.MAXINT + 1, GLib.MININT, GLib.MAXINT)):
+            GIMarshallingTests.gvalue_flat_array([GLib.MAXINT + 1, "42", True])
+
+        if PY2:
+            min_, max_ = GLib.MINLONG, GLib.MAXLONG
+        else:
+            min_, max_ = GLib.MININT, GLib.MAXINT
+
+        with pytest.raises(
+                OverflowError,
+                match='Item 0: %d not in range %d to %d' % (
+                    GLib.MAXUINT64 * 2, min_, max_)):
+            GIMarshallingTests.gvalue_flat_array([GLib.MAXUINT64 * 2, "42", True])
+
     def test_gvalue_flat_array_out(self):
         values = GIMarshallingTests.return_gvalue_flat_array()
         self.assertEqual(values, [42, '42', True])
+
+    def test_gvalue_gobject_ref_counts_simple(self):
+        obj = GObject.Object()
+        grefcount = obj.__grefcount__
+        value = GObject.Value(GObject.TYPE_OBJECT, obj)
+        del value
+        gc.collect()
+        gc.collect()
+        assert obj.__grefcount__ == grefcount
 
     def test_gvalue_gobject_ref_counts(self):
         # Tests a GObject held by a GValue
@@ -1551,12 +1677,14 @@ class TestGValue(unittest.TestCase):
         del res
         del value
         gc.collect()
+        gc.collect()
         self.assertEqual(obj.__grefcount__, grefcount)
 
         del obj
         gc.collect()
         self.assertEqual(ref(), None)
 
+    @unittest.skipUnless(hasattr(sys, "getrefcount"), "no sys.getrefcount")
     def test_gvalue_boxed_ref_counts(self):
         # Tests a boxed type wrapping a python object pointer (TYPE_PYOBJECT)
         # held by a GValue
@@ -1597,8 +1725,8 @@ class TestGValue(unittest.TestCase):
         gc.collect()
         self.assertEqual(ref(), None)
 
-    # FIXME: crashes
-    def disabled_test_gvalue_flat_array_round_trip(self):
+    @unittest.skip("broken")
+    def test_gvalue_flat_array_round_trip(self):
         self.assertEqual([42, '42', True],
                          GIMarshallingTests.gvalue_flat_array_round_trip(42, '42', True))
 
@@ -1719,6 +1847,10 @@ class TestEnum(unittest.TestCase):
         self.assertEqual(GIMarshallingTests.Enum.__module__,
                          "gi.repository.GIMarshallingTests")
 
+    def test_hash(self):
+        assert (hash(GIMarshallingTests.Enum.VALUE1) ==
+                hash(GIMarshallingTests.Enum(GIMarshallingTests.Enum.VALUE1)))
+
     def test_repr(self):
         self.assertEqual(repr(GIMarshallingTests.Enum.VALUE3),
                          "<enum GI_MARSHALLING_TESTS_ENUM_VALUE3 of type "
@@ -1750,6 +1882,12 @@ class TestGEnum(unittest.TestCase):
         self.assertTrue(isinstance(GIMarshallingTests.GEnum.VALUE2, GIMarshallingTests.GEnum))
         self.assertTrue(isinstance(GIMarshallingTests.GEnum.VALUE3, GIMarshallingTests.GEnum))
         self.assertEqual(42, GIMarshallingTests.GEnum.VALUE3)
+
+    def test_pickle(self):
+        v = GIMarshallingTests.GEnum.VALUE3
+        new_v = pickle.loads(pickle.dumps(v))
+        assert new_v == v
+        assert isinstance(new_v, GIMarshallingTests.GEnum)
 
     def test_value_nick_and_name(self):
         self.assertEqual(GIMarshallingTests.GEnum.VALUE1.value_nick, 'value1')
@@ -1788,6 +1926,10 @@ class TestGEnum(unittest.TestCase):
         self.assertEqual(GIMarshallingTests.GEnum.__name__, "GEnum")
         self.assertEqual(GIMarshallingTests.GEnum.__module__,
                          "gi.repository.GIMarshallingTests")
+
+    def test_hash(self):
+        assert (hash(GIMarshallingTests.GEnum.VALUE3) ==
+                hash(GIMarshallingTests.GEnum(GIMarshallingTests.GEnum.VALUE3)))
 
     def test_repr(self):
         self.assertEqual(repr(GIMarshallingTests.GEnum.VALUE3),
@@ -1856,6 +1998,10 @@ class TestGFlags(unittest.TestCase):
         self.assertEqual(repr(GIMarshallingTests.Flags.VALUE2),
                          "<flags GI_MARSHALLING_TESTS_FLAGS_VALUE2 of type "
                          "GIMarshallingTests.Flags>")
+
+    def test_hash(self):
+        assert (hash(GIMarshallingTests.Flags.VALUE2) ==
+                hash(GIMarshallingTests.Flags(GIMarshallingTests.Flags.VALUE2)))
 
     def test_flags_large_in(self):
         GIMarshallingTests.extra_flags_large_in(
@@ -2100,13 +2246,13 @@ class TestStructure(unittest.TestCase):
             warnings.simplefilter('always')
             GIMarshallingTests.Union(42)
 
-        self.assertTrue(issubclass(warn[0].category, TypeError))
+        self.assertTrue(issubclass(warn[0].category, DeprecationWarning))
 
         with warnings.catch_warnings(record=True) as warn:
             warnings.simplefilter('always')
             GIMarshallingTests.Union(f=42)
 
-        self.assertTrue(issubclass(warn[0].category, TypeError))
+        self.assertTrue(issubclass(warn[0].category, DeprecationWarning))
 
     def test_union(self):
         union = GIMarshallingTests.Union()
@@ -2442,6 +2588,7 @@ class TestPythonGObject(unittest.TestCase):
         object_.method_with_default_implementation(84)
         self.assertEqual(object_.props.int, 84)
 
+    @unittest.skipUnless(hasattr(sys, "getrefcount"), "no sys.getrefcount")
     def test_vfunc_return_ref_count(self):
         obj = self.Object(int=42)
         ref_count = sys.getrefcount(obj.return_for_caller_allocated_out_parameter)
@@ -2454,6 +2601,12 @@ class TestPythonGObject(unittest.TestCase):
         self.assertFalse(ret is obj.return_for_caller_allocated_out_parameter)
         self.assertEqual(sys.getrefcount(obj.return_for_caller_allocated_out_parameter),
                          ref_count)
+
+    def test_vfunc_return_no_ref_count(self):
+        obj = self.Object(int=42)
+        ret = obj.vfunc_caller_allocated_out_parameter()
+        self.assertEqual(ret, obj.return_for_caller_allocated_out_parameter)
+        self.assertFalse(ret is obj.return_for_caller_allocated_out_parameter)
 
     def test_subobject_parent_vfunc(self):
         object_ = self.SubObject(int=81)
@@ -2596,6 +2749,11 @@ class TestInterfaces(unittest.TestCase):
 
     def setUp(self):
         self.instance = self.TestInterfaceImpl()
+
+    def test_iface_impl(self):
+        instance = GIMarshallingTests.InterfaceImpl()
+        assert instance.get_as_interface() is instance
+        instance.test_int8_in(42)
 
     def test_wrapper(self):
         self.assertTrue(issubclass(GIMarshallingTests.Interface, GObject.GInterface))
@@ -2744,7 +2902,7 @@ class TestMRO(unittest.TestCase):
             # style mixin.
             type('GIWithOldStyleMixin', (GIMarshallingTests.Object, Mixin), {})
 
-            if sys.version_info < (3, 0):
+            if PY2:
                 self.assertTrue(issubclass(warn[0].category, RuntimeWarning))
             else:
                 self.assertEqual(len(warn), 0)

@@ -18,21 +18,37 @@
 
 import io
 import os
-import re
 import sys
 import errno
 import subprocess
 import tarfile
 import sysconfig
+import tempfile
 from email import parser
 
-import pkg_resources
-from setuptools import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
+
 from distutils.core import Extension, Distribution, Command
-from distutils.errors import DistutilsSetupError
+from distutils.errors import DistutilsSetupError, DistutilsOptionError
 from distutils.ccompiler import new_compiler
-from distutils.sysconfig import get_python_lib
+from distutils.sysconfig import get_python_lib, customize_compiler
 from distutils import dir_util, log
+from distutils.spawn import find_executable
+
+
+PYGOBJECT_VERISON = "3.29.2"
+GLIB_VERSION_REQUIRED = "2.38.0"
+GI_VERSION_REQUIRED = "1.46.0"
+PYCAIRO_VERSION_REQUIRED = "1.11.1"
+LIBFFI_VERSION_REQUIRED = "3.0"
+
+
+def is_dev_version():
+    version = tuple(map(int, PYGOBJECT_VERISON.split(".")))
+    return version[1] % 2 != 0
 
 
 def get_command_class(name):
@@ -44,36 +60,25 @@ def get_pycairo_pkg_config_name():
     return "py3cairo" if sys.version_info[0] == 3 else "pycairo"
 
 
-def get_version_requirement(conf_dir, pkg_config_name):
+def get_version_requirement(pkg_config_name):
     """Given a pkg-config module name gets the minimum version required"""
 
-    if pkg_config_name in ["cairo", "cairo-gobject"]:
-        return "0"
-
-    mapping = {
-        "gobject-introspection-1.0": "introspection",
-        "glib-2.0": "glib",
-        "gio-2.0": "gio",
-        get_pycairo_pkg_config_name(): "pycairo",
-        "libffi": "libffi",
+    versions = {
+        "gobject-introspection-1.0": GI_VERSION_REQUIRED,
+        "glib-2.0": GLIB_VERSION_REQUIRED,
+        "gio-2.0": GLIB_VERSION_REQUIRED,
+        get_pycairo_pkg_config_name(): PYCAIRO_VERSION_REQUIRED,
+        "libffi": LIBFFI_VERSION_REQUIRED,
+        "cairo": "0",
+        "cairo-gobject": "0",
     }
-    assert pkg_config_name in mapping
 
-    configure_ac = os.path.join(conf_dir, "configure.ac")
-    with io.open(configure_ac, "r", encoding="utf-8") as h:
-        text = h.read()
-        conf_name = mapping[pkg_config_name]
-        res = re.findall(
-            r"%s_required_version,\s*([\d\.]+)\)" % conf_name, text)
-        assert len(res) == 1
-        return res[0]
+    return versions[pkg_config_name]
 
 
-def parse_versions(conf_dir):
-    configure_ac = os.path.join(conf_dir, "configure.ac")
-    with io.open(configure_ac, "r", encoding="utf-8") as h:
-        version = re.findall(r"pygobject_[^\s]+_version,\s*(\d+)\)", h.read())
-        assert len(version) == 3
+def get_versions():
+    version = PYGOBJECT_VERISON.split(".")
+    assert len(version) == 3
 
     versions = {
         "PYGOBJECT_MAJOR_VERSION": version[0],
@@ -86,10 +91,10 @@ def parse_versions(conf_dir):
 
 def parse_pkg_info(conf_dir):
     """Returns an email.message.Message instance containing the content
-    of the PKG-INFO file. The version info is parsed from configure.ac
+    of the PKG-INFO file.
     """
 
-    versions = parse_versions(conf_dir)
+    versions = get_versions()
 
     pkg_info = os.path.join(conf_dir, "PKG-INFO.in")
     with io.open(pkg_info, "r", encoding="utf-8") as h:
@@ -102,7 +107,47 @@ def parse_pkg_info(conf_dir):
     return message
 
 
-def _run_pkg_config(args, _cache={}):
+def pkg_config_get_install_hint(pkg_name):
+    """Returns an installation hint for a pkg-config name or None"""
+
+    if not sys.platform.startswith("linux"):
+        return
+
+    if find_executable("apt"):
+        dev_packages = {
+            "gobject-introspection-1.0": "libgirepository1.0-dev",
+            "glib-2.0": "libglib2.0-dev",
+            "gio-2.0": "libglib2.0-dev",
+            "cairo": "libcairo2-dev",
+            "cairo-gobject": "libcairo2-dev",
+            "libffi": "libffi-dev",
+        }
+        if pkg_name in dev_packages:
+            return "sudo apt install %s" % dev_packages[pkg_name]
+    elif find_executable("dnf"):
+        dev_packages = {
+            "gobject-introspection-1.0": "gobject-introspection-devel",
+            "glib-2.0": "glib2-devel",
+            "gio-2.0": "glib2-devel",
+            "cairo": "cairo-devel",
+            "cairo-gobject": "cairo-gobject-devel",
+            "libffi": "libffi-devel",
+        }
+        if pkg_name in dev_packages:
+            return "sudo dnf install %s" % dev_packages[pkg_name]
+
+
+class PkgConfigError(Exception):
+    pass
+
+
+class PkgConfigMissingPackageError(PkgConfigError):
+    pass
+
+
+def _run_pkg_config(pkg_name, args, _cache={}):
+    """Raises PkgConfigError"""
+
     command = tuple(["pkg-config"] + args)
 
     if command not in _cache:
@@ -110,33 +155,141 @@ def _run_pkg_config(args, _cache={}):
             result = subprocess.check_output(command)
         except OSError as e:
             if e.errno == errno.ENOENT:
-                raise SystemExit(
+                raise PkgConfigError(
                     "%r not found.\nArguments: %r" % (command[0], command))
-            raise SystemExit(e)
+            raise PkgConfigError(e)
         except subprocess.CalledProcessError as e:
-            raise SystemExit(e)
+            try:
+                subprocess.check_output(["pkg-config", "--exists", pkg_name])
+            except (subprocess.CalledProcessError, OSError):
+                raise PkgConfigMissingPackageError(e)
+            else:
+                raise PkgConfigError(e)
         else:
             _cache[command] = result
 
     return _cache[command]
 
 
-def pkg_config_version_check(pkg, version):
-    _run_pkg_config([
+def _run_pkg_config_or_exit(pkg_name, args):
+    try:
+        return _run_pkg_config(pkg_name, args)
+    except PkgConfigMissingPackageError as e:
+        hint = pkg_config_get_install_hint(pkg_name)
+        if hint:
+            raise SystemExit(
+                "%s\n\nTry installing it with: %r" % (e, hint))
+        else:
+            raise SystemExit(e)
+    except PkgConfigError as e:
+        raise SystemExit(e)
+
+
+def pkg_config_version_check(pkg_name, version):
+    _run_pkg_config_or_exit(pkg_name, [
         "--print-errors",
         "--exists",
-        '%s >= %s' % (pkg, version),
+        '%s >= %s' % (pkg_name, version),
     ])
 
 
-def pkg_config_parse(opt, pkg):
-    ret = _run_pkg_config([opt, pkg])
+def pkg_config_parse(opt, pkg_name):
+    ret = _run_pkg_config_or_exit(pkg_name, [opt, pkg_name])
+
     if sys.version_info[0] == 3:
         output = ret.decode()
     else:
         output = ret
     opt = opt[-2:]
     return [x.lstrip(opt) for x in output.split()]
+
+
+def list_headers(d):
+    return [os.path.join(d, e) for e in os.listdir(d) if e.endswith(".h")]
+
+
+def filter_compiler_arguments(compiler, args):
+    """Given a compiler instance and a list of compiler warning flags
+    returns the list of supported flags.
+    """
+
+    if compiler.compiler_type == "msvc":
+        # TODO
+        return []
+
+    extra = []
+
+    def check_arguments(compiler, args):
+        p = subprocess.Popen(
+            [compiler.compiler[0]] + args + extra + ["-x", "c", "-E", "-"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate(b"int i;\n")
+        if p.returncode != 0:
+            text = stderr.decode("ascii", "replace")
+            return False, [a for a in args if a in text]
+        else:
+            return True, []
+
+    def check_argument(compiler, arg):
+        return check_arguments(compiler, [arg])[0]
+
+    # clang doesn't error out for unknown options, force it to
+    if check_argument(compiler, '-Werror=unknown-warning-option'):
+        extra += ['-Werror=unknown-warning-option']
+    if check_argument(compiler, '-Werror=unused-command-line-argument'):
+        extra += ['-Werror=unused-command-line-argument']
+
+    # first try to remove all arguments contained in the error message
+    supported = list(args)
+    while 1:
+        ok, maybe_unknown = check_arguments(compiler, supported)
+        if ok:
+            return supported
+        elif not maybe_unknown:
+            break
+        for unknown in maybe_unknown:
+            if not check_argument(compiler, unknown):
+                supported.remove(unknown)
+
+    # hm, didn't work, try each argument one by one
+    supported = []
+    for arg in args:
+        if check_argument(compiler, arg):
+            supported.append(arg)
+    return supported
+
+
+class sdist_gnome(Command):
+    description = "Create a source tarball for GNOME"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Don't use PEP 440 pre-release versions for GNOME releases
+        self.distribution.metadata.version = PYGOBJECT_VERISON
+
+        dist_dir = tempfile.mkdtemp()
+        try:
+            cmd = self.reinitialize_command("sdist")
+            cmd.dist_dir = dist_dir
+            cmd.ensure_finalized()
+            cmd.run()
+
+            base_name = self.distribution.get_fullname().lower()
+            cmd.make_release_tree(base_name, cmd.filelist.files)
+            try:
+                self.make_archive(base_name, "xztar", base_dir=base_name)
+            finally:
+                dir_util.remove_tree(base_name)
+        finally:
+            dir_util.remove_tree(dist_dir)
 
 
 du_sdist = get_command_class("sdist")
@@ -167,8 +320,9 @@ class distcheck(du_sdist):
         assert process.returncode == 0
 
         tracked_files = out.splitlines()
-        for ignore in [".gitignore"]:
-            tracked_files.remove(ignore)
+        tracked_files = [
+            f for f in tracked_files
+            if os.path.basename(f) not in [".gitignore"]]
 
         diff = set(tracked_files) - set(included_files)
         assert not diff, (
@@ -248,11 +402,9 @@ class build_tests(Command):
     def run(self):
         cmd = self.reinitialize_command("build_ext")
         cmd.inplace = True
+        cmd.force = self.force
         cmd.ensure_finalized()
         cmd.run()
-
-        from distutils.ccompiler import new_compiler
-        from distutils.sysconfig import customize_compiler
 
         gidatadir = pkg_config_parse(
             "--variable=gidatadir", "gobject-introspection-1.0")[0]
@@ -262,6 +414,7 @@ class build_tests(Command):
             "--variable=g_ir_compiler", "gobject-introspection-1.0")[0]
 
         script_dir = get_script_dir()
+        gi_dir = os.path.join(script_dir, "gi")
         tests_dir = os.path.join(script_dir, "tests")
         gi_tests_dir = os.path.join(gidatadir, "tests")
 
@@ -279,13 +432,14 @@ class build_tests(Command):
 
         if os.name == "nt":
             compiler.shared_lib_extension = ".dll"
-
-        if sys.platform == "darwin":
+        elif sys.platform == "darwin":
             compiler.shared_lib_extension = ".dylib"
             if "-bundle" in compiler.linker_so:
                 compiler.linker_so = list(compiler.linker_so)
                 i = compiler.linker_so.index("-bundle")
                 compiler.linker_so[i] = "-dynamiclib"
+        else:
+            compiler.shared_lib_extension = ".so"
 
         def build_ext(ext):
             if compiler.compiler_type == "msvc":
@@ -356,6 +510,9 @@ class build_tests(Command):
                 "--library=gimarshallingtests",
                 "--pkg=glib-2.0",
                 "--pkg=gio-2.0",
+                "--cflags-begin",
+                "-I%s" % gi_tests_dir,
+                "--cflags-end",
                 "--output=%s" % gir_path,
             ] + ext.sources + ext.depends)
 
@@ -424,19 +581,16 @@ class build_tests(Command):
                 os.path.join(tests_dir, "test-unknown.c"),
             ],
             include_dirs=[
-                os.path.join(script_dir, "gi"),
+                gi_dir,
                 tests_dir,
             ],
-            depends=[
-                os.path.join(tests_dir, "test-thread.h"),
-                os.path.join(tests_dir, "test-unknown.h"),
-                os.path.join(tests_dir, "test-floating.h"),
-            ],
+            depends=list_headers(gi_dir) + list_headers(tests_dir),
             define_macros=[("PY_SSIZE_T_CLEAN", None)],
         )
         add_ext_pkg_config_dep(ext, compiler.compiler_type, "glib-2.0")
         add_ext_pkg_config_dep(ext, compiler.compiler_type, "gio-2.0")
         add_ext_pkg_config_dep(ext, compiler.compiler_type, "cairo")
+        add_ext_compiler_flags(ext, compiler)
 
         dist = Distribution({"ext_modules": [ext]})
 
@@ -451,14 +605,80 @@ class build_tests(Command):
         cmd.run()
 
 
+def get_suppression_files_for_prefix(prefix):
+    """Returns a list of valgrind suppression files for a given prefix"""
+
+    # Most specific first (/usr/share/doc is Fedora, /usr/lib is Debian)
+    # Take the first one found
+    major = str(sys.version_info[0])
+    minor = str(sys.version_info[1])
+    pyfiles = []
+    pyfiles.append(
+        os.path.join(
+            prefix, "share", "doc", "python%s%s" % (major, minor),
+            "valgrind-python.supp"))
+    pyfiles.append(
+        os.path.join(prefix, "lib", "valgrind", "python%s.supp" % major))
+    pyfiles.append(
+        os.path.join(
+            prefix, "share", "doc", "python%s-devel" % major,
+            "valgrind-python.supp"))
+    pyfiles.append(os.path.join(prefix, "lib", "valgrind", "python.supp"))
+
+    files = []
+    for f in pyfiles:
+        if os.path.isfile(f):
+            files.append(f)
+            break
+
+    files.append(os.path.join(
+        prefix, "share", "glib-2.0", "valgrind", "glib.supp"))
+    return [f for f in files if os.path.isfile(f)]
+
+
+def get_real_prefix():
+    """Returns the base Python prefix, even in a virtualenv/venv"""
+
+    return getattr(sys, "base_prefix", getattr(sys, "real_prefix", sys.prefix))
+
+
+def get_suppression_files():
+    """Returns a list of valgrind suppression files"""
+
+    prefixes = [
+        sys.prefix,
+        get_real_prefix(),
+        pkg_config_parse("--variable=prefix", "glib-2.0")[0],
+    ]
+
+    files = []
+    for prefix in prefixes:
+        files.extend(get_suppression_files_for_prefix(prefix))
+
+    files.append(os.path.join(get_script_dir(), "tests", "valgrind.supp"))
+    return sorted(set(files))
+
+
 class test(Command):
-    user_options = []
+    user_options = [
+        ("valgrind", None, "run tests under valgrind"),
+        ("valgrind-log-file=", None, "save logs instead of printing them"),
+        ("gdb", None, "run tests under gdb"),
+        ("no-capture", "s", "don't capture test output"),
+    ]
 
     def initialize_options(self):
-        pass
+        self.valgrind = None
+        self.valgrind_log_file = None
+        self.gdb = None
+        self.no_capture = None
 
     def finalize_options(self):
-        pass
+        self.valgrind = bool(self.valgrind)
+        if self.valgrind_log_file and not self.valgrind:
+            raise DistutilsOptionError("valgrind not enabled")
+        self.gdb = bool(self.gdb)
+        self.no_capture = bool(self.no_capture)
 
     def run(self):
         cmd = self.reinitialize_command("build_tests")
@@ -468,12 +688,37 @@ class test(Command):
         env = os.environ.copy()
         env.pop("MSYSTEM", None)
 
+        if self.no_capture:
+            env["PYGI_TEST_VERBOSE"] = "1"
+
         env["MALLOC_PERTURB_"] = "85"
         env["MALLOC_CHECK_"] = "3"
         env["G_SLICE"] = "debug-blocks"
 
+        pre_args = []
+
+        if self.valgrind:
+            env["G_SLICE"] = "always-malloc"
+            env["G_DEBUG"] = "gc-friendly"
+            env["PYTHONMALLOC"] = "malloc"
+
+            pre_args += [
+                "valgrind", "--leak-check=full", "--show-possibly-lost=no",
+                "--num-callers=20", "--child-silent-after-fork=yes",
+            ] + ["--suppressions=" + f for f in get_suppression_files()]
+
+            if self.valgrind_log_file:
+                pre_args += ["--log-file=" + self.valgrind_log_file]
+
+        if self.gdb:
+            env["PYGI_TEST_GDB"] = "1"
+            pre_args += ["gdb", "--args"]
+
+        if pre_args:
+            log.info(" ".join(pre_args))
+
         tests_dir = os.path.join(get_script_dir(), "tests")
-        sys.exit(subprocess.call([
+        sys.exit(subprocess.call(pre_args + [
             sys.executable,
             os.path.join(tests_dir, "runtests.py"),
         ], env=env))
@@ -509,9 +754,9 @@ def get_pycairo_include_dir():
     Raises if pycairo isn't found or it's too old.
     """
 
-    script_dir = get_script_dir()
     pkg_config_name = get_pycairo_pkg_config_name()
-    min_version = get_version_requirement(script_dir, pkg_config_name)
+    min_version = get_version_requirement(pkg_config_name)
+    min_version_info = tuple(int(p) for p in min_version.split("."))
 
     def check_path(include_dir):
         log.info("pycairo: trying include directory: %r" % include_dir)
@@ -531,12 +776,10 @@ def get_pycairo_include_dir():
         log.info("pycairo: new API")
         import cairo
 
-        pkg_version = pkg_resources.parse_version(cairo.version)
-        pkg_min_version = pkg_resources.parse_version(min_version)
-        if pkg_version < pkg_min_version:
+        if cairo.version_info < min_version_info:
             raise DistutilsSetupError(
-                "pycairo >=%s required, %s found." % (
-                    pkg_min_version, pkg_version))
+                "pycairo >= %s required, %s found." % (
+                    min_version, ".".join(map(str, cairo.version_info))))
 
         if hasattr(cairo, "get_include"):
             return [cairo.get_include()]
@@ -545,8 +788,16 @@ def get_pycairo_include_dir():
 
     def find_old_api():
         log.info("pycairo: old API")
-        dist = pkg_resources.get_distribution("pycairo>=%s" % min_version)
-        log.info("pycairo: found %r" % dist)
+
+        import cairo
+
+        if cairo.version_info < min_version_info:
+            raise DistutilsSetupError(
+                "pycairo >= %s required, %s found." % (
+                    min_version, ".".join(map(str, cairo.version_info))))
+
+        location = os.path.dirname(os.path.abspath(cairo.__path__[0]))
+        log.info("pycairo: found %r" % location)
 
         def samefile(src, dst):
             # Python 2 on Windows doesn't have os.path.samefile, so we have to
@@ -558,9 +809,8 @@ def get_pycairo_include_dir():
             return (os.path.normcase(os.path.abspath(src)) ==
                     os.path.normcase(os.path.abspath(dst)))
 
-        def get_sys_path(dist, name):
+        def get_sys_path(location, name):
             # Returns the sysconfig path for a distribution, or None
-            location = dist.location
             for scheme in sysconfig.get_scheme_names():
                 for path_type in ["platlib", "purelib"]:
                     path = sysconfig.get_path(path_type, scheme)
@@ -570,7 +820,7 @@ def get_pycairo_include_dir():
                     except EnvironmentError:
                         pass
 
-        data_path = get_sys_path(dist, "data") or sys.prefix
+        data_path = get_sys_path(location, "data") or sys.prefix
         return [os.path.join(data_path, "include", "pycairo")]
 
     def find_pkg_config():
@@ -599,8 +849,6 @@ def get_pycairo_include_dir():
 
 
 def add_ext_pkg_config_dep(ext, compiler_type, name):
-    script_dir = get_script_dir()
-
     msvc_libraries = {
         "glib-2.0": ["glib-2.0"],
         "gio-2.0": ["gio-2.0", "gobject-2.0", "glib-2.0"],
@@ -612,16 +860,95 @@ def add_ext_pkg_config_dep(ext, compiler_type, name):
         "libffi": ["ffi"],
     }
 
+    def add(target, new):
+        for entry in new:
+            if entry not in target:
+                target.append(entry)
+
     fallback_libs = msvc_libraries[name]
     if compiler_type == "msvc":
         # assume that INCLUDE and LIB contains the right paths
-        ext.libraries += fallback_libs
+        add(ext.libraries, fallback_libs)
     else:
-        min_version = get_version_requirement(script_dir, name)
+        min_version = get_version_requirement(name)
         pkg_config_version_check(name, min_version)
-        ext.include_dirs += pkg_config_parse("--cflags-only-I", name)
-        ext.library_dirs += pkg_config_parse("--libs-only-L", name)
-        ext.libraries += pkg_config_parse("--libs-only-l", name)
+        add(ext.include_dirs, pkg_config_parse("--cflags-only-I", name))
+        add(ext.library_dirs, pkg_config_parse("--libs-only-L", name))
+        add(ext.libraries, pkg_config_parse("--libs-only-l", name))
+
+
+def add_ext_compiler_flags(ext, compiler, _cache={}):
+    cache_key = compiler.compiler[0]
+    if cache_key not in _cache:
+
+        args = [
+            "-Wall",
+            "-Warray-bounds",
+            "-Wcast-align",
+            "-Wdeclaration-after-statement",
+            "-Wduplicated-branches",
+            "-Wextra",
+            "-Wformat=2",
+            "-Wformat-nonliteral",
+            "-Wformat-security",
+            "-Wimplicit-function-declaration",
+            "-Winit-self",
+            "-Winline",
+            "-Wjump-misses-init",
+            "-Wlogical-op",
+            "-Wmissing-declarations",
+            "-Wmissing-format-attribute",
+            "-Wmissing-include-dirs",
+            "-Wmissing-noreturn",
+            "-Wmissing-prototypes",
+            "-Wnested-externs",
+            "-Wnull-dereference",
+            "-Wold-style-definition",
+            "-Wpacked",
+            "-Wpointer-arith",
+            "-Wrestrict",
+            "-Wreturn-type",
+            "-Wshadow",
+            "-Wsign-compare",
+            "-Wstrict-aliasing",
+            "-Wstrict-prototypes",
+            "-Wundef",
+            "-Wunused-but-set-variable",
+            "-Wwrite-strings",
+            "-Wconversion",
+        ]
+
+        if sys.version_info[:2] != (3, 4):
+            args += [
+                "-Wswitch-default",
+            ]
+
+        args += [
+            "-Wno-incompatible-pointer-types-discards-qualifiers",
+            "-Wno-missing-field-initializers",
+            "-Wno-unused-parameter",
+            "-Wno-discarded-qualifiers",
+            "-Wno-sign-conversion",
+            "-Wno-cast-function-type",
+        ]
+
+        # silence clang for unused gcc CFLAGS added by Debian
+        args += [
+            "-Wno-unused-command-line-argument",
+        ]
+
+        args += [
+            "-fno-strict-aliasing",
+            "-fvisibility=hidden",
+        ]
+
+        # force GCC to use colors
+        if hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
+            args.append("-fdiagnostics-color")
+
+        _cache[cache_key] = filter_compiler_arguments(compiler, args)
+
+    ext.extra_compile_args += _cache[cache_key]
 
 
 du_build_ext = get_command_class("build_ext")
@@ -640,9 +967,8 @@ class build_ext(du_build_ext):
     def _write_config_h(self):
         script_dir = get_script_dir()
         target = os.path.join(script_dir, "config.h")
-        versions = parse_versions(script_dir)
-        with io.open(target, 'w', encoding="utf-8") as h:
-            h.write("""
+        versions = get_versions()
+        content = u"""
 /* Configuration header created by setup.py - do not edit */
 #ifndef _CONFIG_H
 #define _CONFIG_H 1
@@ -653,13 +979,26 @@ class build_ext(du_build_ext):
 #define VERSION "%(VERSION)s"
 
 #endif /* _CONFIG_H */
-""" % versions)
+""" % versions
+
+        try:
+            with io.open(target, 'r', encoding="utf-8") as h:
+                if h.read() == content:
+                    return
+        except EnvironmentError:
+            pass
+
+        with io.open(target, 'w', encoding="utf-8") as h:
+            h.write(content)
 
     def _setup_extensions(self):
         ext = {e.name: e for e in self.extensions}
 
+        compiler = new_compiler(compiler=self.compiler)
+        customize_compiler(compiler)
+
         def add_dependency(ext, name):
-            add_ext_pkg_config_dep(ext, self.compiler_type, name)
+            add_ext_pkg_config_dep(ext, compiler.compiler_type, name)
 
         def add_pycairo(ext):
             ext.include_dirs += [get_pycairo_include_dir()]
@@ -669,6 +1008,7 @@ class build_ext(du_build_ext):
         add_dependency(gi_ext, "gio-2.0")
         add_dependency(gi_ext, "gobject-introspection-1.0")
         add_dependency(gi_ext, "libffi")
+        add_ext_compiler_flags(gi_ext, compiler)
 
         gi_cairo_ext = ext["gi._gi_cairo"]
         add_dependency(gi_cairo_ext, "glib-2.0")
@@ -678,6 +1018,7 @@ class build_ext(du_build_ext):
         add_dependency(gi_cairo_ext, "cairo")
         add_dependency(gi_cairo_ext, "cairo-gobject")
         add_pycairo(gi_cairo_ext)
+        add_ext_compiler_flags(gi_cairo_ext, compiler)
 
     def run(self):
         self._write_config_h()
@@ -738,7 +1079,7 @@ class install_pkgconfig(Command):
             "includedir": "${prefix}/include",
             "datarootdir": "${prefix}/share",
             "datadir": "${datarootdir}",
-            "VERSION": self.distribution.get_version(),
+            "VERSION": PYGOBJECT_VERISON,
         }
         for key, value in config.items():
             content = content.replace("@%s@" % key, value)
@@ -783,19 +1124,27 @@ def main():
         name='gi._gi',
         sources=sources,
         include_dirs=[script_dir, gi_dir],
-        define_macros=[("HAVE_CONFIG_H", None), ("PY_SSIZE_T_CLEAN", None)],
+        depends=list_headers(script_dir) + list_headers(gi_dir),
+        define_macros=[("PY_SSIZE_T_CLEAN", None)],
     )
 
     gi_cairo_ext = Extension(
         name='gi._gi_cairo',
         sources=cairo_sources,
         include_dirs=[script_dir, gi_dir],
-        define_macros=[("HAVE_CONFIG_H", None), ("PY_SSIZE_T_CLEAN", None)],
+        depends=list_headers(script_dir) + list_headers(gi_dir),
+        define_macros=[("PY_SSIZE_T_CLEAN", None)],
     )
+
+    version = pkginfo["Version"]
+    if is_dev_version():
+        # This makes it a PEP 440 pre-release and pip will only install it from
+        # PyPI in case --pre is passed.
+        version += ".dev0"
 
     setup(
         name=pkginfo["Name"],
-        version=pkginfo["Version"],
+        version=version,
         description=pkginfo["Summary"],
         url=pkginfo["Home-page"],
         author=pkginfo["Author"],
@@ -819,6 +1168,7 @@ def main():
         cmdclass={
             "build_ext": build_ext,
             "distcheck": distcheck,
+            "sdist_gnome": sdist_gnome,
             "build_tests": build_tests,
             "test": test,
             "quality": quality,
@@ -827,7 +1177,7 @@ def main():
         },
         install_requires=[
             "pycairo>=%s" % get_version_requirement(
-                script_dir, get_pycairo_pkg_config_name()),
+                get_pycairo_pkg_config_name()),
         ],
         data_files=[
             ('include/pygobject-3.0', ['gi/pygobject.h']),

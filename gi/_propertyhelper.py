@@ -17,11 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import traceback
-
 from . import _gi
-
+from ._compat import string_types, long_
 from ._constants import \
     TYPE_NONE, TYPE_INTERFACE, TYPE_CHAR, TYPE_UCHAR, \
     TYPE_BOOLEAN, TYPE_INT, TYPE_UINT, TYPE_LONG, \
@@ -38,13 +35,6 @@ G_MAXUINT = _gi.G_MAXUINT
 G_MINLONG = _gi.G_MINLONG
 G_MAXLONG = _gi.G_MAXLONG
 G_MAXULONG = _gi.G_MAXULONG
-
-if sys.version_info >= (3, 0):
-    _basestring = str
-    _long = int
-else:
-    _basestring = basestring
-    _long = long
 
 
 class Property(object):
@@ -104,7 +94,7 @@ class Property(object):
     """
     _type_from_pytype_lookup = {
         # Put long_ first in case long_ and int are the same so int clobbers long_
-        _long: TYPE_LONG,
+        long_: TYPE_LONG,
         int: TYPE_INT,
         bool: TYPE_BOOLEAN,
         float: TYPE_DOUBLE,
@@ -162,11 +152,11 @@ class Property(object):
         self.default = self._get_default(default)
         self._check_default()
 
-        if not isinstance(nick, _basestring):
+        if not isinstance(nick, string_types):
             raise TypeError("nick must be a string")
         self.nick = nick
 
-        if not isinstance(blurb, _basestring):
+        if not isinstance(blurb, string_types):
             raise TypeError("blurb must be a string")
         self.blurb = blurb
         # Always clobber __doc__ with blurb even if blurb is empty because
@@ -210,26 +200,14 @@ class Property(object):
     def __repr__(self):
         return '<GObject Property %s (%s)>' % (
             self.name or '(uninitialized)',
-            _gi.type_name(self.type))
+            self.type.name)
 
     def __get__(self, instance, klass):
         if instance is None:
             return self
 
         self._exc = None
-
-        # Simply return the result of fget directly, no need to go through GObject.
-        # See: https://bugzilla.gnome.org/show_bug.cgi?id=723872
-        # We catch and print any exception occurring within the fget for compatibility
-        # prior to the fast path addition from bug 723872, this should eventually
-        # be removed and exceptions raised directly to the caller as in:
-        # https://bugzilla.gnome.org/show_bug.cgi?id=575652
-        try:
-            value = self.fget(instance)
-        except Exception:
-            traceback.print_exc()
-            value = None
-
+        value = self.fget(instance)
         if self._exc:
             exc = self._exc
             self._exc = None
@@ -308,24 +286,24 @@ class Property(object):
         elif ptype == TYPE_GTYPE:
             if default is not None:
                 raise TypeError("GType types does not have default values")
-        elif _gi.type_is_a(ptype, TYPE_ENUM):
+        elif ptype.is_a(TYPE_ENUM):
             if default is None:
                 raise TypeError("enum properties needs a default value")
-            elif not _gi.type_is_a(default, ptype):
+            elif not _gi.GType(default).is_a(ptype):
                 raise TypeError("enum value %s must be an instance of %r" %
                                 (default, ptype))
-        elif _gi.type_is_a(ptype, TYPE_FLAGS):
-            if not _gi.type_is_a(default, ptype):
+        elif ptype.is_a(TYPE_FLAGS):
+            if not _gi.GType(default).is_a(ptype):
                 raise TypeError("flags value %s must be an instance of %r" %
                                 (default, ptype))
-        elif _gi.type_is_a(ptype, TYPE_STRV) and default is not None:
+        elif ptype.is_a(TYPE_STRV) and default is not None:
             if not isinstance(default, list):
                 raise TypeError("Strv value %s must be a list" % repr(default))
             for val in default:
                 if type(val) not in (str, bytes):
                     raise TypeError("Strv value %s must contain only strings" % str(default))
-        elif _gi.type_is_a(ptype, TYPE_VARIANT) and default is not None:
-            if not hasattr(default, '__gtype__') or not _gi.type_is_a(default, TYPE_VARIANT):
+        elif ptype.is_a(TYPE_VARIANT) and default is not None:
+            if not hasattr(default, '__gtype__') or not _gi.GType(default).is_a(TYPE_VARIANT):
                 raise TypeError("variant value %s must be an instance of %r" %
                                 (default, ptype))
 

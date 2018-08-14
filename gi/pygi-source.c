@@ -23,10 +23,11 @@
  * IN THE SOFTWARE.
  */
 
+#include "pygi-python-compat.h"
 #include "pygi-info.h"
 #include "pygi-boxed.h"
 #include "pygi-type.h"
-#include "pyglib.h"
+#include "pygi-basictype.h"
 #include "pygboxed.h"
 #include "pygi-source.h"
 
@@ -37,7 +38,7 @@ typedef struct
 } PyGRealSource;
 
 static gboolean
-pyg_source_prepare(GSource *source, gint *timeout)
+source_prepare(GSource *source, gint *timeout)
 {
     PyGRealSource *pysource = (PyGRealSource *)source;
     PyObject *t;
@@ -65,13 +66,16 @@ pyg_source_prepare(GSource *source, gint *timeout)
 	goto bail;
     }
 
-    ret = PyObject_IsTrue(PyTuple_GET_ITEM(t, 0));
-	*timeout = PYGLIB_PyLong_AsLong(PyTuple_GET_ITEM(t, 1));
+    if (!pygi_gboolean_from_py (PyTuple_GET_ITEM(t, 0), &ret)) {
+        ret = FALSE;
+        goto bail;
+    }
 
-	if (*timeout == -1 && PyErr_Occurred()) {
-	    ret = FALSE;
-	    goto bail;
-	}
+    if (!pygi_gint_from_py (PyTuple_GET_ITEM(t, 1), timeout))
+    {
+        ret = FALSE;
+        goto bail;
+    }
 
     got_err = FALSE;
 
@@ -87,7 +91,7 @@ bail:
 }
 
 static gboolean
-pyg_source_check(GSource *source)
+source_check(GSource *source)
 {
     PyGRealSource *pysource = (PyGRealSource *)source;
     PyObject *t;
@@ -112,7 +116,7 @@ pyg_source_check(GSource *source)
 }
 
 static gboolean
-pyg_source_dispatch(GSource *source, GSourceFunc callback, gpointer user_data)
+source_dispatch(GSource *source, GSourceFunc callback, gpointer user_data)
 {
     PyGRealSource *pysource = (PyGRealSource *)source;
     PyObject *func, *args, *tuple, *t;
@@ -147,7 +151,7 @@ pyg_source_dispatch(GSource *source, GSourceFunc callback, gpointer user_data)
 }
 
 static void
-pyg_source_finalize(GSource *source)
+source_finalize(GSource *source)
 {
     PyGRealSource *pysource = (PyGRealSource *)source;
     PyObject *func, *t;
@@ -174,17 +178,62 @@ pyg_source_finalize(GSource *source)
 
 static GSourceFuncs pyg_source_funcs =
 {
-    pyg_source_prepare,
-    pyg_source_check,
-    pyg_source_dispatch,
-    pyg_source_finalize
+    source_prepare,
+    source_check,
+    source_dispatch,
+    source_finalize
 };
 
+/**
+ * _pyglib_destroy_notify:
+ * @user_data: a PyObject pointer.
+ *
+ * A function that can be used as a GDestroyNotify callback that will
+ * call Py_DECREF on the data.
+ */
+static void
+destroy_notify(gpointer user_data)
+{
+    PyObject *obj = (PyObject *)user_data;
+    PyGILState_STATE state;
+
+    state = PyGILState_Ensure();
+    Py_DECREF(obj);
+    PyGILState_Release(state);
+}
+
+static gboolean
+handler_marshal(gpointer user_data)
+{
+    PyObject *tuple, *ret;
+    gboolean res;
+    PyGILState_STATE state;
+
+    g_return_val_if_fail(user_data != NULL, FALSE);
+
+    state = PyGILState_Ensure();
+
+    tuple = (PyObject *)user_data;
+    ret = PyObject_CallObject(PyTuple_GetItem(tuple, 0),
+			      PyTuple_GetItem(tuple, 1));
+    if (!ret) {
+	PyErr_Print();
+	res = FALSE;
+    } else {
+	res = PyObject_IsTrue(ret);
+	Py_DECREF(ret);
+    }
+    
+    PyGILState_Release(state);
+
+    return res;
+}
+
 PyObject *
-pyg_source_set_callback(PyGObject *self_module, PyObject *args)
+pygi_source_set_callback (PyGObject *self_module, PyObject *args)
 {
     PyObject *self, *first, *callback, *cbargs = NULL, *data;
-    gint len;
+    Py_ssize_t len;
 
     len = PyTuple_Size (args);
     if (len < 2) {
@@ -219,30 +268,42 @@ pyg_source_set_callback(PyGObject *self_module, PyObject *args)
 	return NULL;
 
     g_source_set_callback(pyg_boxed_get (self, GSource),
-			  _pyglib_handler_marshal, data,
-			  _pyglib_destroy_notify);
+			  handler_marshal, data,
+			  destroy_notify);
 
     Py_INCREF(Py_None);
     return Py_None;
 }
 
 /**
- * pyg_source_new:
+ * pygi_source_new:
  *
  * Wrap the un-bindable g_source_new() and provide wrapper callbacks in the
  * GSourceFuncs which call back to Python.
+ *
+ * Returns NULL on error and sets an exception.
  */
 PyObject*
-pyg_source_new (void)
+pygi_source_new (PyObject *self, PyObject *args)
 {
-    PyGRealSource *source = NULL;
-    PyObject      *py_type;
+    PyGRealSource *source;
+    PyObject *py_type, *boxed;
+
+    g_assert (args == NULL);
+
+    py_type = pygi_type_import_by_name ("GLib", "Source");
+    if (!py_type)
+        return NULL;
 
     source = (PyGRealSource*) g_source_new (&pyg_source_funcs, sizeof (PyGRealSource));
-
-    py_type = _pygi_type_import_by_name ("GLib", "Source");
     /* g_source_new uses malloc, not slices */
-    source->obj = _pygi_boxed_new ( (PyTypeObject *) py_type, source, FALSE, 0);
+    boxed = pygi_boxed_new ( (PyTypeObject *) py_type, source, TRUE, 0);
+    Py_DECREF (py_type);
+    if (!boxed) {
+        g_source_unref ((GSource *)source);
+        return NULL;
+    }
+    source->obj = boxed;
 
     return source->obj;
 }

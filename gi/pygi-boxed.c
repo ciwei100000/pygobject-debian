@@ -22,13 +22,14 @@
 #include "pygi-boxed.h"
 #include "pygi-info.h"
 #include "pygboxed.h"
-#include "pygtype.h"
+#include "pygi-type.h"
+#include "pygi-basictype.h"
+#include "pygi-python-compat.h"
 
 #include <girepository.h>
-#include <pyglib-python-compat.h>
 
 static void
-_boxed_dealloc (PyGIBoxed *self)
+boxed_dealloc (PyGIBoxed *self)
 {
     Py_TYPE (self)->tp_free ((PyObject *)self);
 }
@@ -55,7 +56,7 @@ boxed_del (PyGIBoxed *self)
 }
 
 void *
-_pygi_boxed_alloc (GIBaseInfo *info, gsize *size_out)
+pygi_boxed_alloc (GIBaseInfo *info, gsize *size_out)
 {
     gpointer boxed = NULL;
     gsize size = 0;
@@ -93,7 +94,7 @@ _pygi_boxed_alloc (GIBaseInfo *info, gsize *size_out)
 }
 
 static PyObject *
-_boxed_new (PyTypeObject *type,
+boxed_new (PyTypeObject *type,
             PyObject     *args,
             PyObject     *kwargs)
 {
@@ -110,12 +111,12 @@ _boxed_new (PyTypeObject *type,
         return NULL;
     }
 
-    boxed = _pygi_boxed_alloc (info, &size);
+    boxed = pygi_boxed_alloc (info, &size);
     if (boxed == NULL) {
         goto out;
     }
 
-    self = (PyGIBoxed *) _pygi_boxed_new (type, boxed, TRUE, size);
+    self = (PyGIBoxed *) pygi_boxed_new (type, boxed, TRUE, size);
     if (self == NULL) {
         g_slice_free1 (size, boxed);
         goto out;
@@ -131,7 +132,7 @@ out:
 }
 
 static int
-_boxed_init (PyObject *self,
+boxed_init (PyObject *self,
              PyObject *args,
              PyObject *kwargs)
 {
@@ -139,7 +140,7 @@ _boxed_init (PyObject *self,
 
     if (!PyArg_ParseTupleAndKeywords (args, kwargs, "", kwlist)) {
         PyErr_Clear ();
-        PyErr_Warn (PyExc_TypeError,
+        PyErr_Warn (PyExc_DeprecationWarning,
                 "Passing arguments to gi.types.Boxed.__init__() is deprecated. "
                 "All arguments passed will be ignored.");
     }
@@ -151,10 +152,10 @@ _boxed_init (PyObject *self,
 PYGLIB_DEFINE_TYPE("gi.Boxed", PyGIBoxed_Type, PyGIBoxed);
 
 PyObject *
-_pygi_boxed_new (PyTypeObject *type,
-                 gpointer      boxed,
-                 gboolean      free_on_dealloc,
-                 gsize         allocated_slice)
+pygi_boxed_new (PyTypeObject *type,
+                gpointer      boxed,
+                gboolean      free_on_dealloc,
+                gsize         allocated_slice)
 {
     PyGIBoxed *self;
 
@@ -187,13 +188,19 @@ _pygi_boxed_new (PyTypeObject *type,
 }
 
 static PyObject *
-_pygi_boxed_get_free_on_dealloc(PyGIBoxed *self, void *closure)
+boxed_get_free_on_dealloc(PyGIBoxed *self, void *closure)
 {
-  return PyBool_FromLong( ((PyGBoxed *)self)->free_on_dealloc );
+  return pygi_gboolean_to_py( ((PyGBoxed *)self)->free_on_dealloc );
+}
+
+static PyObject *
+boxed_get_is_valid (PyGIBoxed *self, void *closure)
+{
+  return pygi_gboolean_to_py (pyg_boxed_get_ptr (self) != NULL);
 }
 
 /**
- * _pygi_boxed_copy_in_place:
+ * pygi_boxed_copy_in_place:
  *
  * Replace the boxed pointer held by this wrapper with a boxed copy
  * freeing the previously held pointer (when free_on_dealloc is TRUE).
@@ -202,7 +209,7 @@ _pygi_boxed_get_free_on_dealloc(PyGIBoxed *self, void *closure)
  * longer than the duration of a callback it was passed to.
  */
 void
-_pygi_boxed_copy_in_place (PyGIBoxed *self)
+pygi_boxed_copy_in_place (PyGIBoxed *self)
 {
     PyGBoxed *pygboxed = (PyGBoxed *)self;
     gpointer ptr = pyg_boxed_get_ptr (self);
@@ -217,7 +224,8 @@ _pygi_boxed_copy_in_place (PyGIBoxed *self)
 }
 
 static PyGetSetDef pygi_boxed_getsets[] = {
-    { "_free_on_dealloc", (getter)_pygi_boxed_get_free_on_dealloc, (setter)0 },
+    { "_free_on_dealloc", (getter)boxed_get_free_on_dealloc, (setter)0 },
+    { "_is_valid", (getter)boxed_get_is_valid, (setter)0 },
     { NULL, 0, 0 }
 };
 
@@ -226,20 +234,29 @@ static PyMethodDef boxed_methods[] = {
     { NULL, NULL, 0 }
 };
 
-void
-_pygi_boxed_register_types (PyObject *m)
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
+pygi_boxed_register_types (PyObject *m)
 {
     Py_TYPE(&PyGIBoxed_Type) = &PyType_Type;
+    g_assert (Py_TYPE (&PyGBoxed_Type) != NULL);
     PyGIBoxed_Type.tp_base = &PyGBoxed_Type;
-    PyGIBoxed_Type.tp_new = (newfunc) _boxed_new;
-    PyGIBoxed_Type.tp_init = (initproc) _boxed_init;
-    PyGIBoxed_Type.tp_dealloc = (destructor) _boxed_dealloc;
+    PyGIBoxed_Type.tp_new = (newfunc) boxed_new;
+    PyGIBoxed_Type.tp_init = (initproc) boxed_init;
+    PyGIBoxed_Type.tp_dealloc = (destructor) boxed_dealloc;
     PyGIBoxed_Type.tp_flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE);
     PyGIBoxed_Type.tp_getset = pygi_boxed_getsets;
     PyGIBoxed_Type.tp_methods = boxed_methods;
 
-    if (PyType_Ready (&PyGIBoxed_Type))
-        return;
-    if (PyModule_AddObject (m, "Boxed", (PyObject *) &PyGIBoxed_Type))
-        return;
+    if (PyType_Ready (&PyGIBoxed_Type) < 0)
+        return -1;
+    Py_INCREF ((PyObject *) &PyGIBoxed_Type);
+    if (PyModule_AddObject (m, "Boxed", (PyObject *) &PyGIBoxed_Type) < 0) {
+        Py_DECREF ((PyObject *) &PyGIBoxed_Type);
+        return -1;
+    }
+
+    return 0;
 }

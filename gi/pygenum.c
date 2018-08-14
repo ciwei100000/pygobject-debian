@@ -19,16 +19,13 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <config.h>
 
-#include <pyglib.h>
-#include "pyglib-python-compat.h"
+#include "pygi-python-compat.h"
 #include "pygi-type.h"
 #include "pygi-util.h"
-
-#include "pygtype.h"
+#include "pygi-type.h"
+#include "pygi-basictype.h"
 #include "pygenum.h"
 #include "pygboxed.h"
 
@@ -261,7 +258,6 @@ pyg_enum_add (PyObject *   module,
     }
 
     ((PyTypeObject *)stub)->tp_flags &= ~Py_TPFLAGS_BASETYPE;
-    ((PyTypeObject *)stub)->tp_new = pyg_enum_new;
 
     if (module)
 	PyDict_SetItemString(((PyTypeObject *)stub)->tp_dict,
@@ -329,13 +325,17 @@ pyg_enum_get_value_name(PyGEnum *self, void *closure)
   GEnumClass *enum_class;
   GEnumValue *enum_value;
   PyObject *retval;
+  gint intvalue;
+
+  if (!pygi_gint_from_py ((PyObject*) self, &intvalue))
+    return NULL;
 
   enum_class = g_type_class_ref(self->gtype);
   g_assert(G_IS_ENUM_CLASS(enum_class));
 
-  enum_value = g_enum_get_value(enum_class, PYGLIB_PyLong_AS_LONG(self));
+  enum_value = g_enum_get_value(enum_class, intvalue);
 
-  retval = PYGLIB_PyUnicode_FromString(enum_value->value_name);
+  retval = pygi_utf8_to_py (enum_value->value_name);
   g_type_class_unref(enum_class);
 
   return retval;
@@ -347,13 +347,18 @@ pyg_enum_get_value_nick(PyGEnum *self, void *closure)
   GEnumClass *enum_class;
   GEnumValue *enum_value;
   PyObject *retval;
+  gint intvalue;
+
+  if (!pygi_gint_from_py ((PyObject*) self, &intvalue))
+    return NULL;
 
   enum_class = g_type_class_ref(self->gtype);
   g_assert(G_IS_ENUM_CLASS(enum_class));
 
-  enum_value = g_enum_get_value(enum_class, PYGLIB_PyLong_AS_LONG(self));
+  enum_value = g_enum_get_value(enum_class, intvalue);
 
-  retval = PYGLIB_PyUnicode_FromString(enum_value->value_nick);
+  retval = pygi_utf8_to_py (enum_value->value_nick);
+
   g_type_class_unref(enum_class);
 
   return retval;
@@ -371,18 +376,17 @@ static PyGetSetDef pyg_enum_getsets[] = {
     { NULL, 0, 0 }
 };
 
-void
-pygobject_enum_register_types(PyObject *d)
+/**
+ * Returns 0 on success, or -1 and sets an exception.
+ */
+int
+pygi_enum_register_types(PyObject *d)
 {
     pygenum_class_key        = g_quark_from_static_string("PyGEnum::class");
 
     PyGEnum_Type.tp_base = &PYGLIB_PyLong_Type;
-#if PY_VERSION_HEX < 0x03000000
     PyGEnum_Type.tp_new = pyg_enum_new;
-#else
-    PyGEnum_Type.tp_new = PyLong_Type.tp_new;
-    PyGEnum_Type.tp_hash = PyLong_Type.tp_hash;
-#endif
+    PyGEnum_Type.tp_hash = PYGLIB_PyLong_Type.tp_hash;
     PyGEnum_Type.tp_repr = (reprfunc)pyg_enum_repr;
     PyGEnum_Type.tp_str = (reprfunc)pyg_enum_repr;
     PyGEnum_Type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
@@ -390,4 +394,6 @@ pygobject_enum_register_types(PyObject *d)
     PyGEnum_Type.tp_methods = pyg_enum_methods;
     PyGEnum_Type.tp_getset = pyg_enum_getsets;
     PYGOBJECT_REGISTER_GTYPE(d, PyGEnum_Type, "GEnum", G_TYPE_ENUM);
+
+    return 0;
 }
