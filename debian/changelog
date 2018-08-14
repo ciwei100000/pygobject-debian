@@ -4,6 +4,7 @@ pygobject (3.29.2-1) UNRELEASED; urgency=medium
   * New upstream release
   * d/copyright: Update
   * Build using setup.py and pybuild
+  * Build-depend on python3-cairo-dbg so setup.py can import it
 
  -- Simon McVittie <smcv@debian.org>  Tue, 14 Aug 2018 11:32:47 +0100
 
