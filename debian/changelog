@@ -5,8 +5,11 @@ pygobject (3.29.2-1) UNRELEASED; urgency=medium
   * d/copyright: Update
   * Build using setup.py and pybuild
   * Build-depend on python3-cairo-dbg so setup.py can import it
+  * d/tests/gitest.py: Fix flake8 coding style warnings
+  * d/p/Clear-error-indicator-before-calling-pygi_pyerr_format.patch:
+    Add patch to fix build-time test failures
 
- -- Simon McVittie <smcv@debian.org>  Tue, 14 Aug 2018 11:32:47 +0100
+ -- Simon McVittie <smcv@debian.org>  Tue, 14 Aug 2018 16:53:35 +0100
 
 pygobject (3.28.3-1) unstable; urgency=medium
 
