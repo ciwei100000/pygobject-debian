@@ -1,1 +1,1 @@
-usr/lib/python*/*-packages/gi/*cairo*
+usr/lib/python2*/*-packages/gi/_gi_cairo.*so
