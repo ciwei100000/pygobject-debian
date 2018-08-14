@@ -3,6 +3,7 @@ pygobject (3.28.3-1) UNRELEASED; urgency=medium
   * New upstream release
   * Set Rules-Requires-Root to no
   * Don't install detailed upstream ChangeLog, only NEWS
+  * Standards-Version: 4.2.0
 
  -- Simon McVittie <smcv@debian.org>  Tue, 14 Aug 2018 10:14:00 +0100
 
