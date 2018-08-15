@@ -1,5 +1,6 @@
-pygobject (3.29.2-1) UNRELEASED; urgency=medium
+pygobject (3.29.2-1) experimental; urgency=medium
 
+  * Team upload
   * d/watch: Watch for development versions
   * New upstream release
   * d/copyright: Update
@@ -17,7 +18,7 @@ pygobject (3.29.2-1) UNRELEASED; urgency=medium
   * Build-depend on python3-flake8, since we run it
   * d/gbp.conf: Don't number patches
 
- -- Simon McVittie <smcv@debian.org>  Tue, 14 Aug 2018 16:53:35 +0100
+ -- Simon McVittie <smcv@debian.org>  Wed, 15 Aug 2018 08:53:01 +0100
 
 pygobject (3.28.3-1) unstable; urgency=medium
 
