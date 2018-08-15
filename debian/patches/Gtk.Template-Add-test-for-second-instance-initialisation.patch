@@ -1,0 +1,64 @@
+From: Kai Willadsen <kai.willadsen@gmail.com>
+Date: Sat, 7 Jul 2018 08:32:44 +1000
+Subject: Gtk.Template: Add test for second instance initialisation
+
+The attribute deletion here is the easiest way to stop current PyGObject
+from double-handling the initialisation in this case, which breaks the
+newer init_template() handling.
+
+Origin: upstream, 3.29.3, commit:be1aca545de822ae4dd33fb1fa90295558c75c1f
+---
+ tests/test_gtk_template.py | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/tests/test_gtk_template.py b/tests/test_gtk_template.py
+index 6f112dd..f0cc963 100644
+--- a/tests/test_gtk_template.py
++++ b/tests/test_gtk_template.py
+@@ -79,9 +79,46 @@ def test_allow_init_template_call():
+             super(Foo, self).__init__()
+             self.init_template()
+ 
++    # Stop current pygobject from handling the initialisation
++    del Foo.__dontuse_ginstance_init__
++
+     Foo()
+ 
+ 
++def test_init_template_second_instance():
++    type_name = new_gtype_name()
++
++    xml = """\
++<interface>
++  <template class="{0}" parent="GtkBox">
++    <child>
++      <object class="GtkLabel" id="label">
++      </object>
++    </child>
++  </template>
++</interface>
++""".format(type_name)
++
++    @Gtk.Template.from_string(xml)
++    class Foo(Gtk.Box):
++        __gtype_name__ = type_name
++
++        label = Gtk.Template.Child("label")
++
++        def __init__(self):
++            super(Foo, self).__init__()
++            self.init_template()
++
++    # Stop current pygobject from handling the initialisation
++    del Foo.__dontuse_ginstance_init__
++
++    foo = Foo()
++    assert isinstance(foo.label, Gtk.Label)
++
++    foo2 = Foo()
++    assert isinstance(foo2.label, Gtk.Label)
++
++
+ def test_main_example():
+ 
+     type_name = new_gtype_name()

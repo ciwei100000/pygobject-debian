@@ -1,0 +1,28 @@
+From: Kai Willadsen <kai.willadsen@gmail.com>
+Date: Sat, 7 Jul 2018 07:24:39 +1000
+Subject: Gtk.Template: Remove init_template() from instance, not class
+
+Without this change, the second instantiation of any templated class
+will fail to run any of the actual template-handling logic.
+
+This is *only* relevant when using the _gtk_template helpers with an
+older PyGObject; in newer versions, this method isn't called.
+
+Origin: upstream, 3.29.3, commit:05c3b8dc91f5d51bd30bbe58963a4454b447b707
+---
+ gi/_gtktemplate.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gi/_gtktemplate.py b/gi/_gtktemplate.py
+index df9afdb..a345f5d 100644
+--- a/gi/_gtktemplate.py
++++ b/gi/_gtktemplate.py
+@@ -99,7 +99,7 @@ def register_template(cls):
+ 
+ 
+ def init_template(self, cls, base_init_template):
+-    cls.init_template = lambda s: None
++    self.init_template = lambda s: None
+ 
+     if self.__class__ is not cls:
+         raise TypeError(

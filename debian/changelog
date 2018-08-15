@@ -6,6 +6,12 @@ pygobject (3.29.2-1) UNRELEASED; urgency=medium
   * Build using setup.py and pybuild
   * Build-depend on python3-cairo-dbg so setup.py can import it
   * d/tests/gitest.py: Fix flake8 coding style warnings
+  * d/p/gi-pygi-argument-Squash-critical-warning-when-using-array.patch,
+    d/p/Add-override-for-GdkPixbuf.Pixbuf.new_from_data.-Fixes-22.patch,
+    d/p/Gtk.Template-Remove-init_template-from-instance-not-class.patch,
+    d/p/Gtk.Template-Add-test-for-second-instance-initialisation.patch,
+    d/p/gtktemplate-Don-t-error-out-when-loading-a-resource-that-.patch,
+    Add post-release bug fixes from upstream
   * d/p/Clear-error-indicator-before-calling-pygi_pyerr_format.patch:
     Add patch to fix build-time test failures
   * Build-depend on python3-flake8, since we run it

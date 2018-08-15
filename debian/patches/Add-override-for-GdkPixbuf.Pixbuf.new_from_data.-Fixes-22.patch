@@ -1,0 +1,146 @@
+From: Christoph Reiter <reiter.christoph@gmail.com>
+Date: Sun, 17 Jun 2018 12:20:10 +0200
+Subject: Add override for GdkPixbuf.Pixbuf.new_from_data. Fixes #225
+
+new_from_data isn't bindable (see https://bugzilla.gnome.org/show_bug.cgi?id=721497)
+and will result in use after free. While we could try to move people away from it and
+skip it in GI a github code search turns up quite a few users.
+
+This adds an override for it, wrapping GdkPixbuf.Pixbuf.new_from_bytes, and marks any
+usage of the callback args as deprecated.
+
+Origin: upstream, 3.29.3, commit:898bbe50005223f5f04994764b3e95f13dffe2d2
+---
+ gi/overrides/GdkPixbuf.py         | 53 +++++++++++++++++++++++++++++++++++++++
+ gi/overrides/meson.build          |  1 +
+ tests/test_overrides_gdkpixbuf.py | 49 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 103 insertions(+)
+ create mode 100644 gi/overrides/GdkPixbuf.py
+ create mode 100644 tests/test_overrides_gdkpixbuf.py
+
+diff --git a/gi/overrides/GdkPixbuf.py b/gi/overrides/GdkPixbuf.py
+new file mode 100644
+index 0000000..0f6cd75
+--- /dev/null
++++ b/gi/overrides/GdkPixbuf.py
+@@ -0,0 +1,53 @@
++# Copyright 2018 Christoph Reiter <reiter.christoph@gmail.com>
++#
++# This library is free software; you can redistribute it and/or
++# modify it under the terms of the GNU Lesser General Public
++# License as published by the Free Software Foundation; either
++# version 2.1 of the License, or (at your option) any later version.
++#
++# This library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++#
++# You should have received a copy of the GNU Lesser General Public
++# License along with this library; if not, write to the Free Software
++# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
++# USA
++
++import warnings
++
++from gi import PyGIDeprecationWarning
++from gi.repository import GLib
++
++from ..overrides import override
++from ..module import get_introspection_module
++
++
++GdkPixbuf = get_introspection_module('GdkPixbuf')
++__all__ = []
++
++
++@override
++class Pixbuf(GdkPixbuf.Pixbuf):
++
++    @classmethod
++    def new_from_data(
++            cls, data, colorspace, has_alpha, bits_per_sample,
++            width, height, rowstride,
++            destroy_fn=None, *destroy_fn_data):
++
++        if destroy_fn is not None:
++            w = PyGIDeprecationWarning("destroy_fn argument deprecated")
++            warnings.warn(w)
++        if destroy_fn_data:
++            w = PyGIDeprecationWarning("destroy_fn_data argument deprecated")
++            warnings.warn(w)
++
++        data = GLib.Bytes.new(data)
++        return cls.new_from_bytes(
++            data, colorspace, has_alpha, bits_per_sample,
++            width, height, rowstride)
++
++
++__all__.append('Pixbuf')
+diff --git a/gi/overrides/meson.build b/gi/overrides/meson.build
+index b8ecae9..6ff073f 100644
+--- a/gi/overrides/meson.build
++++ b/gi/overrides/meson.build
+@@ -2,6 +2,7 @@ python_sources = [
+   'GLib.py',
+   'Gtk.py',
+   'Gdk.py',
++  'GdkPixbuf.py',
+   'GObject.py',
+   'Gio.py',
+   'GIMarshallingTests.py',
+diff --git a/tests/test_overrides_gdkpixbuf.py b/tests/test_overrides_gdkpixbuf.py
+new file mode 100644
+index 0000000..5b2d370
+--- /dev/null
++++ b/tests/test_overrides_gdkpixbuf.py
+@@ -0,0 +1,49 @@
++# Copyright 2018 Christoph Reiter <reiter.christoph@gmail.com>
++#
++# This library is free software; you can redistribute it and/or
++# modify it under the terms of the GNU Lesser General Public
++# License as published by the Free Software Foundation; either
++# version 2.1 of the License, or (at your option) any later version.
++#
++# This library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++#
++# You should have received a copy of the GNU Lesser General Public
++# License along with this library; if not, write to the Free Software
++# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
++# USA
++
++from __future__ import absolute_import
++
++import pytest
++
++from gi import PyGIDeprecationWarning
++GdkPixbuf = pytest.importorskip("gi.repository.GdkPixbuf")
++
++
++def test_new_from_data():
++    width = 600
++    height = 32769
++    pixbuf = GdkPixbuf.Pixbuf.new(
++        GdkPixbuf.Colorspace.RGB, True, 8, width, height)
++    pixels = pixbuf.get_pixels()
++    new_pixbuf = GdkPixbuf.Pixbuf.new_from_data(
++        pixels, GdkPixbuf.Colorspace.RGB, True, 8,
++        pixbuf.get_width(), pixbuf.get_height(), pixbuf.get_rowstride())
++    del pixbuf
++    del pixels
++    new_pixels = new_pixbuf.get_pixels()
++    assert len(new_pixels) == width * height * 4
++
++
++def test_new_from_data_deprecated_args():
++    GdkPixbuf.Pixbuf.new_from_data(b"1234", 0, True, 8, 1, 1, 4)
++    GdkPixbuf.Pixbuf.new_from_data(b"1234", 0, True, 8, 1, 1, 4, None)
++    with pytest.warns(PyGIDeprecationWarning, match=".*destroy_fn.*"):
++        GdkPixbuf.Pixbuf.new_from_data(
++            b"1234", 0, True, 8, 1, 1, 4, object(), object(), object())
++    with pytest.warns(PyGIDeprecationWarning, match=".*destroy_fn_data.*"):
++        GdkPixbuf.Pixbuf.new_from_data(
++            b"1234", 0, True, 8, 1, 1, 4, object(), object(), object())
