@@ -12,15 +12,19 @@ import imp
 
 class GIImport:
     def find_module(self, fullname, path=None):
-        if fullname == 'gi._gi':
+        if fullname in ('gi._gi', 'gi._gi_cairo'):
             return self
         return None
 
     def load_module(self, name):
         if name in sys.modules:
             return sys.modules[name]
-        module_info = imp.find_module('_gi')
-        module = imp.load_module(name, *module_info)
+        fp, pathname, description = imp.find_module(name.split('.')[-1])
+        try:
+            module = imp.load_module(name, fp, pathname, description)
+        finally:
+            if fp:
+                fp.close()
         sys.modules[name] = module
         return module
 

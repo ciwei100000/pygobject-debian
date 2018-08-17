@@ -39,7 +39,7 @@ from distutils import dir_util, log
 from distutils.spawn import find_executable
 
 
-PYGOBJECT_VERISON = "3.29.2"
+PYGOBJECT_VERISON = "3.29.3"
 GLIB_VERSION_REQUIRED = "2.38.0"
 GI_VERSION_REQUIRED = "1.46.0"
 PYCAIRO_VERSION_REQUIRED = "1.11.1"
@@ -893,7 +893,6 @@ def add_ext_compiler_flags(ext, compiler, _cache={}):
             "-Wformat-security",
             "-Wimplicit-function-declaration",
             "-Winit-self",
-            "-Winline",
             "-Wjump-misses-init",
             "-Wlogical-op",
             "-Wmissing-declarations",

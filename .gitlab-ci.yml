@@ -1,4 +1,4 @@
-image: registry.gitlab.gnome.org/gnome/pygobject/main:v6
+image: registry.gitlab.gnome.org/gnome/pygobject/main:v8
 
 stages:
   - build_and_test
@@ -34,7 +34,7 @@ coverage:
     paths:
       - coverage/
   variables:
-    PYENV_VERSION: "3.6.5"
+    PYENV_VERSION: "3.6.6"
   script:
     - bash -x ./.gitlab-ci/coverage-docker.sh
 
@@ -59,7 +59,6 @@ python2-mingw32:
   <<: *mingw-defaults
 
 python2-mingw64:
-  when: manual
   variables:
     PYTHON: "python2"
     MSYSTEM: "MINGW64"
@@ -67,7 +66,6 @@ python2-mingw64:
   <<: *mingw-defaults
 
 python3-mingw32:
-  when: manual
   variables:
     PYTHON: "python3"
     MSYSTEM: "MINGW32"
@@ -83,23 +81,22 @@ python3-mingw64:
 
 python2.7:
   variables:
-    PYENV_VERSION: "2.7.15"
+    PYENV_VERSION: "2.7.15-debug"
   <<: *defaults
 
 python3.5:
-  when: manual
   variables:
-    PYENV_VERSION: "3.5.5"
+    PYENV_VERSION: "3.5.6"
   <<: *defaults
 
 python3.6:
   variables:
-    PYENV_VERSION: "3.6.5"
+    PYENV_VERSION: "3.6.6"
   <<: *defaults
 
 python3.7:
   variables:
-    PYENV_VERSION: "3.7.0b3"
+    PYENV_VERSION: "3.7.0-debug"
   <<: *defaults
 
 pypy2:
@@ -109,7 +106,6 @@ pypy2:
   <<: *defaults
 
 pypy3:
-  when: manual
   allow_failure: true
   variables:
     PYENV_VERSION: "pypy3.5-6.0.0"
@@ -120,3 +116,10 @@ xenial-i386-py2:
   image: registry.gitlab.gnome.org/gnome/pygobject/old:v2
   script:
    - bash -x ./.gitlab-ci/test-docker-old.sh
+
+gnome-master:
+  allow_failure: true
+  stage: build_and_test
+  image: registry.gitlab.gnome.org/gnome/gnome-runtime-images/gnome:master
+  script:
+    - xvfb-run -a flatpak run --filesystem=host --share=network --socket=x11 --command=bash org.gnome.Sdk//master -x .gitlab-ci/test-flatpak.sh
