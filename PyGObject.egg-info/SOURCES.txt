@@ -19,6 +19,7 @@ setup.py
 .gitlab-ci/run-docker.sh
 .gitlab-ci/test-docker-old.sh
 .gitlab-ci/test-docker.sh
+.gitlab-ci/test-flatpak.sh
 .gitlab-ci/test-msys2.sh
 PyGObject.egg-info/PKG-INFO
 PyGObject.egg-info/SOURCES.txt
@@ -237,6 +238,7 @@ gi/overrides/GIMarshallingTests.py
 gi/overrides/GLib.py
 gi/overrides/GObject.py
 gi/overrides/Gdk.py
+gi/overrides/GdkPixbuf.py
 gi/overrides/Gio.py
 gi/overrides/Gtk.py
 gi/overrides/Pango.py
@@ -252,6 +254,7 @@ pygtkcompat/pygtkcompat.py
 subprojects/glib.wrap
 subprojects/gobject-introspection.wrap
 subprojects/libffi.wrap
+subprojects/pycairo.wrap
 tests/__init__.py
 tests/conftest.py
 tests/gimarshallingtestsextra.c
@@ -291,6 +294,7 @@ tests/test_object_marshaling.py
 tests/test_option.py
 tests/test_ossig.py
 tests/test_overrides_gdk.py
+tests/test_overrides_gdkpixbuf.py
 tests/test_overrides_gio.py
 tests/test_overrides_glib.py
 tests/test_overrides_gtk.py

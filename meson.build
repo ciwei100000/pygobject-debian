@@ -1,5 +1,5 @@
 project('pygobject', 'c',
-  version : '3.29.2',
+  version : '3.29.3',
   meson_version : '>= 0.46.0',
   default_options : [ 'warning_level=1',
                       'buildtype=debugoptimized'])
@@ -42,10 +42,17 @@ if with_pycairo
   cairo_gobject_dep = dependency('cairo-gobject')
 
   if python.language_version().version_compare('>= 3.0')
-    pycairo_dep = dependency('py3cairo', version : pycairo_version_req)
+    pycairo_name = 'py3cairo'
   else
-    pycairo_dep = dependency('pycairo', version : pycairo_version_req)
+    pycairo_name = 'pycairo'
   endif
+
+  pycairo_dep = dependency(
+    pycairo_name,
+    version: pycairo_version_req,
+    fallback: ['pycairo', 'pycairo_dep'],
+    default_options: ['python=' + get_option('python')],
+  )
 endif
 
 cc = meson.get_compiler('c')
@@ -62,7 +69,6 @@ main_c_args = [
   '-Wformat-security',
   '-Wimplicit-function-declaration',
   '-Winit-self',
-  '-Winline',
   '-Wjump-misses-init',
   '-Wlogical-op',
   '-Wmissing-declarations',
@@ -135,10 +141,24 @@ configure_file(input : 'pygobject-@0@.pc.in'.format(platform_version),
   configuration : pkgconf,
   install_dir : pkg_install_dir)
 
+pygobject_dep = declare_dependency(
+  include_directories: include_directories('gi'),
+  dependencies: [gobject_dep, ffi_dep],
+  version: meson.project_version(),
+)
+
+if pygobject_version_minor.is_odd()
+  py_version = '@0@.dev0'.format(pygobject_version)
+else
+  py_version = pygobject_version
+endif
+
+pkginfo_conf = configuration_data()
+pkginfo_conf.set('VERSION', py_version)
 configure_file(input : 'PKG-INFO.in',
-  output : 'pygobject-@0@-py@1@.egg-info'.format(pygobject_version, python.language_version()),
-  configuration : pkgconf,
-  install_dir : python.get_install_dir(subdir : 'gi'))
+  output : 'PyGObject-@0@.egg-info'.format(py_version),
+  configuration : pkginfo_conf,
+  install_dir : python.get_install_dir())
 
 subdir('gi')
 subdir('pygtkcompat')
