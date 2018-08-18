@@ -1,6 +1,0 @@
-gi-pygi-argument-Squash-critical-warning-when-using-array.patch
-Add-override-for-GdkPixbuf.Pixbuf.new_from_data.-Fixes-22.patch
-Gtk.Template-Remove-init_template-from-instance-not-class.patch
-Gtk.Template-Add-test-for-second-instance-initialisation.patch
-gtktemplate-Don-t-error-out-when-loading-a-resource-that-.patch
-Clear-error-indicator-before-calling-pygi_pyerr_format.patch

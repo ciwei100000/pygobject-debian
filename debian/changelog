@@ -1,6 +1,7 @@
 pygobject (3.29.3-1) UNRELEASED; urgency=medium
 
   * New upstream release
+  * Drop all patches, applied upstream
 
  -- Simon McVittie <smcv@debian.org>  Sat, 18 Aug 2018 15:36:58 +0100
 
