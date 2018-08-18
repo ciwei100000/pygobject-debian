@@ -1,12 +1,13 @@
-pygobject (3.29.3-1) UNRELEASED; urgency=medium
+pygobject (3.29.3-1) experimental; urgency=medium
 
+  * Team upload
   * New upstream release
   * Drop all patches, applied upstream
   * d/p/tests-don-t-assume-anything-about-sys.excepthook.patch:
     Add patch from upstream to fix test failure on Ubuntu with apport's
     sys.excepthook
 
- -- Simon McVittie <smcv@debian.org>  Sat, 18 Aug 2018 15:36:58 +0100
+ -- Simon McVittie <smcv@debian.org>  Sat, 18 Aug 2018 15:43:20 +0100
 
 pygobject (3.29.2-1) experimental; urgency=medium
 
