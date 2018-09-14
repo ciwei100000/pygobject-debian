@@ -1,3 +1,10 @@
+pygobject (3.30.0-2) experimental; urgency=medium
+
+  * Add revert-closure-typecasts-from-commit-25a5b066.patch
+    - Apply Fedora workaround to fix build tests on some architectures
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 14 Sep 2018 09:49:11 -0400
+
 pygobject (3.30.0-1) experimental; urgency=medium
 
   * New upstream release
