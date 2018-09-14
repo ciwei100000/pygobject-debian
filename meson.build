@@ -1,5 +1,5 @@
 project('pygobject', 'c',
-  version : '3.30.0',
+  version : '3.30.1',
   meson_version : '>= 0.46.0',
   default_options : [ 'warning_level=1',
                       'buildtype=debugoptimized'])
@@ -90,7 +90,6 @@ main_c_args = [
   '-Wundef',
   '-Wunused-but-set-variable',
   '-Wwrite-strings',
-  '-Wconversion',
 ]
 
 main_c_args += [
@@ -100,6 +99,7 @@ main_c_args += [
   '-Wno-discarded-qualifiers',
   '-Wno-sign-conversion',
   '-Wno-cast-function-type',
+  '-Wno-int-conversion',
 ]
 
 main_c_args += [
