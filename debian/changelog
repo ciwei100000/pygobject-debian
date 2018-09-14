@@ -1,3 +1,9 @@
+pygobject (3.30.1-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 14 Sep 2018 15:14:14 -0400
+
 pygobject (3.30.0-2) experimental; urgency=medium
 
   * Add revert-closure-typecasts-from-commit-25a5b066.patch
