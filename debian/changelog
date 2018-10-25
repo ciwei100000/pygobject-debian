@@ -1,3 +1,15 @@
+pygobject (3.30.1-2) UNRELEASED; urgency=medium
+
+  * Suppress python{3,}-gi → python{3,}-cairo dependency. Since we moved to
+    pybuild, we pick up a dependency from python{3,}-gi to python{3,}-cairo,
+    because it is in requirements.txt. Add a py3dist-overrides file to map
+    this to the empty package, so that dh_python{3,} doesn't generate the
+    dependency for us - it is unnecessary in python{3,}-gi and
+    python{3,}-gi-cairo, which needs it, has it specified manually. (Closes:
+    #909703)
+
+ -- Iain Lane <laney@debian.org>  Thu, 25 Oct 2018 12:41:41 +0100
+
 pygobject (3.30.1-1) unstable; urgency=medium
 
   * New upstream release
