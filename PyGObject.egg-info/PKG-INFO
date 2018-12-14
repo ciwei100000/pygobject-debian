@@ -1,6 +1,6 @@
 Metadata-Version: 1.2
 Name: PyGObject
-Version: 3.30.2
+Version: 3.30.4
 Summary: Python bindings for GObject Introspection
 Home-page: https://pygobject.readthedocs.io
 Author: James Henstridge
@@ -34,7 +34,7 @@ Description: .. image:: https://pygobject.readthedocs.io/en/latest/_images/pygob
 Platform: POSIX, Windows
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)
 Classifier: Operating System :: POSIX
 Classifier: Operating System :: Microsoft :: Windows
 Classifier: Programming Language :: C
