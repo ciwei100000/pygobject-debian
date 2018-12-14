@@ -1,8 +1,8 @@
-pygobject (3.30.4-1) UNRELEASED; urgency=medium
+pygobject (3.30.4-1) unstable; urgency=medium
 
   * New upstream release
 
- -- Jeremy Bicha <jbicha@debian.org>  Fri, 14 Dec 2018 10:08:15 -0500
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 14 Dec 2018 10:36:17 -0500
 
 pygobject (3.30.2-1) unstable; urgency=medium
 
