@@ -297,7 +297,9 @@ class Value(GObjectModule.Value):
         elif gtype == TYPE_PYOBJECT:
             self.set_boxed(py_value)
         else:
-            raise TypeError("Unknown value type %s" % gtype)
+            # Fall back to _gvalue_set which handles some more cases
+            # like fundamentals for which a converter is registered
+            _gi._gvalue_set(self, py_value)
 
     def get_value(self):
         gtype = self.g_type
@@ -343,11 +345,15 @@ class Value(GObjectModule.Value):
         elif gtype == TYPE_GTYPE:
             return self.get_gtype()
         elif gtype == TYPE_VARIANT:
-            return self.get_variant()
+            # get_variant was missing annotations
+            # https://gitlab.gnome.org/GNOME/glib/merge_requests/492
+            return self.dup_variant()
         elif gtype == TYPE_PYOBJECT:
-            pass
-        else:
+            return self.get_boxed()
+        elif gtype == _gi.TYPE_INVALID:
             return None
+        else:
+            return _gi._gvalue_get(self)
 
     def __repr__(self):
         return '<Value (%s) %s>' % (self.g_type.name, self.get_value())
