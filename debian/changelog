@@ -1,3 +1,11 @@
+pygobject (3.26.1-2ubuntu1) bionic; urgency=medium
+
+  * Update Vcs fields for ubuntu/bionic branch
+  * Cherry-pick fix-tests-with-newest-glib.patch:
+    - Fix pygobject build test failure with glib2.0 2.56 (LP: #1813591)
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Tue, 29 Jan 2019 07:46:03 -0500
+
 pygobject (3.26.1-2) unstable; urgency=medium
 
   * Update Vcs fields for conversion to git
