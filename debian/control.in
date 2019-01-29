@@ -36,8 +36,10 @@ Build-Depends: debhelper (>= 10),
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.3
 Standards-Version: 4.1.2
-Vcs-Git: https://anonscm.debian.org/git/pkg-gnome/pygobject.git
-Vcs-Browser: https://anonscm.debian.org/git/pkg-gnome/pygobject.git
+Vcs-Browser: https://code.launchpad.net/~ubuntu-desktop/ubuntu/+source/pygobject/+git/pygobject/+ref/ubuntu/bionic
+Vcs-Git: https://git.launchpad.net/~ubuntu-desktop/ubuntu/+source/pygobject -b ubuntu/bionic
+XS-Debian-Vcs-Git: https://anonscm.debian.org/git/pkg-gnome/pygobject.git
+XS-Debian-Vcs-Browser: https://anonscm.debian.org/git/pkg-gnome/pygobject.git
 Homepage: https://wiki.gnome.org/Projects/PyGObject
 
 Package: python-gi
