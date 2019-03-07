@@ -41,11 +41,16 @@ from distutils import dir_util, log
 from distutils.spawn import find_executable
 
 
-PYGOBJECT_VERSION = "3.30.4"
-GLIB_VERSION_REQUIRED = "2.38.0"
+PYGOBJECT_VERSION = "3.31.4"
+GLIB_VERSION_REQUIRED = "2.48.0"
 GI_VERSION_REQUIRED = "1.46.0"
 PYCAIRO_VERSION_REQUIRED = "1.11.1"
 LIBFFI_VERSION_REQUIRED = "3.0"
+
+WITH_CAIRO = not bool(os.environ.get("PYGOBJECT_WITHOUT_PYCAIRO"))
+"""Set PYGOBJECT_WITHOUT_PYCAIRO if you don't want to build with
+cairo/pycairo support. Note that this option might get removed in the future.
+"""
 
 
 def is_dev_version():
@@ -109,7 +114,19 @@ def parse_pkg_info(conf_dir):
     return message
 
 
-def pkg_config_get_install_hint(pkg_name):
+def pkg_config_get_install_hint():
+    """Returns an installation hint for installing pkg-config or None"""
+
+    if not sys.platform.startswith("linux"):
+        return
+
+    if find_executable("apt"):
+        return "sudo apt install pkg-config"
+    elif find_executable("dnf"):
+        return "sudo dnf install pkg-config"
+
+
+def pkg_config_get_package_install_hint(pkg_name):
     """Returns an installation hint for a pkg-config name or None"""
 
     if not sys.platform.startswith("linux"):
@@ -143,6 +160,10 @@ class PkgConfigError(Exception):
     pass
 
 
+class PkgConfigMissingError(PkgConfigError):
+    pass
+
+
 class PkgConfigMissingPackageError(PkgConfigError):
     pass
 
@@ -157,7 +178,7 @@ def _run_pkg_config(pkg_name, args, _cache={}):
             result = subprocess.check_output(command)
         except OSError as e:
             if e.errno == errno.ENOENT:
-                raise PkgConfigError(
+                raise PkgConfigMissingError(
                     "%r not found.\nArguments: %r" % (command[0], command))
             raise PkgConfigError(e)
         except subprocess.CalledProcessError as e:
@@ -176,8 +197,15 @@ def _run_pkg_config(pkg_name, args, _cache={}):
 def _run_pkg_config_or_exit(pkg_name, args):
     try:
         return _run_pkg_config(pkg_name, args)
+    except PkgConfigMissingError as e:
+        hint = pkg_config_get_install_hint()
+        if hint:
+            raise SystemExit(
+                "%s\n\nTry installing it with: %r" % (e, hint))
+        else:
+            raise SystemExit(e)
     except PkgConfigMissingPackageError as e:
-        hint = pkg_config_get_install_hint(pkg_name)
+        hint = pkg_config_get_package_install_hint(pkg_name)
         if hint:
             raise SystemExit(
                 "%s\n\nTry installing it with: %r" % (e, hint))
@@ -379,7 +407,6 @@ class build_tests(Command):
         self.build_temp = None
         self.build_base = None
         self.force = False
-        self.extra_defines = []
 
     def finalize_options(self):
         self.set_undefined_options(
@@ -468,13 +495,15 @@ class build_tests(Command):
                 # MSVC: We need to define _GI_EXTERN explcitly so that
                 #       symbols get exported properly
                 if compiler.compiler_type == "msvc":
-                    self.extra_defines = [('_GI_EXTERN',
-                                           '__declspec(dllexport)extern')]
+                    extra_defines = [('_GI_EXTERN',
+                                      '__declspec(dllexport)extern')]
+                else:
+                    extra_defines = []
                 objects = compiler.compile(
                     ext.sources,
                     output_dir=self.build_temp,
                     include_dirs=ext.include_dirs,
-                    macros=self.extra_defines)
+                    macros=ext.define_macros + extra_defines)
 
                 if os.name == "nt":
                     if compiler.compiler_type == "msvc":
@@ -552,6 +581,10 @@ class build_tests(Command):
                 "--output=%s" % typelib_path,
             ])
 
+        regress_macros = []
+        if not WITH_CAIRO:
+            regress_macros.append(("_GI_DISABLE_CAIRO", "1"))
+
         ext = Extension(
             name='libregress',
             sources=[
@@ -565,11 +598,14 @@ class build_tests(Command):
                 os.path.join(gi_tests_dir, "regress.h"),
                 os.path.join(tests_dir, "regressextra.h"),
             ],
+            define_macros=regress_macros,
         )
         add_ext_pkg_config_dep(ext, compiler.compiler_type, "glib-2.0")
         add_ext_pkg_config_dep(ext, compiler.compiler_type, "gio-2.0")
-        add_ext_pkg_config_dep(ext, compiler.compiler_type, "cairo")
-        add_ext_pkg_config_dep(ext, compiler.compiler_type, "cairo-gobject")
+        if WITH_CAIRO:
+            add_ext_pkg_config_dep(ext, compiler.compiler_type, "cairo")
+            add_ext_pkg_config_dep(
+                ext, compiler.compiler_type, "cairo-gobject")
         ext_paths = build_ext(ext)
 
         # We want to always use POSIX-style paths for g-ir-compiler
@@ -579,7 +615,6 @@ class build_tests(Command):
         typelib_path = posixpath.join(tests_dir, "Regress-1.0.typelib")
         regress_g_ir_scanner_cmd = g_ir_scanner_cmd + [
             "--no-libtool",
-            "--include=cairo-1.0",
             "--include=Gio-2.0",
             "--namespace=Regress",
             "--nsversion=1.0",
@@ -591,19 +626,23 @@ class build_tests(Command):
             "--pkg=gio-2.0"]
 
         if self._newer_group(ext_paths, gir_path):
-            # MSVC: We don't normally have the pkg-config files for
-            # cairo and cairo-gobject, so use --extra-library
-            # instead of --pkg to pass those to the linker, so that
-            # g-ir-scanner won't fail due to linker errors
-            if compiler.compiler_type == "msvc":
-                regress_g_ir_scanner_cmd += [
-                    "--extra-library=cairo",
-                    "--extra-library=cairo-gobject"]
+            if WITH_CAIRO:
+                regress_g_ir_scanner_cmd += ["--include=cairo-1.0"]
+                # MSVC: We don't normally have the pkg-config files for
+                # cairo and cairo-gobject, so use --extra-library
+                # instead of --pkg to pass those to the linker, so that
+                # g-ir-scanner won't fail due to linker errors
+                if compiler.compiler_type == "msvc":
+                    regress_g_ir_scanner_cmd += [
+                        "--extra-library=cairo",
+                        "--extra-library=cairo-gobject"]
 
+                else:
+                    regress_g_ir_scanner_cmd += [
+                        "--pkg=cairo",
+                        "--pkg=cairo-gobject"]
             else:
-                regress_g_ir_scanner_cmd += [
-                    "--pkg=cairo",
-                    "--pkg=cairo-gobject"]
+                regress_g_ir_scanner_cmd += ["-D_GI_DISABLE_CAIRO"]
 
             regress_g_ir_scanner_cmd += ["--output=%s" % gir_path]
 
@@ -634,7 +673,6 @@ class build_tests(Command):
         )
         add_ext_pkg_config_dep(ext, compiler.compiler_type, "glib-2.0")
         add_ext_pkg_config_dep(ext, compiler.compiler_type, "gio-2.0")
-        add_ext_pkg_config_dep(ext, compiler.compiler_type, "cairo")
         add_ext_compiler_flags(ext, compiler)
 
         dist = Distribution({"ext_modules": [ext]})
@@ -1061,15 +1099,16 @@ class build_ext(du_build_ext):
         add_dependency(gi_ext, "libffi")
         add_ext_compiler_flags(gi_ext, compiler)
 
-        gi_cairo_ext = ext["gi._gi_cairo"]
-        add_dependency(gi_cairo_ext, "glib-2.0")
-        add_dependency(gi_cairo_ext, "gio-2.0")
-        add_dependency(gi_cairo_ext, "gobject-introspection-1.0")
-        add_dependency(gi_cairo_ext, "libffi")
-        add_dependency(gi_cairo_ext, "cairo")
-        add_dependency(gi_cairo_ext, "cairo-gobject")
-        add_pycairo(gi_cairo_ext)
-        add_ext_compiler_flags(gi_cairo_ext, compiler)
+        if WITH_CAIRO:
+            gi_cairo_ext = ext["gi._gi_cairo"]
+            add_dependency(gi_cairo_ext, "glib-2.0")
+            add_dependency(gi_cairo_ext, "gio-2.0")
+            add_dependency(gi_cairo_ext, "gobject-introspection-1.0")
+            add_dependency(gi_cairo_ext, "libffi")
+            add_dependency(gi_cairo_ext, "cairo")
+            add_dependency(gi_cairo_ext, "cairo-gobject")
+            add_pycairo(gi_cairo_ext)
+            add_ext_compiler_flags(gi_cairo_ext, compiler)
 
     def run(self):
         self._write_config_h()
@@ -1171,6 +1210,9 @@ def main():
     with io.open(readme, encoding="utf-8") as h:
         long_description = h.read()
 
+    ext_modules = []
+    install_requires = []
+
     gi_ext = Extension(
         name='gi._gi',
         sources=sorted(sources),
@@ -1178,14 +1220,20 @@ def main():
         depends=list_headers(script_dir) + list_headers(gi_dir),
         define_macros=[("PY_SSIZE_T_CLEAN", None)],
     )
+    ext_modules.append(gi_ext)
 
-    gi_cairo_ext = Extension(
-        name='gi._gi_cairo',
-        sources=cairo_sources,
-        include_dirs=[script_dir, gi_dir],
-        depends=list_headers(script_dir) + list_headers(gi_dir),
-        define_macros=[("PY_SSIZE_T_CLEAN", None)],
-    )
+    if WITH_CAIRO:
+        gi_cairo_ext = Extension(
+            name='gi._gi_cairo',
+            sources=cairo_sources,
+            include_dirs=[script_dir, gi_dir],
+            depends=list_headers(script_dir) + list_headers(gi_dir),
+            define_macros=[("PY_SSIZE_T_CLEAN", None)],
+        )
+        ext_modules.append(gi_cairo_ext)
+        install_requires.append(
+            "pycairo>=%s" % get_version_requirement(
+                get_pycairo_pkg_config_name()))
 
     version = pkginfo["Version"]
     if is_dev_version():
@@ -1212,10 +1260,7 @@ def main():
             "gi.repository",
             "gi.overrides",
         ],
-        ext_modules=[
-            gi_ext,
-            gi_cairo_ext,
-        ],
+        ext_modules=ext_modules,
         cmdclass={
             "build_ext": build_ext,
             "distcheck": distcheck,
@@ -1226,10 +1271,7 @@ def main():
             "install": install,
             "install_pkgconfig": install_pkgconfig,
         },
-        install_requires=[
-            "pycairo>=%s" % get_version_requirement(
-                get_pycairo_pkg_config_name()),
-        ],
+        install_requires=install_requires,
         data_files=[
             ('include/pygobject-3.0', ['gi/pygobject.h']),
         ],
