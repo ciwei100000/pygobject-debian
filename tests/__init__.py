@@ -128,6 +128,19 @@ def init_test_environ():
     # always on for the tests.
     warnings.simplefilter('default', gi.PyGIDeprecationWarning)
 
+    # Otherwise we crash on the first gtk use when e.g. DISPLAY isn't set
+    try:
+        from gi.repository import Gtk
+    except ImportError:
+        pass
+    else:
+        if Gtk._version == "4.0":
+            res = Gtk.init_check()
+        else:
+            res = Gtk.init_check([])[0]
+        if not res:
+            raise RuntimeError("Gtk available, but Gtk.init_check() failed")
+
 
 init_test_environ()
 

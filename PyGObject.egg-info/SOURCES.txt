@@ -8,15 +8,19 @@ meson.build
 meson_options.txt
 pygobject-3.0.pc.in
 pygobject.doap
+pyproject.toml
 setup.cfg
 setup.py
 .gitlab-ci/Dockerfile
+.gitlab-ci/Dockerfile.gtk4
 .gitlab-ci/Dockerfile.old
 .gitlab-ci/README.rst
 .gitlab-ci/coverage-docker.sh
 .gitlab-ci/fixup-cov-paths.py
+.gitlab-ci/run-docker-gtk4.sh
 .gitlab-ci/run-docker-old.sh
 .gitlab-ci/run-docker.sh
+.gitlab-ci/test-docker-gtk4.sh
 .gitlab-ci/test-docker-old.sh
 .gitlab-ci/test-docker.sh
 .gitlab-ci/test-flatpak.sh
@@ -61,6 +65,7 @@ docs/guide/api/gobject.rst
 docs/guide/api/index.rst
 docs/guide/api/properties.rst
 docs/guide/api/signals.rst
+docs/guide/api/weakrefs.rst
 docs/guide/code/cairo-demo.py
 docs/guide/images/cairo_integration.png
 docs/images/LICENSE
@@ -297,6 +302,7 @@ tests/test_overrides_gdk.py
 tests/test_overrides_gdkpixbuf.py
 tests/test_overrides_gio.py
 tests/test_overrides_glib.py
+tests/test_overrides_gobject.py
 tests/test_overrides_gtk.py
 tests/test_overrides_pango.py
 tests/test_properties.py

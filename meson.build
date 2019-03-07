@@ -1,5 +1,5 @@
 project('pygobject', 'c',
-  version : '3.30.4',
+  version : '3.31.4',
   meson_version : '>= 0.46.0',
   default_options : [ 'warning_level=1',
                       'buildtype=debugoptimized'])
@@ -17,7 +17,7 @@ python = pymod.find_installation(get_option('python'))
 
 python_dep = python.dependency()
 
-glib_version_req = '>= 2.38.0'
+glib_version_req = '>= 2.48.0'
 gi_version_req = '>= 1.46.0'
 pycairo_version_req = '>= 1.11.1'
 libffi_version_req = '>= 3.0'
@@ -170,7 +170,7 @@ pkginfo_conf.set('VERSION', py_version)
 configure_file(input : 'PKG-INFO.in',
   output : 'PyGObject-@0@.egg-info'.format(py_version),
   configuration : pkginfo_conf,
-  install_dir : python.get_install_dir())
+  install_dir : python.get_install_dir(pure : false))
 
 subdir('gi')
 subdir('pygtkcompat')

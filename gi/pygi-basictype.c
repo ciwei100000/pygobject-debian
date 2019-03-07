@@ -259,7 +259,11 @@ pygi_gtype_from_py (PyObject *py_arg, GType *type)
     GType temp = pyg_type_from_object (py_arg);
 
     if (temp == 0) {
-        PyErr_Format (PyExc_TypeError, "Must be gobject.GType, not %s",
+        if (!PyErr_Occurred ()) {
+            PyErr_SetString (PyExc_ValueError, "Invalid GType");
+            return FALSE;
+        }
+        PyErr_Format (PyExc_TypeError, "Must be GObject.GType, not %s",
                       Py_TYPE (py_arg)->tp_name);
         return FALSE;
     }
@@ -1338,6 +1342,8 @@ arg_basic_type_setup_from_info (PyGIArgCache  *arg_cache,
 
            break;
        case GI_TYPE_TAG_BOOLEAN:
+            arg_cache->allow_none = TRUE;
+            /* fall through */
        case GI_TYPE_TAG_INT8:
        case GI_TYPE_TAG_UINT8:
        case GI_TYPE_TAG_INT16:
