@@ -6,7 +6,7 @@ Source: pygobject
 Section: python
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Iain Lane <laney@debian.org>, Jeremy Bicha <jbicha@debian.org>, Laurent Bigonville <bigon@debian.org>
+Uploaders: Iain Lane <laney@debian.org>, Jeremy Bicha <jbicha@debian.org>
 Build-Depends: at-spi2-core,
                autoconf-archive,
                dbus (>= 1.8),
@@ -20,7 +20,7 @@ Build-Depends: at-spi2-core,
                libcairo2-dev,
                libffi-dev (>= 3.0.5),
                libgirepository1.0-dev (>= 1.39.0),
-               libglib2.0-dev (>= 2.38.0),
+               libglib2.0-dev (>= 2.48.0),
                locales,
                pep8,
                pyflakes,
@@ -49,7 +49,7 @@ Homepage: https://wiki.gnome.org/Projects/PyGObject
 
 Package: python-gi
 Architecture: any
-Depends: gir1.2-glib-2.0 (>= 1.39.0),
+Depends: gir1.2-glib-2.0 (>= 1.48.0),
          ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends}
@@ -68,7 +68,7 @@ Description: Python 2.x bindings for gobject-introspection libraries
 
 Package: python3-gi
 Architecture: any
-Depends: gir1.2-glib-2.0 (>= 1.39.0),
+Depends: gir1.2-glib-2.0 (>= 1.48.0),
          ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends}
@@ -134,7 +134,7 @@ Description: Python 3 bindings for gobject-introspection libraries (debug extens
 Package: python-gi-dev
 Architecture: any
 Depends: libffi-dev (>= 3.0.5),
-         libglib2.0-dev (>= 2.35.9),
+         libglib2.0-dev (>= 2.48.0),
          python-gi (= ${binary:Version}),
          python3-gi (= ${binary:Version}),
          ${misc:Depends},
