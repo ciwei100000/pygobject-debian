@@ -1,8 +1,9 @@
-pygobject (3.31.4-1) UNRELEASED; urgency=medium
+pygobject (3.31.4-1) experimental; urgency=medium
 
   * New upstream release
+  * Bump minimum glib to 2.48.0
 
- -- Jeremy Bicha <jbicha@debian.org>  Thu, 07 Mar 2019 16:20:12 -0500
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 08 Mar 2019 09:45:40 -0500
 
 pygobject (3.30.4-1) unstable; urgency=medium
 
