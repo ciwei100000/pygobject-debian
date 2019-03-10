@@ -1,3 +1,9 @@
+pygobject (3.32.0-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Jeremy Bicha <jbicha@debian.org>  Sun, 10 Mar 2019 12:58:56 -0400
+
 pygobject (3.31.4-1) experimental; urgency=medium
 
   * New upstream release
