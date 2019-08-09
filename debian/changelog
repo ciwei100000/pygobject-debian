@@ -1,3 +1,10 @@
+pygobject (3.32.2-1) UNRELEASED; urgency=medium
+
+  * New upstream release:
+    - Python 3.8b1 compatibility fixes
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 09 Aug 2019 18:03:16 +0200
+
 pygobject (3.32.0-1) experimental; urgency=medium
 
   * New upstream release
