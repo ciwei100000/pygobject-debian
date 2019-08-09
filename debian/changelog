@@ -1,4 +1,4 @@
-pygobject (3.32.2-1) UNRELEASED; urgency=medium
+pygobject (3.32.2-1) unstable; urgency=medium
 
   * New upstream release:
     - Python 3.8b1 compatibility fixes
