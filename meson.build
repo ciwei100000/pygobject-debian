@@ -1,5 +1,5 @@
 project('pygobject', 'c',
-  version : '3.32.0',
+  version : '3.32.2',
   meson_version : '>= 0.46.0',
   default_options : [ 'warning_level=1',
                       'buildtype=debugoptimized'])
@@ -72,7 +72,6 @@ else
     '-Wall',
     '-Warray-bounds',
     '-Wcast-align',
-    '-Wdeclaration-after-statement',
     '-Wduplicated-branches',
     '-Wextra',
     '-Wformat=2',
@@ -98,10 +97,17 @@ else
     '-Wsign-compare',
     '-Wstrict-aliasing',
     '-Wstrict-prototypes',
+    '-Wswitch-default',
     '-Wundef',
     '-Wunused-but-set-variable',
     '-Wwrite-strings',
   ]
+
+  if python.language_version().split('.')[0] == '2'
+    main_c_args += [
+        '-Wdeclaration-after-statement',
+    ]
+  endif
 
   main_c_args += [
     '-Wno-incompatible-pointer-types-discards-qualifiers',
@@ -117,12 +123,6 @@ else
     '-fno-strict-aliasing',
     '-fvisibility=hidden',
   ]
-
-  if not ['3.3', '3.4'].contains(python.language_version())
-    main_c_args += [
-      '-Wswitch-default',
-    ]
-  endif
 
   main_c_args = cc.get_supported_arguments(main_c_args)
 endif
@@ -174,4 +174,7 @@ configure_file(input : 'PKG-INFO.in',
 
 subdir('gi')
 subdir('pygtkcompat')
+with_tests = get_option('tests')
+if with_tests
 subdir('tests')
+endif
