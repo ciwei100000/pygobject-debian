@@ -1,6 +1,6 @@
 Metadata-Version: 1.2
 Name: PyGObject
-Version: 3.32.0
+Version: 3.32.2
 Summary: Python bindings for GObject Introspection
 Home-page: https://pygobject.readthedocs.io
 Author: James Henstridge
@@ -40,3 +40,4 @@ Classifier: Operating System :: Microsoft :: Windows
 Classifier: Programming Language :: C
 Classifier: Programming Language :: Python
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4

@@ -41,7 +41,7 @@ from distutils import dir_util, log
 from distutils.spawn import find_executable
 
 
-PYGOBJECT_VERSION = "3.32.0"
+PYGOBJECT_VERSION = "3.32.2"
 GLIB_VERSION_REQUIRED = "2.48.0"
 GI_VERSION_REQUIRED = "1.46.0"
 PYCAIRO_VERSION_REQUIRED = "1.11.1"
@@ -975,7 +975,6 @@ def add_ext_compiler_flags(ext, compiler, _cache={}):
                 "-Wall",
                 "-Warray-bounds",
                 "-Wcast-align",
-                "-Wdeclaration-after-statement",
                 "-Wduplicated-branches",
                 "-Wextra",
                 "-Wformat=2",
@@ -1001,14 +1000,15 @@ def add_ext_compiler_flags(ext, compiler, _cache={}):
                 "-Wsign-compare",
                 "-Wstrict-aliasing",
                 "-Wstrict-prototypes",
+                "-Wswitch-default",
                 "-Wundef",
                 "-Wunused-but-set-variable",
                 "-Wwrite-strings",
             ]
 
-            if sys.version_info[:2] != (3, 4):
+            if sys.version_info[0] == 2:
                 args += [
-                    "-Wswitch-default",
+                    "-Wdeclaration-after-statement",
                 ]
 
             args += [
@@ -1272,6 +1272,8 @@ def main():
             "install_pkgconfig": install_pkgconfig,
         },
         install_requires=install_requires,
+        python_requires=(
+            '>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4'),
         data_files=[
             ('include/pygobject-3.0', ['gi/pygobject.h']),
         ],
