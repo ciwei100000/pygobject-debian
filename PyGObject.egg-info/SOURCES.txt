@@ -19,6 +19,7 @@ setup.py
 .gitlab-ci/fixup-cov-paths.py
 .gitlab-ci/run-docker-gtk4.sh
 .gitlab-ci/run-docker-old.sh
+.gitlab-ci/run-docker-runtime.sh
 .gitlab-ci/run-docker.sh
 .gitlab-ci/test-docker-gtk4.sh
 .gitlab-ci/test-docker-old.sh
