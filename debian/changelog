@@ -1,8 +1,8 @@
-pygobject (3.33.1-1) UNRELEASED; urgency=medium
+pygobject (3.33.1-1) experimental; urgency=medium
 
   * New upstream release
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 20 Aug 2019 16:32:22 +0200
+ -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 20 Aug 2019 16:32:37 +0200
 
 pygobject (3.32.2-1) unstable; urgency=medium
 
