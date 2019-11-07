@@ -8,7 +8,7 @@ Depends: build-essential, python-gi-dev, python3-dev
 
 Tests: build2
 Restrictions: superficial
-Depends: build-essential, python-gi-dev, python2-dev
+Depends: build-essential, python-gi, python-gi-dev, python2-dev
 
 Tests: python2 python3
 Restrictions: superficial

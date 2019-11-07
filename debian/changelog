@@ -1,9 +1,15 @@
 pygobject (3.34.0-4) UNRELEASED; urgency=medium
 
+  [ Simon McVittie ]
   * d/tests: Fix some shellcheck warnings
   * d/tests/build*: Use correct compiler for proposed autopkgtest
     cross-architecture testing support
   * d/tests: Mark all tests as superficial
+
+  [ Dimitri John Ledkov ]
+  * Drop python-gi dependency from python-gi-dev. python2 is getting
+    actively removed, and python-gi-dev which is used for python3 bindings
+    shouldn't pull in python2 bindings.
 
  -- Simon McVittie <smcv@debian.org>  Mon, 23 Dec 2019 12:15:27 +0000
 

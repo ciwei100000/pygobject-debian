@@ -131,7 +131,6 @@ Package: python-gi-dev
 Architecture: any
 Depends: libffi-dev (>= 3.0.5),
          libglib2.0-dev (>= 2.48.0),
-         python-gi (= ${binary:Version}),
          python3-gi (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
