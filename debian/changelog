@@ -7,6 +7,8 @@ pygobject (3.34.0-2) UNRELEASED; urgency=medium
     Thanks to Matthias Klose. (Closes: #943428)
   * d/rules: Fail the build if any files are built but not installed
   * d/rules: Delete *.pyc files before running dh_missing
+  * Fix installation of extensions for Python 3.8.
+    Thanks to Matthias Klose. (Closes: #943430)
 
  -- Simon McVittie <smcv@debian.org>  Fri, 15 Nov 2019 19:21:20 +0000
 
