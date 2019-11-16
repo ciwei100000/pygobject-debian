@@ -1,5 +1,5 @@
 Tests: build
-Depends: build-essential, python-gi-dev, python3-all-dbg, python3-all-dev
+Depends: build-essential, python-gi-dev, python3-all-dbg, python3-all-dev, python3-gi-dbg
 
 Tests: build3
 Depends: build-essential, python-gi-dev, python3-dev
