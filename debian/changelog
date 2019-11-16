@@ -4,8 +4,10 @@ pygobject (3.34.0-3) UNRELEASED; urgency=medium
   * d/control.in: Remove python-gobject transitional package.
     It has been moved to src:pygobject-2 so that it naturally goes away
     when python-gobject-2 does.
+  * d/tests/build: Improve diagnostics on failure
+  * d/tests/control: Fix dependencies for python3.x-dbg
 
- -- Simon McVittie <smcv@debian.org>  Sat, 16 Nov 2019 17:05:18 +0000
+ -- Simon McVittie <smcv@debian.org>  Sat, 16 Nov 2019 19:37:22 +0000
 
 pygobject (3.34.0-2) unstable; urgency=medium
 
