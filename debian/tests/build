@@ -25,8 +25,32 @@ int main()
 }
 EOF
 
-gcc -o pytest pytest.c `pkg-config --cflags --libs python3 pygobject-3.0`
-echo "build: OK"
-[ -x pytest ]
-./pytest
-echo "run: OK"
+for version in $(py3versions -sv); do
+    for tail in "" "-dbg"; do
+        v="${version}${tail}"
+
+        case "$version" in
+            (3.[0-7])
+                pkg="python-$v"
+                ;;
+
+            (*)
+                case "$tail" in
+                    (-dbg)
+                        # There is no python-3.8-dbg-embed.pc yet
+                        pkg="python-${version}d-embed"
+                        ;;
+                    (*)
+                        pkg="python-${v}-embed"
+                        ;;
+                esac
+                ;;
+        esac
+
+        gcc -o "pytest$v" pytest.c `pkg-config --cflags --libs "$pkg" pygobject-3.0`
+        echo "build ($v): OK"
+        [ -x "pytest$v" ]
+        ./"pytest$v"
+        echo "run ($v): OK"
+    done
+done
