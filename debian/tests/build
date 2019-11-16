@@ -18,12 +18,25 @@ int main()
 {
     PyObject *gobject;
 
+    Py_UnbufferedStdioFlag = 1;
     Py_InitializeEx (FALSE);
+    if (PyErr_Occurred ()) {
+        PySys_WriteStderr ("Error in Py_InitializeEx\n");
+        PyErr_Print ();
+        return 1;
+    }
     gobject = pygobject_init (-1, -1, -1);
+    if (PyErr_Occurred ()) {
+        PySys_WriteStderr ("Error in pygobject_init\n");
+        PyErr_Print ();
+        return 2;
+    }
     assert (gobject != NULL);
     return 0;
 }
 EOF
+
+failed=
 
 for version in $(py3versions -sv); do
     for tail in "" "-dbg"; do
@@ -47,10 +60,21 @@ for version in $(py3versions -sv); do
                 ;;
         esac
 
-        gcc -o "pytest$v" pytest.c `pkg-config --cflags --libs "$pkg" pygobject-3.0`
-        echo "build ($v): OK"
-        [ -x "pytest$v" ]
-        ./"pytest$v"
-        echo "run ($v): OK"
+        if gcc -o "pytest$v" pytest.c `pkg-config --cflags --libs "$pkg" pygobject-3.0`; then
+            echo "build ($v): OK"
+            [ -x "pytest$v" ]
+            if ./"pytest$v"; then
+                echo "run ($v): OK"
+            else
+                echo "run ($v): FAILED"
+                failed=yes
+            fi
+        else
+            echo "build ($v): FAILED"
+            failed=yes
+        fi
     done
 done
+if [ -n "$failed" ]; then
+    exit 1
+fi
