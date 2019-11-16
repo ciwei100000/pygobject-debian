@@ -1,6 +1,9 @@
 pygobject (3.34.0-3) UNRELEASED; urgency=medium
 
   * d/copyright: Add copyright holder for autopkgtest
+  * d/control.in: Remove python-gobject transitional package.
+    It has been moved to src:pygobject-2 so that it naturally goes away
+    when python-gobject-2 does.
 
  -- Simon McVittie <smcv@debian.org>  Sat, 16 Nov 2019 17:05:18 +0000
 

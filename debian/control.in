@@ -157,15 +157,3 @@ Description: Python 3 Cairo bindings for the GObject library
  .
  This package contains the Python 3 Cairo bindings for GObject. It is mostly
  used by other bindings to map their GObjects to Python objects.
-
-Package: python-gobject
-Section: oldlibs
-Architecture: all
-Depends: python-gi (>= ${source:Version}),
-         python-gobject-2,
-         ${misc:Depends}
-Description: Python 2.x bindings for GObject - transitional package
- This package will bring the two versions of GObject Python modules: the
- deprecated gobject module, and the new gobject-introspection system. It
- is here for upgrade purposes only. You can remove it safely when
- nothing else depends on it.
