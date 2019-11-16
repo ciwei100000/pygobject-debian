@@ -1,5 +1,6 @@
-pygobject (3.34.0-2) UNRELEASED; urgency=medium
+pygobject (3.34.0-2) unstable; urgency=medium
 
+  * Team upload
   * Remove unused build-dependency on python-apt-dbg.
     It doesn't seem to be used anywhere, and removing it has no effect
     on the built binary packages (verified with diffoscope).
@@ -9,8 +10,10 @@ pygobject (3.34.0-2) UNRELEASED; urgency=medium
   * d/rules: Delete *.pyc files before running dh_missing
   * Fix installation of extensions for Python 3.8.
     Thanks to Matthias Klose. (Closes: #943430)
+  * d/tests/build2: Test embedding with Python 2
+  * d/tests/build, d/tests/python3-all: Test all supported Python versions
 
- -- Simon McVittie <smcv@debian.org>  Fri, 15 Nov 2019 19:21:20 +0000
+ -- Simon McVittie <smcv@debian.org>  Sat, 16 Nov 2019 10:49:25 +0000
 
 pygobject (3.34.0-1) unstable; urgency=medium
 

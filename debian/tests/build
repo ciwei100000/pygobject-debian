@@ -37,7 +37,7 @@ for version in $(py3versions -sv); do
             (*)
                 case "$tail" in
                     (-dbg)
-                        # There is no python-3.8-dbg-embed.pc yet
+                        # There is no python-3.8-dbg-embed.pc yet (#944852)
                         pkg="python-${version}d-embed"
                         ;;
                     (*)
