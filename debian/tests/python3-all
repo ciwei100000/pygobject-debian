@@ -1,6 +1,8 @@
 #!/bin/sh -e
-mydir=`dirname $0`
+mydir="$(dirname "$0")"
 
+# Deliberately word-splitting:
+# shellcheck disable=SC2046
 for version in $(py3versions -sv); do
     for tail in "" "-dbg"; do
         v="${version}${tail}"

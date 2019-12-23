@@ -7,8 +7,8 @@
 set -e
 
 WORKDIR=$(mktemp -d)
-trap "rm -rf $WORKDIR" 0 INT QUIT ABRT PIPE TERM
-cd $WORKDIR
+trap 'rm -rf "$WORKDIR"' 0 INT QUIT ABRT PIPE TERM
+cd "$WORKDIR"
 cat <<EOF > pytest.c
 #include <Python.h>
 #include <pygobject.h>
@@ -25,6 +25,8 @@ int main()
 }
 EOF
 
+# Deliberately word-splitting, that's how pkg-config works:
+# shellcheck disable=SC2046
 gcc -o pytest pytest.c `pkg-config --cflags --libs python3 pygobject-3.0`
 echo "build: OK"
 [ -x pytest ]
