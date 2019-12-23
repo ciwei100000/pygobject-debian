@@ -1,6 +1,8 @@
 pygobject (3.34.0-4) UNRELEASED; urgency=medium
 
   * d/tests: Fix some shellcheck warnings
+  * d/tests/build*: Use correct compiler for proposed autopkgtest
+    cross-architecture testing support
 
  -- Simon McVittie <smcv@debian.org>  Mon, 23 Dec 2019 12:15:27 +0000
 

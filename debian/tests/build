@@ -9,6 +9,13 @@ set -e
 WORKDIR=$(mktemp -d)
 trap 'rm -rf "$WORKDIR"' 0 INT QUIT ABRT PIPE TERM
 cd "$WORKDIR"
+
+if [ -n "${DEB_HOST_GNU_TYPE:-}" ]; then
+    CROSS_COMPILE="$DEB_HOST_GNU_TYPE-"
+else
+    CROSS_COMPILE=
+fi
+
 cat <<EOF > pytest.c
 #include <Python.h>
 #include <pygobject.h>
@@ -62,7 +69,7 @@ for version in $(py3versions -sv); do
 
         # Deliberately word-splitting, that's how pkg-config works:
         # shellcheck disable=SC2046
-        if gcc -o "pytest$v" pytest.c `pkg-config --cflags --libs "$pkg" pygobject-3.0`; then
+        if "${CROSS_COMPILE}gcc" -o "pytest$v" pytest.c $("${CROSS_COMPILE}pkg-config" --cflags --libs "$pkg" pygobject-3.0); then
             echo "build ($v): OK"
             [ -x "pytest$v" ]
             if ./"pytest$v"; then
