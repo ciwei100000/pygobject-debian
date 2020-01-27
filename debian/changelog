@@ -1,4 +1,6 @@
-pygobject (3.34.0-4) UNRELEASED; urgency=medium
+pygobject (3.34.0-4) unstable; urgency=medium
+
+  * Team upload
 
   [ Simon McVittie ]
   * d/tests: Fix some shellcheck warnings
@@ -12,9 +14,9 @@ pygobject (3.34.0-4) UNRELEASED; urgency=medium
   [ Dimitri John Ledkov ]
   * Drop python-gi dependency from python-gi-dev. python2 is getting
     actively removed, and python-gi-dev which is used for python3 bindings
-    shouldn't pull in python2 bindings.
+    shouldn't pull in python2 bindings. (Closes: #945022)
 
- -- Simon McVittie <smcv@debian.org>  Mon, 23 Dec 2019 12:15:27 +0000
+ -- Simon McVittie <smcv@debian.org>  Mon, 27 Jan 2020 23:24:18 +0000
 
 pygobject (3.34.0-3) unstable; urgency=medium
 
