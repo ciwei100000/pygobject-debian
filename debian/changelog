@@ -5,6 +5,9 @@ pygobject (3.34.0-4) UNRELEASED; urgency=medium
   * d/tests/build*: Use correct compiler for proposed autopkgtest
     cross-architecture testing support
   * d/tests: Mark all tests as superficial
+  * Drop dependency on removed transitional package pep8
+  * Drop dependency on pyflakes, no longer used directly
+    (python${version} -m flake8 is used instead)
 
   [ Dimitri John Ledkov ]
   * Drop python-gi dependency from python-gi-dev. python2 is getting
