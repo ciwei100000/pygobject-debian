@@ -13,10 +13,10 @@ Build-Depends: at-spi2-core,
                dpkg-dev (>= 1.16.1~),
                gir1.2-gtk-3.0 <!nocheck>,
                gnome-pkg-tools (>= 0.10),
-               gobject-introspection (>= 1.46.0),
+               gobject-introspection (>= 1.62.0-4~),
                libcairo2-dev,
-               libffi-dev (>= 3.0.5),
-               libgirepository1.0-dev (>= 1.39.0),
+               libffi-dev (>= 3.3),
+               libgirepository1.0-dev (>= 1.62.0-4~),
                libglib2.0-dev (>= 2.48.0),
                locales,
                python-all-dbg,
@@ -127,7 +127,7 @@ Description: Python 3 bindings for gobject-introspection libraries (debug extens
 
 Package: python-gi-dev
 Architecture: any
-Depends: libffi-dev (>= 3.0.5),
+Depends: libffi-dev (>= 3.3),
          libglib2.0-dev (>= 2.48.0),
          python3-gi (= ${binary:Version}),
          ${misc:Depends},
