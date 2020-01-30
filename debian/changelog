@@ -4,6 +4,7 @@ pygobject (3.34.0-5) UNRELEASED; urgency=medium
     - Bump libffi-dev dependency to 3.3 to make sure we build with libffi7
     - Bump gobject-introspection dependency to a version that guarantees
       it was built with libffi7
+  * Standards-Version: 4.5.0 (no changes required)
 
  -- Simon McVittie <smcv@debian.org>  Thu, 30 Jan 2020 00:07:04 +0000
 
