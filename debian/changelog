@@ -1,3 +1,14 @@
+pygobject (3.34.0-6) UNRELEASED; urgency=medium
+
+  * d/tests/build3: Link with python3-embed.pc instead of python3.pc
+    when the default python3 becomes 3.8.
+    Python changed its behaviour in 3.8 so that python3.pc is only
+    correct for extensions like pygobject, not for embedders like vim, and
+    the program in this test is an embedder.
+    Based on a patch from Steve Langasek. (Closes: #950464)
+
+ -- Simon McVittie <smcv@debian.org>  Mon, 03 Feb 2020 09:43:17 +0100
+
 pygobject (3.34.0-5) unstable; urgency=medium
 
   * Team upload

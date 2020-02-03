@@ -32,9 +32,15 @@ int main()
 }
 EOF
 
+if python3 -c 'import sys; sys.exit(tuple(sys.version_info) < (3, 8))'; then
+    embed=python3-embed
+else
+    embed=python3
+fi
+
 # Deliberately word-splitting, that's how pkg-config works:
 # shellcheck disable=SC2046
-"${CROSS_COMPILE}gcc" -o pytest pytest.c $("${CROSS_COMPILE}pkg-config" --cflags --libs python3 pygobject-3.0)
+"${CROSS_COMPILE}gcc" -o pytest pytest.c $("${CROSS_COMPILE}pkg-config" --cflags --libs "$embed" pygobject-3.0)
 echo "build: OK"
 [ -x pytest ]
 ./pytest
