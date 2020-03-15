@@ -41,7 +41,7 @@ from distutils import dir_util, log
 from distutils.spawn import find_executable
 
 
-PYGOBJECT_VERSION = "3.34.0"
+PYGOBJECT_VERSION = "3.36.0"
 GLIB_VERSION_REQUIRED = "2.48.0"
 GI_VERSION_REQUIRED = "1.46.0"
 PYCAIRO_VERSION_REQUIRED = "1.11.1"
@@ -1111,6 +1111,9 @@ class build_ext(du_build_ext):
             add_ext_compiler_flags(gi_cairo_ext, compiler)
 
     def run(self):
+        if os.name == "nt" and sys.version_info[0] == 2:
+            raise SystemExit("Python 2 on Windows no longer supported since 3.35. Use Python 3 instead.")
+
         self._write_config_h()
         self._setup_extensions()
         du_build_ext.run(self)
