@@ -137,9 +137,10 @@ class Widget(Gtk.Widget):
 
     translate_coordinates = strip_boolean_result(Gtk.Widget.translate_coordinates)
 
-    def freeze_child_notify(self):
-        super(Widget, self).freeze_child_notify()
-        return _FreezeNotifyManager(self)
+    if Gtk._version != "4.0":
+        def freeze_child_notify(self):
+            super(Widget, self).freeze_child_notify()
+            return _FreezeNotifyManager(self)
 
     if Gtk._version != "4.0":
         def drag_dest_set_target_list(self, target_list):
@@ -186,18 +187,19 @@ class Container(Gtk.Container, Widget):
     # alias for Python 2.x object protocol
     __nonzero__ = __bool__
 
-    def child_get_property(self, child, property_name, value=None):
-        if value is None:
-            prop = self.find_child_property(property_name)
-            if prop is None:
-                raise ValueError('Class "%s" does not contain child property "%s"' %
-                                 (self, property_name))
-            value = GObject.Value(prop.value_type)
-
-        Gtk.Container.child_get_property(self, child, property_name, value)
-        return value.get_value()
-
     if Gtk._version in ("2.0", "3.0"):
+
+        def child_get_property(self, child, property_name, value=None):
+            if value is None:
+                prop = self.find_child_property(property_name)
+                if prop is None:
+                    raise ValueError('Class "%s" does not contain child property "%s"' %
+                                     (self, property_name))
+                value = GObject.Value(prop.value_type)
+
+            Gtk.Container.child_get_property(self, child, property_name, value)
+            return value.get_value()
+
         def child_get(self, child, *prop_names):
             """Returns a list of child property values for the given names."""
             return [self.child_get_property(child, name) for name in prop_names]
@@ -450,14 +452,14 @@ SizeGroup = override(SizeGroup)
 __all__.append('SizeGroup')
 
 
-class MenuItem(Gtk.MenuItem):
-    __init__ = deprecated_init(Gtk.MenuItem.__init__,
-                               arg_names=('label',),
-                               category=PyGTKDeprecationWarning)
+if Gtk._version in ("2.0", "3.0"):
+    class MenuItem(Gtk.MenuItem):
+        __init__ = deprecated_init(Gtk.MenuItem.__init__,
+                                   arg_names=('label',),
+                                   category=PyGTKDeprecationWarning)
 
-
-MenuItem = override(MenuItem)
-__all__.append('MenuItem')
+    MenuItem = override(MenuItem)
+    __all__.append('MenuItem')
 
 
 def _get_utf8_length(string):
@@ -1605,7 +1607,7 @@ class TreeModelFilter(Gtk.TreeModelFilter):
 TreeModelFilter = override(TreeModelFilter)
 __all__.append('TreeModelFilter')
 
-if Gtk._version != '2.0':
+if Gtk._version == '3.0':
     class Menu(Gtk.Menu):
         def popup(self, parent_menu_shell, parent_menu_item, func, data, button, activate_time):
             self.popup_for_device(None, parent_menu_shell, parent_menu_item, func, data, button, activate_time)

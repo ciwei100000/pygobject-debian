@@ -1,5 +1,5 @@
 project('pygobject', 'c',
-  version : '3.34.0',
+  version : '3.36.0',
   meson_version : '>= 0.46.0',
   default_options : [ 'warning_level=1',
                       'buildtype=debugoptimized'])
@@ -14,6 +14,10 @@ platform_version = '@0@.0'.format(pygobject_version_major)
 
 pymod = import('python')
 python = pymod.find_installation(get_option('python'))
+
+if python.language_version().version_compare('< 3.0') and host_machine.system() == 'windows'
+  error('Python 2 on Windows no longer supported since 3.35. Use Python 3 instead.')
+endif
 
 python_dep = python.dependency()
 

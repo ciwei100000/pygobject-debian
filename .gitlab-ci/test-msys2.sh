@@ -31,9 +31,6 @@ pacman --noconfirm -S --needed \
     git \
     perl
 
-# https://github.com/Alexpux/MINGW-packages/issues/4333
-pacman --noconfirm -S --needed mingw-w64-$MSYS2_ARCH-$PYTHON-pathlib2
-
 # ccache setup
 export PATH="$MSYSTEM/lib/ccache/bin:$PATH"
 mkdir -p _ccache
@@ -52,7 +49,7 @@ export COVERAGE_FILE="${COV_DIR}/.coverage.${COV_KEY}"
 export PYTHONDEVMODE=1
 
 $PYTHON setup.py build_tests
-MSYSTEM= $PYTHON -m coverage run tests/runtests.py
+MSYSTEM= $PYTHON -m coverage run --context "${COV_KEY}" tests/runtests.py
 
 # FIXME: lcov doesn't support gcc9
 #~ curl -O -J -L "https://github.com/linux-test-project/lcov/archive/master.tar.gz"
