@@ -14,6 +14,7 @@ ifneq ($(filter $(DEB_BUILD_ARCH), ),)
 endif
 
 export PYBUILD_BEFORE_TEST = {interpreter} {dir}/setup.py build_tests
+export PYBUILD_DISABLE_python2=test
 
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
