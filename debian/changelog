@@ -1,3 +1,11 @@
+pygobject (3.36.0-3) unstable; urgency=medium
+
+  * Remove pytest from debian/control.in too; thanks to Scott Kitterman for
+    spotting this
+  * Disable tests for python2-dbg too
+
+ -- Sandro Tosi <morph@debian.org>  Sat, 18 Apr 2020 22:44:55 -0400
+
 pygobject (3.36.0-2) unstable; urgency=medium
 
   * Dont run unittests for python2 binary, to reduce pytest rdeps
