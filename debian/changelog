@@ -1,3 +1,10 @@
+pygobject (3.36.0-4) unstable; urgency=medium
+
+  * Team upload
+  * Build without Python 2 support (Closes: #937448, #943104)
+
+ -- Simon McVittie <smcv@debian.org>  Thu, 16 Jul 2020 17:40:41 +0100
+
 pygobject (3.36.0-3) unstable; urgency=medium
 
   * Remove pytest from debian/control.in too; thanks to Scott Kitterman for
