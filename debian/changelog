@@ -1,3 +1,14 @@
+pygobject (3.36.1-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+    - Fix failing tests with pytest 5.4.0+
+    - Add override to make sure both TreeModelSort.new_with_model and
+      TreeModel.sort_new_with_model exist, independent of the GTK version
+    - Fix initialisation order errors with Widgets getting created from C
+    - Fix errors when calling init_template() multiple times
+
+ -- Simon McVittie <smcv@debian.org>  Thu, 13 Aug 2020 10:29:04 +0100
+
 pygobject (3.36.0-4) unstable; urgency=medium
 
   * Team upload
