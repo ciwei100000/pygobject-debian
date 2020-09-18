@@ -1,8 +1,6 @@
 # -*- Mode: Python; py-indent-offset: 4 -*-
 # vim: tabstop=4 shiftwidth=4 expandtab
 
-from __future__ import absolute_import
-
 import re
 import os
 import sys
@@ -124,6 +122,11 @@ class TestGdk(unittest.TestCase):
         event = Gdk.Event()
         event.type = Gdk.EventType.SCROLL
         self.assertRaises(AttributeError, lambda: getattr(event, 'foo_bar'))
+
+    @unittest.skipIf(GDK4, "not in gdk4")
+    def test_scroll_event(self):
+        event = Gdk.Event.new(Gdk.EventType.SCROLL)
+        assert event.direction == Gdk.ScrollDirection.UP
 
     @unittest.skipIf(GDK4, "not in gdk4")
     def test_event_strip_boolean(self):
@@ -249,14 +252,16 @@ class TestGdk(unittest.TestCase):
         self.assertEqual(str(Gdk.ModifierType.META_MASK),
                          '<flags GDK_META_MASK of type Gdk.ModifierType>')
 
-        self.assertEqual(Gdk.ModifierType.RELEASE_MASK | 0, 0x40000000)
-        self.assertEqual(hex(Gdk.ModifierType.RELEASE_MASK), '0x40000000')
-        self.assertEqual(str(Gdk.ModifierType.RELEASE_MASK),
-                         '<flags GDK_RELEASE_MASK of type Gdk.ModifierType>')
+        # RELEASE_MASK does not exist in gdk4
+        if not GDK4:
+            self.assertEqual(Gdk.ModifierType.RELEASE_MASK | 0, 0x40000000)
+            self.assertEqual(hex(Gdk.ModifierType.RELEASE_MASK), '0x40000000')
+            self.assertEqual(str(Gdk.ModifierType.RELEASE_MASK),
+                             '<flags GDK_RELEASE_MASK of type Gdk.ModifierType>')
 
-        self.assertEqual(Gdk.ModifierType.RELEASE_MASK | Gdk.ModifierType.META_MASK, 0x50000000)
-        self.assertEqual(str(Gdk.ModifierType.RELEASE_MASK | Gdk.ModifierType.META_MASK),
-                         '<flags GDK_META_MASK | GDK_RELEASE_MASK of type Gdk.ModifierType>')
+            self.assertEqual(Gdk.ModifierType.RELEASE_MASK | Gdk.ModifierType.META_MASK, 0x50000000)
+            self.assertEqual(str(Gdk.ModifierType.RELEASE_MASK | Gdk.ModifierType.META_MASK),
+                             '<flags GDK_META_MASK | GDK_RELEASE_MASK of type Gdk.ModifierType>')
 
     @unittest.skipIf(GDK4, "not in gdk4")
     def test_color_parse(self):

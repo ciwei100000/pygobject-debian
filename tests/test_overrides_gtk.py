@@ -1,8 +1,5 @@
 # -*- Mode: Python; py-indent-offset: 4 -*-
-# coding: UTF-8
 # vim: tabstop=4 shiftwidth=4 expandtab
-
-from __future__ import absolute_import
 
 import contextlib
 import unittest
@@ -17,7 +14,6 @@ from .helper import ignore_gi_deprecation_warnings, capture_glib_warnings
 
 import gi.overrides
 import gi.types
-from gi._compat import cmp
 from gi.repository import GLib, GObject
 
 try:
@@ -65,8 +61,14 @@ def realized(widget):
         window.add(widget)
 
     widget.realize()
-    while Gtk.events_pending():
-        Gtk.main_iteration()
+    if Gtk._version == "4.0":
+        context = GLib.MainContext()
+        while context.pending():
+            context.iteration(False)
+    else:
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+
     assert widget.get_realized()
     yield widget
 
@@ -74,8 +76,13 @@ def realized(widget):
         window.remove(widget)
         window.destroy()
 
-    while Gtk.events_pending():
-        Gtk.main_iteration()
+    if Gtk._version == "4.0":
+        context = GLib.MainContext()
+        while context.pending():
+            context.iteration(False)
+    else:
+        while Gtk.events_pending():
+            Gtk.main_iteration()
 
 
 @unittest.skipUnless(Gtk, 'Gtk not available')
@@ -306,7 +313,8 @@ class TestGtk(unittest.TestCase):
         mi = ui.get_widget("/menubær1")
         self.assertEqual(type(mi), Gtk.MenuBar)
 
-    def test_window(self):
+    @unittest.skipIf(Gtk_version == "4.0", "not in gtk4")
+    def test_window_gtk3(self):
         # standard Window
         w = Gtk.Window()
         self.assertEqual(w.get_property('type'), Gtk.WindowType.TOPLEVEL)
@@ -337,6 +345,33 @@ class TestGtk(unittest.TestCase):
                          Gtk.WindowType.TOPLEVEL)
         self.assertEqual(builder.get_object('testpop').get_property('type'),
                          Gtk.WindowType.POPUP)
+
+    @unittest.skipUnless(Gtk_version == "4.0", "no GtkWindowType in gtk4")
+    def test_window_gtk4(self):
+        w = Gtk.Window()
+
+        # check that setting default size works
+        w.set_default_size(300, 300)
+        self.assertEqual(w.get_default_size(), (300, 300))
+
+        class TestWindow(Gtk.Window):
+            __gtype_name__ = "TestWindow"
+
+        # works from builder
+        builder = Gtk.Builder()
+        builder.add_from_string('''
+<interface>
+  <object class="GtkWindow" id="win">
+    <property name="css-name">amazing</property>
+  </object>
+  <object class="TestWindow" id="testwin">
+    <property name="css-name">amazing-test</property>
+  </object>
+</interface>''')
+        self.assertEqual(builder.get_object("win").get_property("css-name"),
+                         "amazing")
+        self.assertEqual(builder.get_object("testwin").get_property("css-name"),
+                         "amazing-test")
 
     def test_dialog_classes(self):
         self.assertEqual(Gtk.Dialog, gi.overrides.Gtk.Dialog)
@@ -655,6 +690,7 @@ class TestGtk(unittest.TestCase):
         sb = sw.get_vscrollbar()
         self.assertEqual(sw.get_vadjustment(), sb.get_adjustment())
 
+    @unittest.skipIf(Gtk_version == "4.0", "not in gtk4")
     def test_widget_drag_methods(self):
         widget = Gtk.Button()
 
@@ -672,10 +708,8 @@ class TestGtk(unittest.TestCase):
         widget.drag_dest_set_track_motion(True)
         widget.drag_dest_get_target_list()
         widget.drag_dest_set_target_list(None)
-        if GTK4:
-            widget.drag_dest_set_target_list(Gdk.ContentFormats.new([]))
-        else:
-            widget.drag_dest_set_target_list(Gtk.TargetList.new([Gtk.TargetEntry.new('test', 0, 0)]))
+
+        widget.drag_dest_set_target_list(Gtk.TargetList.new([Gtk.TargetEntry.new('test', 0, 0)]))
         widget.drag_dest_unset()
 
         widget.drag_highlight()
@@ -687,22 +721,38 @@ class TestGtk(unittest.TestCase):
         widget.drag_source_add_text_targets()
         widget.drag_source_add_uri_targets()
         widget.drag_source_set_icon_name("_About")
-        if not GTK4:
-            widget.drag_source_set_icon_pixbuf(GdkPixbuf.Pixbuf())
-            widget.drag_source_set_icon_stock(Gtk.STOCK_ABOUT)
+        widget.drag_source_set_icon_pixbuf(GdkPixbuf.Pixbuf())
+        widget.drag_source_set_icon_stock(Gtk.STOCK_ABOUT)
         widget.drag_source_get_target_list()
         widget.drag_source_set_target_list(None)
-        if GTK4:
-            widget.drag_source_set_target_list(Gdk.ContentFormats.new([]))
-        else:
-            widget.drag_source_set_target_list(Gtk.TargetList.new([Gtk.TargetEntry.new('test', 0, 0)]))
+        widget.drag_source_set_target_list(Gtk.TargetList.new([Gtk.TargetEntry.new('test', 0, 0)]))
         widget.drag_source_unset()
 
         # these methods cannot be called because they require a valid drag on
         # a real GdkWindow. So we only check that they exist and are callable.
-        if not GTK4:
-            self.assertTrue(hasattr(widget, 'drag_dest_set_proxy'))
+        self.assertTrue(hasattr(widget, 'drag_dest_set_proxy'))
         self.assertTrue(hasattr(widget, 'drag_get_data'))
+
+    @unittest.skipIf(Gtk_version != "4.0", "gtk4 only")
+    def test_widget_drag_methods_gtk4(self):
+        widget = Gtk.Button()
+        widget.drag_check_threshold(0, 0, 0, 0)
+
+        # drag source
+        drag_source = Gtk.DragSource()
+        content = Gdk.ContentProvider.new_for_value("data")
+        drag_source.set_content(content)
+        drag_source.set_actions(Gdk.DragAction.COPY)
+        image = Gtk.Image.new_from_icon_name("dialog-warning")
+        drag_source.set_icon(image.get_paintable(), 0, 0)
+        widget.add_controller(drag_source)
+
+        # drop target
+        drop_target = Gtk.DropTarget.new(Gdk.ContentFormats.new([]), Gdk.DragAction.COPY)
+        widget.add_controller(drop_target)
+
+        widget.remove_controller(drag_source)
+        widget.remove_controller(drop_target)
 
     @unittest.skipIf(sys.platform == "darwin", "crashes")
     @unittest.skipIf(GTK4, "uses lots of gtk3 only api")
@@ -778,12 +828,6 @@ class TestGtk(unittest.TestCase):
         self.assertEqual(button.props.label, 'mylabel')
         self.assertEqual(button.props.icon_widget, icon)
 
-    def test_toolbutton_gtk4(self):
-        icon = Gtk.Image.new()
-        button = Gtk.ToolButton(label='mylabel', icon_widget=icon)
-        self.assertEqual(button.props.label, 'mylabel')
-        self.assertEqual(button.props.icon_widget, icon)
-
     @unittest.skipIf(Gtk_version == "4.0", "not in gtk4")
     def test_iconset(self):
         Gtk.IconSet()
@@ -812,6 +856,7 @@ class TestGtk(unittest.TestCase):
         self.assertEqual(stock_item.stock_id, 'gtk-ok')
         self.assertEqual(Gtk.stock_lookup('nosuchthing'), None)
 
+    @unittest.skipIf(Gtk_version == "4.0", "not in gtk4")
     def test_gtk_main(self):
         # with no arguments
         GLib.idle_add(Gtk.main_quit)
@@ -2337,6 +2382,7 @@ class TestTreeModel(unittest.TestCase):
 
         def sort_func(store, iter1, iter2, data):
             assert data is None
+            cmp = lambda a, b: (a > b) - (a < b)
             return cmp(store[iter1][0], store[iter2][0])
 
         list_store.set_default_sort_func(sort_func)
@@ -2417,8 +2463,13 @@ class TestTreeView(unittest.TestCase):
 
         with realized(tree):
             tree.set_cursor(model[0].path)
-            while Gtk.events_pending():
-                Gtk.main_iteration()
+            if Gtk._version == "4.0":
+                context = GLib.MainContext()
+                while context.pending():
+                    context.iteration(False)
+            else:
+                while Gtk.events_pending():
+                    Gtk.main_iteration()
 
             self.assertEqual(tree.get_column(0).get_title(), 'Head1')
             self.assertEqual(tree.get_column(1).get_title(), 'Head2')
@@ -2742,3 +2793,11 @@ class TestContainer(unittest.TestCase):
         self.assertEqual(expand, False)
         self.assertEqual(fill, False)
         self.assertEqual(padding, 21)
+
+
+def test_button_focus_on_click():
+    b = Gtk.Button()
+    b.set_focus_on_click(True)
+    assert b.get_focus_on_click()
+    b.set_focus_on_click(False)
+    assert not b.get_focus_on_click()

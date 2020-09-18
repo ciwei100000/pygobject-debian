@@ -145,7 +145,6 @@ examples/demo/demos/data/gnu-keys.png
 examples/demo/demos/data/gtk-logo-rgb.gif
 examples/demo/demos/data/reset.css
 gi/__init__.py
-gi/_compat.py
 gi/_constants.py
 gi/_error.py
 gi/_gtktemplate.py
@@ -202,7 +201,6 @@ gi/pygi-object.c
 gi/pygi-object.h
 gi/pygi-property.c
 gi/pygi-property.h
-gi/pygi-python-compat.h
 gi/pygi-repository.c
 gi/pygi-repository.h
 gi/pygi-resulttuple.c

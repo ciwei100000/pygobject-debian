@@ -1,5 +1,5 @@
 project('pygobject', 'c',
-  version : '3.36.1',
+  version : '3.38.0',
   meson_version : '>= 0.46.0',
   default_options : [ 'warning_level=1',
                       'buildtype=debugoptimized'])
@@ -15,8 +15,8 @@ platform_version = '@0@.0'.format(pygobject_version_major)
 pymod = import('python')
 python = pymod.find_installation(get_option('python'))
 
-if python.language_version().version_compare('< 3.0') and host_machine.system() == 'windows'
-  error('Python 2 on Windows no longer supported since 3.35. Use Python 3 instead.')
+if python.language_version().version_compare('< 3.5')
+  error('Requires Python >= 3.5')
 endif
 
 python_dep = python.dependency()
@@ -43,29 +43,26 @@ with_pycairo = get_option('pycairo')
 
 cc = meson.get_compiler('c')
 
-if with_pycairo
-  cairo_dep = dependency('cairo', required: cc.get_id() != 'msvc')
-  cairo_gobject_dep = dependency('cairo-gobject', required: cc.get_id() != 'msvc')
+if not with_pycairo.disabled()
+  cairo_dep = dependency('cairo', required: with_pycairo.enabled() and cc.get_id() != 'msvc')
+  cairo_gobject_dep = dependency('cairo-gobject', required: with_pycairo.enabled() and cc.get_id() != 'msvc')
 
   if cc.get_id() == 'msvc' and (not cairo_gobject_dep.found() or not cairo_dep.found())
     if cc.has_header('cairo.h') and cc.has_header ('cairo-gobject.h')
-      cairo_dep = cc.find_library ('cairo')
-      cairo_gobject_dep = cc.find_library ('cairo-gobject')
+      cairo_dep = cc.find_library ('cairo', required: with_pycairo)
+      cairo_gobject_dep = cc.find_library ('cairo-gobject', required: with_pycairo)
     endif
   endif
 
-  if python.language_version().version_compare('>= 3.0')
-    pycairo_name = 'py3cairo'
-  else
-    pycairo_name = 'pycairo'
-  endif
-
   pycairo_dep = dependency(
-    pycairo_name,
+    'py3cairo',
     version: pycairo_version_req,
     fallback: ['pycairo', 'pycairo_dep'],
     default_options: ['python=' + get_option('python')],
+    required: with_pycairo,
   )
+else
+  cairo_dep = dependency('', required: false)
 endif
 
 main_c_args = []

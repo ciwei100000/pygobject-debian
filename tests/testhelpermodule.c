@@ -5,7 +5,12 @@
 #include "test-unknown.h"
 #include "test-floating.h"
 
-#include "pygi-python-compat.h"
+#define PYGI_DEFINE_TYPE(typename, symbol, csymbol)	\
+PyTypeObject symbol = {                                 \
+    PyVarObject_HEAD_INIT(NULL, 0)                      \
+    typename,                                           \
+    sizeof(csymbol)                                     \
+};
 
 static PyObject * _wrap_TestInterface__do_iface_method(PyObject *cls,
 						       PyObject *args,
@@ -82,7 +87,7 @@ _wrap_test_g_object_new (PyObject * self)
     PyObject *rv;
 
     obj = g_object_new(g_type_from_name("PyGObject"), NULL);
-    rv = PYGLIB_PyLong_FromLong(obj->ref_count); /* should be == 2 at this point */
+    rv = PyLong_FromLong(obj->ref_count); /* should be == 2 at this point */
     g_object_unref(obj);
     return rv;
 }
@@ -111,7 +116,7 @@ static const PyMethodDef _PyTestInterface_methods[] = {
 };
 
 /* TestInterface */
-PYGLIB_DEFINE_TYPE("test.Interface", PyTestInterface_Type, PyObject);
+PYGI_DEFINE_TYPE("test.Interface", PyTestInterface_Type, PyObject);
 
 static PyObject *
 _wrap_TestInterface__do_iface_method(PyObject *cls, PyObject *args, PyObject *kwargs)
@@ -136,7 +141,7 @@ _wrap_TestInterface__do_iface_method(PyObject *cls, PyObject *args, PyObject *kw
   return Py_None;
 }
 
-PYGLIB_DEFINE_TYPE("testhelper.Unknown", PyTestUnknown_Type, PyGObject);
+PYGI_DEFINE_TYPE("testhelper.Unknown", PyTestUnknown_Type, PyGObject);
 
 static void
 _wrap_TestInterface__proxy_do_iface_method(TestInterface *self)
@@ -222,10 +227,10 @@ static const GInterfaceInfo __TestInterface__iinfo = {
 };
 
 /* TestFloating */
-PYGLIB_DEFINE_TYPE("testhelper.Floating", PyTestFloating_Type, PyGObject);
+PYGI_DEFINE_TYPE("testhelper.Floating", PyTestFloating_Type, PyGObject);
 
 /* TestOwnedByLibrary */
-PYGLIB_DEFINE_TYPE("testhelper.OwnedByLibrary", PyTestOwnedByLibrary_Type, PyGObject);
+PYGI_DEFINE_TYPE("testhelper.OwnedByLibrary", PyTestOwnedByLibrary_Type, PyGObject);
 
 static PyObject *
 _wrap_test_owned_by_library_release (PyGObject *self)
@@ -240,7 +245,7 @@ static const PyMethodDef _PyTestOwnedByLibrary_methods[] = {
 };
 
 /* TestFloatingAndSunk */
-PYGLIB_DEFINE_TYPE("testhelper.FloatingAndSunk", PyTestFloatingAndSunk_Type, PyGObject);
+PYGI_DEFINE_TYPE("testhelper.FloatingAndSunk", PyTestFloatingAndSunk_Type, PyGObject);
 
 static PyObject *
 _wrap_test_floating_and_sunk_release (PyGObject *self)
@@ -583,7 +588,7 @@ _wrap_constant_strip_prefix(PyObject *self, PyObject *args)
         return NULL;
 
     result = pyg_constant_strip_prefix (name, strip_prefix);
-    return PYGLIB_PyUnicode_FromString (result);
+    return PyUnicode_FromString (result);
 }
 
 static PyObject *
@@ -676,7 +681,7 @@ _wrap_test_parse_constructor_args (PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PYGLIB_PyLong_FromLong (nparams);
+    return PyLong_FromLong (nparams);
 }
 
 G_GNUC_END_IGNORE_DEPRECATIONS
@@ -693,7 +698,7 @@ _wrap_test_to_unichar_conv (PyObject * self, PyObject *args)
     if (!pyg_pyobj_to_unichar_conv (obj, &result))
         return NULL;
 
-    return PYGLIB_PyLong_FromLong (result);
+    return PyLong_FromLong (result);
 }
 
 static PyMethodDef testhelper_functions[] = {
@@ -715,11 +720,32 @@ static PyMethodDef testhelper_functions[] = {
     { NULL, NULL }
 };
 
-PYGLIB_MODULE_START(testhelper, "testhelper")
-{
+static struct PyModuleDef _testhelpermodule = {
+    PyModuleDef_HEAD_INIT,
+    "testhelper",
+    NULL,
+    -1,
+    testhelper_functions,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+#ifdef __GNUC__
+#define PYGI_MODINIT_FUNC __attribute__((visibility("default"))) PyMODINIT_FUNC
+#else
+#define PYGI_MODINIT_FUNC PyMODINIT_FUNC
+#endif
+
+PYGI_MODINIT_FUNC PyInit_testhelper(void);
+
+PYGI_MODINIT_FUNC PyInit_testhelper(void) {
+  PyObject *module;
   PyObject *gobject_module;
   PyObject *m, *d;
 
+  module = PyModule_Create(&_testhelpermodule);
 
   if ((gobject_module = pygobject_init(-1, -1, -1)) == NULL)
     return NULL;
@@ -730,7 +756,7 @@ PYGLIB_MODULE_START(testhelper, "testhelper")
   if ((m = PyImport_ImportModule("gi.repository.GObject")) == NULL) {
     PyErr_SetString(PyExc_ImportError,
 		    "could not import gobject");
-    return PYGLIB_MODULE_ERROR_RETURN;
+    return NULL;
   }
 
   /* TestInterface */
@@ -779,6 +805,7 @@ PYGLIB_MODULE_START(testhelper, "testhelper")
                            &PyTestFloatingAndSunk_Type,
                            Py_BuildValue("(O)",
                            &PyGObject_Type));
+
+  return module;
 }
-PYGLIB_MODULE_END
 
