@@ -1,7 +1,3 @@
-# coding: UTF-8
-
-from __future__ import absolute_import
-
 import tempfile
 import os
 import pytest
@@ -599,13 +595,14 @@ def test_template_hierarchy():
       </template>
      </interface>
     """
+
     @Gtk.Template(string=testlabel)
     class TestLabel(Gtk.Label):
 
         __gtype_name__ = "TestLabel"
 
         def __init__(self):
-            super(TestLabel, self).__init__()
+            super().__init__()
             self.props.label = "TestLabel"
 
     testbox = """
@@ -617,6 +614,7 @@ def test_template_hierarchy():
       </template>
     </interface>
     """
+
     @Gtk.Template(string=testbox)
     class TestBox(Gtk.Box):
 
@@ -625,7 +623,7 @@ def test_template_hierarchy():
         _testlabel = Gtk.Template.Child()
 
         def __init__(self):
-            super(TestBox, self).__init__()
+            super().__init__()
 
             assert isinstance(self._testlabel, TestLabel)
 
@@ -643,6 +641,7 @@ def test_template_hierarchy():
       </template>
     </interface>
     """
+
     @Gtk.Template(string=window)
     class MyWindow(Gtk.Window):
 
@@ -652,7 +651,7 @@ def test_template_hierarchy():
         _testlabel = Gtk.Template.Child()
 
         def __init__(self):
-            super(MyWindow, self).__init__()
+            super().__init__()
 
             assert isinstance(self._testbox, TestBox)
             assert isinstance(self._testlabel, TestLabel)
@@ -672,6 +671,7 @@ def test_multiple_init_template_calls():
        </template>
      </interface>
     """
+
     @Gtk.Template(string=xml)
     class MyBox(Gtk.Box):
 
@@ -680,7 +680,7 @@ def test_multiple_init_template_calls():
         _label = Gtk.Template.Child()
 
         def __init__(self):
-            super(MyBox, self).__init__()
+            super().__init__()
             self._label.props.label = "awesome label"
 
     my_box = MyBox()
