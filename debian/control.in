@@ -6,7 +6,7 @@ Uploaders: @GNOME_TEAM@
 Build-Depends: at-spi2-core,
                autoconf-archive,
                dbus (>= 1.8),
-               debhelper (>= 12~),
+               debhelper-compat (= 12),
                dh-exec,
                dh-python,
                docbook-xsl,
