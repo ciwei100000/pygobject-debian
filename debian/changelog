@@ -1,8 +1,11 @@
-pygobject (3.38.0-1) UNRELEASED; urgency=medium
+pygobject (3.38.0-1) unstable; urgency=medium
 
+  * Team upload
   * New upstream release
+    - gdk overrides: Fix wrapping of scroll events
+    - Add overrides for Gtk.Button set/get_focus_on_click
 
- -- Simon McVittie <smcv@debian.org>  Fri, 18 Sep 2020 09:10:41 +0100
+ -- Simon McVittie <smcv@debian.org>  Fri, 18 Sep 2020 09:30:51 +0100
 
 pygobject (3.36.1-1) unstable; urgency=medium
 
