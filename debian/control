@@ -7,13 +7,12 @@ Section: python
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
 Uploaders: Iain Lane <laney@debian.org>, Jeremy Bicha <jbicha@debian.org>, Laurent Bigonville <bigon@debian.org>
-Build-Depends: at-spi2-core,
+Build-Depends: at-spi2-core <!nocheck>,
                autoconf-archive,
-               dbus (>= 1.8),
+               dbus (>= 1.8) <!nocheck>,
                debhelper-compat (= 12),
                dh-exec,
                dh-python,
-               docbook-xsl,
                dpkg-dev (>= 1.16.1~),
                gir1.2-gtk-3.0 <!nocheck>,
                gnome-pkg-tools (>= 0.10),
@@ -22,16 +21,14 @@ Build-Depends: at-spi2-core,
                libffi-dev (>= 3.3),
                libgirepository1.0-dev (>= 1.62.0-4~),
                libglib2.0-dev (>= 2.48.0),
-               locales,
+               locales <!nocheck>,
                python3-all-dbg,
                python3-all-dev,
-               python3-cairo-dbg,
                python3-cairo-dev (>= 1.11.1),
-               python3-flake8,
+               python3-flake8 <!nocheck>,
                python3-pytest <!nocheck>,
                python3-setuptools,
                xauth <!nocheck>,
-               xsltproc,
                xvfb <!nocheck>
 Rules-Requires-Root: no
 Standards-Version: 4.5.0
