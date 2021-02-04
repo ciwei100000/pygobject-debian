@@ -1,3 +1,29 @@
+pygobject (3.38.0-2) unstable; urgency=medium
+
+  * Team upload
+
+  [ Helmut Grohne ]
+  * Reduce Build-Depends
+    - at-spi2-core was added to fix failing tests. Annotate <!nocheck>.
+    - dbus is also used for running tests. Annotate <!nocheck>.
+    - Drop docbook-xsl and xsltproc. Documentation is now restructured text.
+    - Drop python3-cairo-dbg as Python no longer varies the path for debugged
+      extensions.
+    - python3-flake8 is used for setup.py quality. Annotate <!nocheck>.
+    - locales is evidently used in tests. Annotate <!nocheck>.
+    (Closes: #980769)
+
+  [ Simon McVittie ]
+  * Standards-Version: 4.5.1 (no changes required)
+  * Make python3-gi Multi-Arch: allowed.
+    This allows it to be depended on as "python3-gi:any", in conjunction
+    with "python3:any", if an architecture-specific package contains a
+    Python script that will "import gi", but does not rely on the Python
+    interpreter that runs that script having an architecture that matches
+    the architecture of the depending package itself. (Closes: #971745)
+
+ -- Simon McVittie <smcv@debian.org>  Thu, 04 Feb 2021 13:53:44 +0000
+
 pygobject (3.38.0-1) unstable; urgency=medium
 
   * Team upload
