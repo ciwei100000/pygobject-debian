@@ -1,3 +1,9 @@
+pygobject (3.38.0-2.1) unstable; urgency=medium
+
+  * Re-add python3-cairo-dbg to build for Debian 10
+
+ -- ciwei100000 <ciwei100000@gmail.com>  Wed, 17 Feb 2021 18:18:59 -0800
+
 pygobject (3.38.0-2) unstable; urgency=medium
 
   * Team upload
